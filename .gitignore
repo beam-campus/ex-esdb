@@ -17,10 +17,12 @@ tmp/
 /tmp
 /system/tmp
 
+
 erl_crash.dump
 *.ez
 *.beam
 apis-*.tar.gz
+
 
 /config/*.secret.exs
 .elixir_ls/
