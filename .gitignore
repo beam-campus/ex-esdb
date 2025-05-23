@@ -16,12 +16,14 @@ tmp/
 /.fetch
 /tmp
 /system/tmp
+/system/doc
 
 
 erl_crash.dump
 *.ez
 *.beam
 apis-*.tar.gz
+*.tar
 
 
 /config/*.secret.exs
