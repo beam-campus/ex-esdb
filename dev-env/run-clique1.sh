@@ -22,4 +22,7 @@ docker-compose -f ex-esdb-clique1.yaml \
   down
 
 docker-compose -f ex-esdb-clique1.yaml \
-  up --remove-orphans --build -d
+  up \
+  --remove-orphans \
+  --build \
+  -d

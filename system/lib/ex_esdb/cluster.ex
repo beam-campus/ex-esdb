@@ -71,6 +71,33 @@ defmodule ExESDB.Cluster do
   end
 
   @impl true
+  def handle_info(:check_leader, state) do
+    timeout = state[:timeout]
+
+    {_store_id, leader_node} =
+      state[:store_id]
+      |> :ra_leaderboard.lookup_leader()
+
+    if node() == leader_node do
+      Logger.warning("I am the leader")
+    else
+      Logger.warning("I am not the leader. #{inspect(leader_node)} is the leader")
+    end
+
+    Process.send_after(self(), :check_leader, 2 * timeout)
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info({:DOWN, _ref, :process, pid, reason}, state) do
+    state[:store_id]
+    |> leave()
+
+    Logger.warning("#{Themes.cluster(pid)} going down with reason: #{inspect(reason)}")
+    {:noreply, state}
+  end
+
+  @impl true
   def handle_info({:EXIT, pid, reason}, state) do
     Logger.warning("#{Themes.cluster(pid)} exited with reason: #{inspect(reason)}")
 
@@ -80,21 +107,32 @@ defmodule ExESDB.Cluster do
     {:noreply, state}
   end
 
+  @impl true
+  def handle_info(_, state) do
+    {:noreply, state}
+  end
+
   ############# PLUMBING #############
   @impl true
   def terminate(reason, state) do
     Logger.warning("#{Themes.cluster(self())} terminating with reason: #{inspect(reason)}")
-    state[:store_id] |> leave()
+
+    state[:store_id]
+    |> leave()
+
+    :ok
   end
 
   @impl true
   def init(config) do
     timeout = config[:timeout] || 1000
+    state = Keyword.put(config, :timeout, timeout)
     Logger.warning("#{Themes.cluster(self())} is UP")
     Process.flag(:trap_exit, true)
     Process.send_after(self(), :join, timeout)
     Process.send_after(self(), :members, 2 * timeout)
-    {:ok, config}
+    Process.send_after(self(), :check_leader, 2 * timeout)
+    {:ok, state}
   end
 
   def start_link(opts),

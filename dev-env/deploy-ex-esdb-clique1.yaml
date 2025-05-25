@@ -1,7 +1,7 @@
 networks:
   esdb-net:
     name: esdb-net
-    driver: bridge
+    driver: overlay
 
 volumes:
   esdb0-data:
@@ -38,8 +38,6 @@ volumes:
 services:
   ex-esdb0:
     image: local/ex-esdb
-    build:
-      context: ../system
     hostname: node0
     container_name: ex-esdb0
     volumes:
@@ -50,17 +48,19 @@ services:
       EX_ESDB_STORE_ID: "reg_gh"
       EX_ESDB_COOKIE: "reg_gh_clique1"
       EX_ESDB_SEED_NODES: "ex_esdb@node0"
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "./check-ex-esdb.sh"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 3
-  #     start_period: 30s
-  #
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    # healthcheck:
+    #   test: ["CMD-SHELL", "./check-ex-esdb.sh"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 3
+    #   start_period: 30s
+    #
   ex-esdb1:
     image: local/ex-esdb
-    build:
-      context: ../system
     hostname: node1
     container_name: ex-esdb1
     volumes:
@@ -71,6 +71,10 @@ services:
       EX_ESDB_STORE_ID: "reg_gh"
       EX_ESDB_COOKIE: "reg_gh_clique1"
       EX_ESDB_SEED_NODES: "ex_esdb@node0,ex_esdb@node2,ex_esdb@node3,ex_esdb@node4"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
     # healthcheck:
     #   test: ["CMD-SHELL", "./check-ex-esdb.sh"]
     #   interval: 10s
@@ -83,8 +87,6 @@ services:
 
   ex-esdb2:
     image: local/ex-esdb
-    build:
-      context: ../system
     hostname: node2
     container_name: ex-esdb2
     volumes:
@@ -95,6 +97,10 @@ services:
       EX_ESDB_STORE_ID: "reg_gh"
       EX_ESDB_COOKIE: "reg_gh_clique1"
       EX_ESDB_SEED_NODES: "ex_esdb@node0,ex_esdb@node1,ex_esdb@node3,ex_esdb@node4"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
     # healthcheck:
     #   test: ["CMD-SHELL", "./check-ex-esdb.sh"]
     #   interval: 10s
@@ -107,8 +113,6 @@ services:
 
   ex-esdb3:
     image: local/ex-esdb
-    build:
-      context: ../system
     hostname: node3
     container_name: ex-esdb3
     volumes:
@@ -119,6 +123,10 @@ services:
       EX_ESDB_STORE_ID: "reg_gh"
       EX_ESDB_COOKIE: "reg_gh_clique1"
       EX_ESDB_SEED_NODES: "ex_esdb@node0,ex_esdb@node1,ex_esdb@node2,ex_esdb@node4"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
     # healthcheck:
     #   test: ["CMD-SHELL", "./check-ex-esdb.sh"]
     #   interval: 10s
@@ -131,8 +139,6 @@ services:
 
   ex-esdb4:
     image: local/ex-esdb
-    build:
-      context: ../system
     hostname: node4
     container_name: ex-esdb4
     volumes:
@@ -143,6 +149,10 @@ services:
       EX_ESDB_STORE_ID: "reg_gh"
       EX_ESDB_COOKIE: "reg_gh_clique1"
       EX_ESDB_SEED_NODES: "ex_esdb@node0,ex_esdb@node1,ex_esdb@node2,ex_esdb@node3"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
     # healthcheck:
     #   test: ["CMD-SHELL", "./check-ex-esdb.sh"]
     #   interval: 10s

@@ -5,7 +5,7 @@ defmodule ExESDB.MixProject do
   @app_name :ex_esdb
   @elixir_version "~> 1.17"
   @version "0.0.9-alpha"
-  @source_url "https://github.com/beam-campus/ex-esdb"
+  @source_url "https://codeberg.org/beam-campus/ex-esdb"
   #  @homepage_url "https://github.com/beam-campus/ex-esdb"
   @docs_url "https://hexdocs.pm/ex_esdb"
   # @package_url "https://hex.pm/packages/ex_esdb"
@@ -147,7 +147,7 @@ defmodule ExESDB.MixProject do
       #      organization: "beam-campus",
       licenses: ["MIT"],
       links: %{
-        "GitHub" => @source_url
+        "Codeberg" => @source_url
       },
       source_url: @source_url
     ]

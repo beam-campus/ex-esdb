@@ -29,13 +29,7 @@ defmodule ExESDB.Repl.EventStreamMonitor do
     pub_sub = opts[:pub_sub]
 
     case store
-         |> Subscriptions.subscribe_to(
-           :all,
-           "all_to_pg",
-           pub_sub,
-           0,
-           opts
-         ) do
+         |> Subscriptions.subscribe_to("$all", "all_to_pg", pub_sub, 0, opts) do
       :ok ->
         Logger.info(
           "#{Themes.monitor(self())} => Subscribed to Topic #{inspect(topic, pretty: true)}"

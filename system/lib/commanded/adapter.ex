@@ -99,13 +99,13 @@ defmodule ExESDB.Commanded.Adapter do
   """
   @spec delete_subscription(
           adapter_meta :: adapter_meta,
-          arg2 :: :all | stream_uuid,
+          arg2 :: stream_uuid,
           subscription_name :: subscription_name
         ) :: :ok | {:error, error}
   @impl Commanded.EventStore.Adapter
-  def delete_subscription(%{store_id: store}, :all, subscription_name) do
+  def delete_subscription(%{store_id: store}, "$all", subscription_name) do
     case store
-         |> Subscriptions.delete_subscription(:all, subscription_name) do
+         |> Subscriptions.delete_subscription("$all", subscription_name) do
       {:ok, _} -> :ok
       {:error, reason} -> {:error, reason}
     end
@@ -188,7 +188,7 @@ defmodule ExESDB.Commanded.Adapter do
   """
   @spec subscribe(
           adapter_meta :: adapter_meta,
-          stream_uuid :: String.t() | :all
+          stream_uuid :: String.t()
         ) ::
           :ok | {:error, error}
 
@@ -211,7 +211,7 @@ defmodule ExESDB.Commanded.Adapter do
   """
   @spec subscribe_to(
           adapter_meta :: adapter_meta,
-          stream_uuid :: String.t() | :all,
+          stream_uuid :: String.t(),
           subscription_name :: String.t(),
           subscriber :: pid,
           start_from :: :origin | :current | non_neg_integer,

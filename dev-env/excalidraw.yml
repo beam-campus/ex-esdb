@@ -11,7 +11,7 @@ services:
     image: excalidraw/excalidraw:latest
     container_name: excalidraw
     ports:
-      - 5000:80
+      - 80:80
     networks:
       - dev-net
     volumes:

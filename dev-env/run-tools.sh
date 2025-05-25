@@ -11,13 +11,11 @@ sudo mkdir -p /volume/excalidraw/data
 sudo chown "$USER" -R /volume/
 
 docker-compose -f livebook.yml \
-  -f xoom-designer.yml \
   -f excalidraw.yml \
   -f networks.yml \
   down
 
 docker-compose -f livebook.yml \
-  -f xoom-designer.yml \
   -f excalidraw.yml \
   -f networks.yml \
-  up --remove-orphans --build $1
+  up --remove-orphans --build -d

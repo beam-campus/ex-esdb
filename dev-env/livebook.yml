@@ -3,6 +3,12 @@ services:
     image: local/livebook
     build:
       context: ./backend/livebook
+    container_name: livebook
+    hostname: livebook
+    networks:
+      - dev-net
     ports:
       - 8080:8080
       - 8081:8081
+    environment:
+      - LIVEBOOK_PASSWORD

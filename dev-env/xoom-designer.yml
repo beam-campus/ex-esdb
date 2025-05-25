@@ -5,7 +5,7 @@ services:
     networks:
       - dev-net
     ports:
-      - 8090:19090
+      - 19090:19090
     env_file:
       - ./backend/xoom/designer/.env
 

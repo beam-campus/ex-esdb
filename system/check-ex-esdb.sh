@@ -1,6 +1,6 @@
 #!/bin/bash
 
-epmd -names | grep -q ex_esdb &&
+epmd -names | grep -q ex-esdb &&
   erl -noshell \
     -name "health@$(hostname)" \
     -setcookie "$EX_ESDB_COOKIE" \

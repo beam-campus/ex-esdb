@@ -12,6 +12,7 @@ defmodule ExESDB.Emitters do
   #   DynamicSupervisor.init(strategy: :one_for_one)
   # end
   #
+
   def start_all_emitter(store, pool_size \\ 3) do
     filter = :ex_esdb_filter.by_stream("$all")
     start_emitter(store, "$all", pool_size, filter)

@@ -19,8 +19,8 @@ config :ex_esdb,
 
 config :ex_esdb, :khepri,
   data_dir: "/data",
-  store_id: :ex_esdb_store,
-  timeout: 10_000,
-  db_type: :single,
+  store_id: :reg_gh,
+  timeout: 2_000,
+  db_type: :cluster,
   seed_nodes: [],
-  pub_sub: :ex_esdb_pub_sub
+  pub_sub: :ex_esdb_pubsub

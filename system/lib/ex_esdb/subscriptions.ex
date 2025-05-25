@@ -2,14 +2,14 @@ defmodule ExESDB.Subscriptions do
   @moduledoc """
    Provides functions for working with event store subscriptions.
   """
-  @type store :: :khepri.store()
-  @type stream_uuid :: any()
+  @type store :: atom()
+  @type stream :: String.t()
   @type subscription_name :: String.t()
   @type error :: term
 
   use GenServer
 
-  require ExESDB.Themes, as: Themes
+  alias ExESDB.Emitters
   require Logger
 
   @doc """
@@ -17,7 +17,7 @@ defmodule ExESDB.Subscriptions do
   """
   @spec subscribe(
           store :: store,
-          stream :: String.t() | "$all"
+          stream :: stream
         ) ::
           :ok | {:error, error}
   def subscribe(store, stream \\ "$all") do
@@ -44,7 +44,7 @@ defmodule ExESDB.Subscriptions do
 
   @spec subscribe_to(
           store :: store,
-          stream_uuid :: :all | stream_uuid,
+          stream :: String.t(),
           subscription_name :: subscription_name,
           subscriber :: pid,
           start_from :: integer,
@@ -52,7 +52,7 @@ defmodule ExESDB.Subscriptions do
         ) :: :ok | {:error, error}
   def subscribe_to(
         store,
-        stream_uuid,
+        stream,
         subscription_name,
         subscriber,
         start_from \\ 0,
@@ -60,7 +60,7 @@ defmodule ExESDB.Subscriptions do
       ) do
     case store
          |> :khepri.put(
-           [:subscriptions, stream_uuid, subscription_name],
+           [:subscriptions, stream, subscription_name],
            %{
              subscriber: subscriber,
              start_from: start_from,
@@ -69,7 +69,7 @@ defmodule ExESDB.Subscriptions do
          ) do
       :ok ->
         store
-        |> register_emitter(stream_uuid, subscriber)
+        |> Emitters.start_stream_emitter(stream)
 
         :ok
 
@@ -79,14 +79,8 @@ defmodule ExESDB.Subscriptions do
   end
 
   def unsubscribe(store, subscription_name) do
-    case store
-         |> :khepri.delete!([:subscriptions, subscription_name]) do
-      {:ok, _} ->
-        :ok
-
-      {:error, reason} ->
-        {:error, reason}
-    end
+    store
+    |> :khepri.delete!([:subscriptions, subscription_name])
   end
 
   @doc """
@@ -95,14 +89,11 @@ defmodule ExESDB.Subscriptions do
   @spec delete_subscription(
           store :: any,
           subscription_name :: subscription_name,
-          stream_uuid :: stream_uuid | :all
+          stream_uuid :: stream_uuid
         ) :: :ok | {:error, error}
-  def delete_subscription(store, subscription_name, stream_uuid \\ :all) do
-    case store
-         |> :khepri.delete!([:subscriptions, subscription_name, stream_uuid]) do
-      {:ok, _} -> :ok
-      {:error, reason} -> {:error, reason}
-    end
+  def delete_subscription(store, subscription_name, stream_uuid \\ "$all") do
+    store
+    |> :khepri.delete!([:subscriptions, subscription_name, stream_uuid])
   end
 
   def all(store) do

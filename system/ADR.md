@@ -1,5 +1,12 @@
 # Architecture Decision Records
 
+## 2025.05.24
+
+### Emitter pools must run on the Ra leader.
+
+Given that Khepri triggers are executed on the Ra leader, emitter pools must run on the Ra leader.
+In order to achieve this, it is necessary that a separate process existst, that monitors the Cluster and subscribes to Ra's leadership changes, by starting relevant emitter pools on the new leader.
+
 ## 2025.05.02
 
 ### Triggers will obtain Emitter Pids from :pg (Process Groups)
