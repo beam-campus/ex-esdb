@@ -48,17 +48,15 @@ services:
       EX_ESDB_STORE_ID: "reg_gh"
       EX_ESDB_COOKIE: "reg_gh_clique1"
       EX_ESDB_SEED_NODES: "ex_esdb@node0"
+    stop_grace_period: 30s
     deploy:
       replicas: 1
       restart_policy:
         condition: on-failure
-    # healthcheck:
-    #   test: ["CMD-SHELL", "./check-ex-esdb.sh"]
-    #   interval: 10s
-    #   timeout: 5s
-    #   retries: 3
-    #   start_period: 30s
-    #
+        window: 120s
+        max_attempts: 3
+        delay: 10s
+
   ex-esdb1:
     image: local/ex-esdb
     hostname: node1
@@ -71,19 +69,14 @@ services:
       EX_ESDB_STORE_ID: "reg_gh"
       EX_ESDB_COOKIE: "reg_gh_clique1"
       EX_ESDB_SEED_NODES: "ex_esdb@node0,ex_esdb@node2,ex_esdb@node3,ex_esdb@node4"
+    stop_grace_period: 30s
     deploy:
       replicas: 1
       restart_policy:
         condition: on-failure
-    # healthcheck:
-    #   test: ["CMD-SHELL", "./check-ex-esdb.sh"]
-    #   interval: 10s
-    #   timeout: 5s
-    #   retries: 3
-    #   start_period: 30s
-    # depends_on:
-    #   ex-esdb0:
-    #     condition: service_healthy
+        window: 120s
+        max_attempts: 3
+        delay: 10s
 
   ex-esdb2:
     image: local/ex-esdb
@@ -97,19 +90,14 @@ services:
       EX_ESDB_STORE_ID: "reg_gh"
       EX_ESDB_COOKIE: "reg_gh_clique1"
       EX_ESDB_SEED_NODES: "ex_esdb@node0,ex_esdb@node1,ex_esdb@node3,ex_esdb@node4"
+    stop_grace_period: 30s
     deploy:
       replicas: 1
       restart_policy:
         condition: on-failure
-    # healthcheck:
-    #   test: ["CMD-SHELL", "./check-ex-esdb.sh"]
-    #   interval: 10s
-    #   timeout: 5s
-    #   retries: 3
-    #   start_period: 30s
-    # depends_on:
-    #   ex-esdb1:
-    #     condition: service_healthy
+        window: 120s
+        max_attempts: 3
+        delay: 10s
 
   ex-esdb3:
     image: local/ex-esdb
@@ -123,19 +111,14 @@ services:
       EX_ESDB_STORE_ID: "reg_gh"
       EX_ESDB_COOKIE: "reg_gh_clique1"
       EX_ESDB_SEED_NODES: "ex_esdb@node0,ex_esdb@node1,ex_esdb@node2,ex_esdb@node4"
+    stop_grace_period: 30s
     deploy:
       replicas: 1
       restart_policy:
         condition: on-failure
-    # healthcheck:
-    #   test: ["CMD-SHELL", "./check-ex-esdb.sh"]
-    #   interval: 10s
-    #   timeout: 5s
-    #   retries: 3
-    #   start_period: 30s
-    # depends_on:
-    #   ex-esdb2:
-    #     condition: service_healthy
+        window: 120s
+        max_attempts: 3
+        delay: 10s
 
   ex-esdb4:
     image: local/ex-esdb
@@ -149,16 +132,11 @@ services:
       EX_ESDB_STORE_ID: "reg_gh"
       EX_ESDB_COOKIE: "reg_gh_clique1"
       EX_ESDB_SEED_NODES: "ex_esdb@node0,ex_esdb@node1,ex_esdb@node2,ex_esdb@node3"
+    stop_grace_period: 30s
     deploy:
       replicas: 1
       restart_policy:
         condition: on-failure
-    # healthcheck:
-    #   test: ["CMD-SHELL", "./check-ex-esdb.sh"]
-    #   interval: 10s
-    #   timeout: 5s
-    #   retries: 3
-    #   start_period: 30s
-    # depends_on:
-    #   ex-esdb3:
-    #     condition: service_healthy
+        window: 120s
+        max_attempts: 3
+        delay: 10s

@@ -63,12 +63,12 @@ defmodule BeamCampus.ColorFuncs do
       f_name = String.to_atom("#{fg_name}_on_#{bg_name}")
       f_body = "\e[38;5;#{fg_code};48;5;#{bg_code}m"
 
-      IO.puts("#{f_body}Defining function: #{f_name}")
+      IO.puts("Declaring function #{f_name}")
 
       quote bind_quoted: [f_name: f_name, f_body: f_body] do
         def unquote(f_name)(), do: unquote(f_body)
       end
     end
 
-  Module.eval_quoted(__MODULE__, contents)
+  Module.eval_quoted(__MODULE__, contents, [])
 end

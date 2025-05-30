@@ -50,16 +50,11 @@ services:
       - ex-esdb-net
     volumes:
       - ex-esdb0-data:/data
+    stop_grace_period: 10s
     environment:
       EX_ESDB_STORE_ID: "reg_gh"
       EX_ESDB_COOKIE: "reg_greenhouse_cookie"
       EX_ESDB_SEED_NODES: "ex_esdb@node1,ex_esdb@node2,ex_esdb@node3,ex_esdb@node4"
-    healthcheck:
-      test: ["CMD-SHELL", "epmd -names | grep ex_esdb"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
 
   ex-esdb1:
     image: local/ex-esdb
@@ -75,15 +70,10 @@ services:
       EX_ESDB_STORE_ID: "reg_gh"
       EX_ESDB_COOKIE: "reg_greenhouse_cookie"
       EX_ESDB_SEED_NODES: "ex_esdb@node0,ex_esdb@node2,ex_esdb@node3,ex_esdb@node4"
+    stop_grace_period: 10s
     depends_on:
       ex-esdb0:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "epmd -names | grep ex_esdb"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
 
   ex-esdb2:
     image: local/ex-esdb
@@ -102,12 +92,7 @@ services:
     depends_on:
       ex-esdb0:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "epmd -names | grep ex_esdb"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
+    stop_grace_period: 10s
 
   ex-esdb3:
     image: local/ex-esdb
@@ -126,12 +111,7 @@ services:
     depends_on:
       ex-esdb0:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "epmd -names | grep ex_esdb"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
+    stop_grace_period: 10s
 
   ex-esdb4:
     image: local/ex-esdb
@@ -147,12 +127,7 @@ services:
       EX_ESDB_STORE_ID: "reg_gh"
       EX_ESDB_COOKIE: "reg_greenhouse_cookie"
       EX_ESDB_SEED_NODES: "ex_esdb@node0,ex_esdb@node1,ex_esdb@node2,ex_esdb@node3"
+    stop_grace_period: 10s
     depends_on:
       ex-esdb0:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "epmd -names | grep ex_esdb"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s

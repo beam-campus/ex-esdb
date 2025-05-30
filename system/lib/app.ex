@@ -16,10 +16,13 @@ defmodule ExESDB.App do
     opts = Options.app_env()
 
     children = [
-      {ExESDB.System, opts},
+      {ExESDB.System, opts}
     ]
 
     :os.set_signal(:sigterm, :handle)
+    :os.set_signal(:sigquit, :handle)
+
+    spawn(fn -> handle_os_signal() end)
 
     Logger.warning("#{Themes.app(self())} is UP.")
 
@@ -27,14 +30,26 @@ defmodule ExESDB.App do
     Supervisor.start_link(children, opts)
   end
 
-  def handle_info(:sigterm, _state) do
-    Logger.info("SIGTERM received. Stopping ExESDB")
-    Application.stop(:ex_esdb)
+  def handle_os_signal do
+    receive do
+      {:signal, :sigterm} ->
+        Logger.warning("SIGTERM received. Stopping ExESDB")
+
+        Process.sleep(2_000)
+        ExESDB.System.stop(:sigterm)
+        Application.stop(:ex_esdb)
+        System.halt(0)
+
+      msg ->
+        IO.puts("Unknown signal: #{inspect(msg)}")
+        Logger.warning("Received unknown signal: #{inspect(msg)}")
+    end
+
+    handle_os_signal()
   end
 
   @impl true
   def stop(state) do
-    Logger.info("STOPPING APP #{inspect(state, pretty: true)}")
+    Logger.warning("STOPPING APP #{inspect(state, pretty: true)}")
   end
-
 end

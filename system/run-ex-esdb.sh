@@ -9,4 +9,4 @@ cat ~/.erlang.cookie
 
 sleep 10
 
-/system/bin/ex_esdb start
+exec /system/bin/ex_esdb start

@@ -5,10 +5,12 @@
 # sudo rm -rf /volume
 
 ## CACHES
-echo "Creating caches folder"
+echo "Recreating caches folder"
+rm -rf /volume/caches
 sudo mkdir -p /volume/caches
 # ExESDB
-echo "creating ExESDB data folders"
+echo "Recreating ExESDB data folders"
+sudo rm -rf /volume/ex-esdb
 sudo mkdir -p \
   /volume/ex-esdb/data0 \
   /volume/ex-esdb/data1 \

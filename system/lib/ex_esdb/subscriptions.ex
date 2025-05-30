@@ -89,11 +89,11 @@ defmodule ExESDB.Subscriptions do
   @spec delete_subscription(
           store :: any,
           subscription_name :: subscription_name,
-          stream_uuid :: stream_uuid
+          stream :: stream
         ) :: :ok | {:error, error}
-  def delete_subscription(store, subscription_name, stream_uuid \\ "$all") do
+  def delete_subscription(store, subscription_name, stream \\ "$all") do
     store
-    |> :khepri.delete!([:subscriptions, subscription_name, stream_uuid])
+    |> :khepri.delete!([:subscriptions, subscription_name, stream])
   end
 
   def all(store) do

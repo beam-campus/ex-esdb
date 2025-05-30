@@ -35,6 +35,7 @@ defmodule ExESDB.MixProject do
   defp releases,
     do: [
       ex_esdb: [
+        include_erts: true,
         include_executables_for: [:unix],
         steps: [:assemble, :tar],
         applications: [

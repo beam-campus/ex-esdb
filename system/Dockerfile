@@ -69,14 +69,14 @@ ARG EX_ESDB_COOKIE
 ARG EX_ESDB_DATA_DIR
 ARG EX_ESDB_STORE_ID
 
-ARG ERTS_VERSION=erts-15.2.3
+ENV ERTS_VERSION=erts-15.2.3
 
 RUN echo "!!!!!!!! Building runner image...!!!!!!!" && sleep 2
 
 RUN apt-get update -y && \
   apt-get upgrade -y --autoremove && \
   apt-get clean && \
-  apt-get install -y pkg-config openssl libncurses5 locales ca-certificates curl systemd && \
+  apt-get install -y pkg-config openssl libncurses5 locales ca-certificates curl systemd htop && \
   rm -f /var/lib/apt/lists/*_* 
 #
 # Set the locale
@@ -100,7 +100,7 @@ COPY check-ex-esdb.sh .
 
 RUN chmod +x run-ex-esdb.sh check-ex-esdb.sh
 
-ARG PATH="${PATH}:/system/${ERTS_VERSION}/bin"
+ENV PATH="${PATH}:/system/${ERTS_VERSION}/bin"
 
 # RUN chown nobody /system
 
@@ -111,7 +111,7 @@ EXPOSE 4369 9000-9100
 RUN echo $EX_ESDB_COOKIE > ~/.erlang.cookie
 RUN chmod 400 ~/.erlang.cookie
 
-# HEALTHCHECK --interval=10s --timeout=3s \
-#   CMD ["./check-ex-esdb.sh"]
+HEALTHCHECK --interval=10s --timeout=3s \
+  CMD ["./check-ex-esdb.sh"]
 
 CMD ["./run-ex-esdb.sh"]

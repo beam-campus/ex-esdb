@@ -28,6 +28,10 @@ defmodule ExESDB.System do
     end
   end
 
+  def stop(reason) do
+    Process.exit(self(), reason)
+  end
+
   @impl true
   def init(opts) do
     Logger.warning("#{Themes.system(self())} is UP")
