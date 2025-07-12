@@ -2,7 +2,7 @@
 
 -export([when_created/1, when_deleted/1, when_updated/1]).
 
--include_lib("../deps/khepri/include/khepri.hrl").
+-include_lib("khepri/include/khepri.hrl").
 
 -spec when_created(Feature :: atom()) -> khepri_evf:event_filter().
 when_created(Feature) ->

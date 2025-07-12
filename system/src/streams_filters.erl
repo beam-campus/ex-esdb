@@ -2,7 +2,7 @@
 
 -export([by_stream/1, by_event_type/1, by_event_pattern/1, by_event_payload/1]).
 
--include_lib("../deps/khepri/include/khepri.hrl").
+-include_lib("khepri/include/khepri.hrl").
 
 -spec by_stream(Stream :: binary()) -> khepri_evf:tree().
 by_stream(<<"$all">>) ->
