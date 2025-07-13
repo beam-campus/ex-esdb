@@ -1,5 +1,7 @@
 -module(subscriptions_store).
 
+-include_lib("khepri/include/khepri.hrl").
+
 -export([get_subscription/2, put_subscription/2, delete_subscription/2, key/1,
          update_subscription/2, exists/2]).
 

@@ -1,5 +1,7 @@
 -module(streams_triggers).
 
+-include_lib("khepri/include/khepri.hrl").
+
 -export([register_on_new_event/3]).
 
 -spec register_on_new_event(Store :: khepri:store_id(),

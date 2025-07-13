@@ -1,0 +1,162 @@
+# YAML anchors for reusable templates
+
+# Environment templates
+x-dev-environment: &dev-env
+  EX_ESDB_STORE_ID: "reg_gh"
+  EX_ESDB_DB_TYPE: "cluster"
+  EX_ESDB_TIMEOUT: "10000"
+  EX_ESDB_COOKIE: $EX_ESDB_COOKIE
+  EX_ESDB_CLUSTER_SECRET: ${EX_ESDB_CLUSTER_SECRET}
+  EX_ESDB_GOSSIP_MULTICAST_ADDR: ${EX_ESDB_GOSSIP_MULTICAST_ADDR}
+  RELEASE_COOKIE: $EX_ESDB_COOKIE
+  LOG_LEVEL: "debug"
+  RUST_LOG: "debug"
+
+x-prod-environment: &prod-env
+  RELEASE_COOKIE: $EX_ESDB_COOKIE
+  EX_ESDB_STORE_ID: "reg_gh"
+  EX_ESDB_DB_TYPE: "cluster"
+  EX_ESDB_TIMEOUT: "5000"
+  EX_ESDB_COOKIE: $EX_ESDB_COOKIE
+  EX_ESDB_CLUSTER_SECRET: $EX_ESDB_CLUSTER_SECRET
+  EX_ESDB_GOSSIP_MULTICAST_ADDR: ${EX_ESDB_GOSSIP_MULTICAST_ADDR}
+  LOG_LEVEL: "info"
+  RUST_LOG: "info"
+
+# Resource constraints template
+x-resource-limits: &resource-limits
+  deploy:
+    resources:
+      limits:
+        memory: 512M
+        cpus: "0.5"
+      reservations:
+        memory: 256M
+        cpus: "0.25"
+    restart_policy:
+      condition: on-failure
+      delay: 5s
+      max_attempts: 3
+      window: 120s
+
+# Logging configuration template
+x-logging: &logging
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "100m"
+      max-file: "3"
+      labels: "service,environment"
+
+# Main service template
+x-esdb-service: &esdb-service
+  image: local/ex-esdb
+  build:
+    context: ../system
+    args:
+      - BUILD_ENV=development
+  profiles:
+    - cluster
+  networks:
+    - ex-esdb-net
+  stop_grace_period: 30s
+  environment:
+    EX_ESDB_STORE_ID: "reg_gh"
+    EX_ESDB_DB_TYPE: "cluster"
+    EX_ESDB_TIMEOUT: "10000"
+    EX_ESDB_COOKIE: $EX_ESDB_COOKIE
+    EX_ESDB_CLUSTER_SECRET: $EX_ESDB_CLUSTER_SECRET
+    EX_ESDB_GOSSIP_MULTICAST_ADDR: ${EX_ESDB_GOSSIP_MULTICAST_ADDR}
+    RELEASE_COOKIE: $EX_ESDB_COOKIE
+    LOG_LEVEL: "info"
+    RUST_LOG: "warn"
+  deploy:
+    resources:
+      limits:
+        memory: 512M
+        cpus: "0.5"
+      reservations:
+        memory: 256M
+        cpus: "0.25"
+    restart_policy:
+      condition: on-failure
+      delay: 5s
+      max_attempts: 3
+      window: 120s
+  healthcheck:
+    test: ["CMD", "/system/check-ex-esdb.sh"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+    start_period: 40s
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "100m"
+      max-file: "3"
+      labels: "service,environment"
+  labels:
+    - "service=ex-esdb"
+    - "environment=development"
+    - "cluster=primary"
+
+# Dependency condition template
+x-health-condition: &health-condition
+  condition: service_healthy
+
+services:
+  # Core 3-node cluster for reg_gh store (start simultaneously)
+  reg-gh-0:
+    <<: *esdb-service
+    hostname: reg-gh-0
+    container_name: reg-gh-0
+    volumes:
+      - reg-gh-0-data:/data
+    labels:
+      - "service=reg-gh-store"
+      - "environment=development"
+      - "cluster=core"
+      - "group=core"
+      - "tier=core"
+      - "store=reg_gh"
+
+  reg-gh-1:
+    <<: *esdb-service
+    hostname: reg-gh-1
+    container_name: reg-gh-1
+    volumes:
+      - reg-gh-1-data:/data
+    labels:
+      - "service=reg-gh-store"
+      - "environment=development"
+      - "cluster=core"
+      - "group=core"
+      - "tier=core"
+      - "store=reg_gh"
+
+  reg-gh-2:
+    <<: *esdb-service
+    hostname: reg-gh-2
+    container_name: reg-gh-2
+    volumes:
+      - reg-gh-2-data:/data
+    labels:
+      - "service=reg-gh-store"
+      - "environment=development"
+      - "cluster=core"
+      - "group=core"
+      - "tier=core"
+      - "store=reg_gh"
+
+networks:
+  ex-esdb-net:
+    external: true
+    name: ex-esdb-net
+
+volumes:
+  reg-gh-0-data:
+    driver: local
+  reg-gh-1-data:
+    driver: local
+  reg-gh-2-data:
+    driver: local

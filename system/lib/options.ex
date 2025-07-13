@@ -68,21 +68,6 @@ defmodule ExESDB.Options do
     end
   end
 
-  defp to_atoms_list(seeds) do
-    seeds
-    |> String.split(",")
-    |> Enum.map(&clean_node/1)
-    |> Enum.map(&to_unique_atom/1)
-  end
-
-  defp clean_node(node),
-    do:
-      String.trim(node)
-      |> String.downcase()
-      |> String.replace(" ", "")
-      |> String.replace(",", "")
-      |> String.replace(".", "")
-      |> String.replace(":", "")
 
   defp to_unique_atom(candidate) do
     try do

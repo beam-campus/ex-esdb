@@ -2,7 +2,7 @@
 
 -export([register_on_created/1, register_on_deleted/1, register_on_updated/1]).
 
--include_lib("../deps/khepri/include/khepri.hrl").
+-include_lib("khepri/include/khepri.hrl").
 
 -spec register_on_created(Store :: khepri:store()) -> ok | {error, term()}.
 register_on_created(Store) ->

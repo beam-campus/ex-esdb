@@ -82,9 +82,6 @@ defmodule ExESDB.Emitters do
     end
   end
   
-  @doc """
-  Updates all workers in a pool with a new subscriber PID.
-  """
   defp update_pool_workers(pool_pid, new_subscriber) do
     # Get all child workers from the supervisor
     children = Supervisor.which_children(pool_pid)

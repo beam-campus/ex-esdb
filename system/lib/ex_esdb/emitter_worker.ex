@@ -103,13 +103,6 @@ defmodule ExESDB.EmitterWorker do
     {:noreply, state}
   end
 
-  @impl GenServer
-  def handle_cast({:update_subscriber, new_subscriber}, state) do
-    Logger.info("EmitterWorker updating subscriber from #{inspect(state.subscriber)} to #{inspect(new_subscriber)}")
-    updated_state = %{state | subscriber: new_subscriber}
-    {:noreply, updated_state}
-  end
-
   @impl true
   def handle_info({:events, events}, state) when is_list(events) do
     # Handle events messages - these might come from feedback loops or external systems
@@ -122,5 +115,12 @@ defmodule ExESDB.EmitterWorker do
     Logger.warning("Received unexpected message #{inspect(msg)} on #{inspect(self())}")
 
     {:noreply, state}
+  end
+
+  @impl GenServer
+  def handle_cast({:update_subscriber, new_subscriber}, state) do
+    Logger.info("EmitterWorker updating subscriber from #{inspect(state.subscriber)} to #{inspect(new_subscriber)}")
+    updated_state = %{state | subscriber: new_subscriber}
+    {:noreply, updated_state}
   end
 end

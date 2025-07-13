@@ -1,0 +1,53 @@
+# YAML anchors for volume templates
+x-bind-opts: &bind-opts
+  type: none
+  o: bind
+
+volumes:
+  proc-sup-5-data:
+    driver: local
+    driver_opts:
+      <<: *bind-opts
+      device: /volume/proc-sup-store/data5
+
+  proc-sup-6-data:
+    driver: local
+    driver_opts:
+      <<: *bind-opts
+      device: /volume/proc-sup-store/data6
+
+  proc-sup-7-data:
+    driver: local
+    driver_opts:
+      <<: *bind-opts
+      device: /volume/proc-sup-store/data7
+
+  proc-sup-8-data:
+    driver: local
+    driver_opts:
+      <<: *bind-opts
+      device: /volume/proc-sup-store/data8
+
+  proc-sup-9-data:
+    driver: local
+    driver_opts:
+      <<: *bind-opts
+      device: /volume/proc-sup-store/data9
+
+  proc-sup-10-data:
+    driver: local
+    driver_opts:
+      <<: *bind-opts
+      device: /volume/proc-sup-store/data10
+
+  proc-sup-11-data:
+    driver: local
+    driver_opts:
+      <<: *bind-opts
+      device: /volume/proc-sup-store/data11
+
+  proc-sup-12-data:
+    driver: local
+    driver_opts:
+      <<: *bind-opts
+      device: /volume/proc-sup-store/data12

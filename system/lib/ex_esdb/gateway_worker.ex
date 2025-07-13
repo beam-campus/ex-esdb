@@ -8,6 +8,8 @@ defmodule ExESDB.GatewayWorker do
   alias ExESDB.SnapshotsReader, as: SnapshotsR
   alias ExESDB.SnapshotsWriter, as: SnapshotsW
 
+  alias ExESDB.StoreRegistry, as: StoreRegistry
+
   alias ExESDB.SubscriptionsReader, as: SubsR
   alias ExESDB.SubscriptionsWriter, as: SubsW
 
@@ -142,13 +144,6 @@ defmodule ExESDB.GatewayWorker do
     {:reply, reply, state}
   end
 
-  # Helper function to check if current version matches expected version
-  defp version_matches?(_current, :any), do: true
-  defp version_matches?(current, :stream_exists) when current >= 0, do: true
-  # Stream doesn't exist
-  defp version_matches?(-1, :stream_exists), do: false
-  defp version_matches?(current, expected) when is_integer(expected), do: current == expected
-
   @impl GenServer
   def handle_call({:read_snapshot, store, source_uuid, stream_uuid, version}, _from, state) do
     case store
@@ -215,6 +210,12 @@ defmodule ExESDB.GatewayWorker do
       {:error, reason} ->
         {:reply, {:error, reason}, state}
     end
+  end
+
+  @impl GenServer
+  def handle_call({:list_stores}, _from, state) do
+    {:ok, stores} = StoreRegistry.list_stores()
+    {:reply, {:ok, stores}, state}
   end
 
   ################ HANDLE_CAST #############
@@ -378,4 +379,11 @@ defmodule ExESDB.GatewayWorker do
     unregister_from_swarm(name)
     {:noreply, state}
   end
+
+  # Helper function to check if current version matches expected version
+  defp version_matches?(_current, :any), do: true
+  defp version_matches?(current, :stream_exists) when current >= 0, do: true
+  # Stream doesn't exist
+  defp version_matches?(-1, :stream_exists), do: false
+  defp version_matches?(current, expected) when is_integer(expected), do: current == expected
 end

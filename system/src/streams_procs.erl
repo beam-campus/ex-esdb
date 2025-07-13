@@ -1,5 +1,7 @@
 -module(streams_procs).
 
+-include_lib("khepri/include/khepri.hrl").
+
 -export([put_on_new_event/2, get_on_new_event/2]).
 
 on_new_event(Topic) ->

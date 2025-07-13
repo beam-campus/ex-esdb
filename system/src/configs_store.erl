@@ -1,5 +1,7 @@
 -module(configs_store).
 
+-include_lib("khepri/include/khepri.hrl").
+
 -export([get_config/2, put_config/2, delete_config/2, key/1,
          update_config/2, exists/2]).
 

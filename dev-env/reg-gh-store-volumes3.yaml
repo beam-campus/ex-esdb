@@ -1,0 +1,53 @@
+# YAML anchors for volume templates
+x-bind-opts: &bind-opts
+  type: none
+  o: bind
+
+volumes:
+  reg-gh-5-data:
+    driver: local
+    driver_opts:
+      <<: *bind-opts
+      device: /volume/reg-gh-store/data5
+
+  reg-gh-6-data:
+    driver: local
+    driver_opts:
+      <<: *bind-opts
+      device: /volume/reg-gh-store/data6
+
+  reg-gh-7-data:
+    driver: local
+    driver_opts:
+      <<: *bind-opts
+      device: /volume/reg-gh-store/data7
+
+  reg-gh-8-data:
+    driver: local
+    driver_opts:
+      <<: *bind-opts
+      device: /volume/reg-gh-store/data8
+
+  reg-gh-9-data:
+    driver: local
+    driver_opts:
+      <<: *bind-opts
+      device: /volume/reg-gh-store/data9
+
+  reg-gh-10-data:
+    driver: local
+    driver_opts:
+      <<: *bind-opts
+      device: /volume/reg-gh-store/data10
+
+  reg-gh-11-data:
+    driver: local
+    driver_opts:
+      <<: *bind-opts
+      device: /volume/reg-gh-store/data11
+
+  reg-gh-12-data:
+    driver: local
+    driver_opts:
+      <<: *bind-opts
+      device: /volume/reg-gh-store/data12

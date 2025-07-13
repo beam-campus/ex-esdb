@@ -117,7 +117,7 @@ defmodule ExESDB.StreamsWriterWorker do
   end
 
   @impl true
-  def handle_info({:EXIT, _pid, reason}, %{worker_name: name} = state) do
+  def handle_info({:EXIT, _pid, _reason}, %{worker_name: name} = state) do
     Swarm.unregister_name(name)
     {:noreply, state}
   end
@@ -168,7 +168,7 @@ defmodule ExESDB.StreamsWriterWorker do
   end
 
   @impl true
-  def terminate(reason, %{worker_name: name}) do
+  def terminate(_reason, %{worker_name: name}) do
     Swarm.unregister_name(name)
     :ok
   end
