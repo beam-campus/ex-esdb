@@ -12,8 +12,8 @@ config :ra,
   logger: true
 
 config :logger, :console,
-  format: "$time ($metadata) [$level] $message\n",
-  metadata: [:mfa],
+  format: {ExESDB.LogFormatter, :format},
+  metadata: [:component, :pid, :indent, :arrow, :mfa],
   level: :info,
   # Multiple filters to reduce noise from various components
   filters: [
@@ -22,6 +22,9 @@ config :logger, :console,
     swarm_noise: {ExESDB.LoggerFilters, :filter_swarm},
     libcluster_noise: {ExESDB.LoggerFilters, :filter_libcluster}
   ]
+
+# Enable full visual mode for development
+config :ex_esdb, :visual_mode, :full
 
 # LibCluster configuration moved to runtime.exs for dynamic configuration
 

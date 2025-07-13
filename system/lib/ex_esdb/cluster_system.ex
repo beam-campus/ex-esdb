@@ -10,7 +10,7 @@ defmodule ExESDB.ClusterSystem do
   """
   use Supervisor
 
-  alias ExESDB.Themes, as: Themes
+  require Logger
 
   @impl true
   def init(opts) do
@@ -21,7 +21,7 @@ defmodule ExESDB.ClusterSystem do
       {ExESDB.NodeMonitor, node_monitor_config(opts)}
     ]
 
-    IO.puts("#{Themes.cluster_system(self())} is UP")
+    Logger.info("ClusterSystem started", pid: self())
 
     Supervisor.init(children, strategy: :one_for_one)
   end

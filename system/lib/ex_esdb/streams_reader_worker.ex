@@ -4,7 +4,6 @@ defmodule ExESDB.StreamsReaderWorker do
   """
   use GenServer
   require Logger
-  alias ExESDB.Themes, as: Themes
 
   alias ExESDB.StreamsHelper, as: Helper
   alias ExESDB.StreamsReader, as: StreamsReader
@@ -203,14 +202,7 @@ defmodule ExESDB.StreamsReaderWorker do
   end
 
   defp safe_log_startup(name, partition) do
-    try do
-      msg = "[#{inspect(name)}] is UP on partition #{inspect(partition)}, joining the cluster."
-      IO.puts("#{Themes.streams_reader_worker(msg)}")
-    rescue
-      _error ->
-        # Fallback to basic logging if theme formatting fails
-        Logger.info("StreamsReaderWorker #{inspect(name)} starting on partition #{inspect(partition)}")
-    end
+    Logger.info("StreamsReaderWorker [#{inspect(name)}] is UP on partition #{inspect(partition)}, joining the cluster.")
   end
 
   defp register_with_swarm(name) do

@@ -11,7 +11,6 @@ defmodule ExESDB.System do
   use Supervisor
 
   alias ExESDB.Options, as: Options
-  alias ExESDB.Themes, as: Themes
   alias BCUtils.PubSubManager
 
   require Logger
@@ -68,8 +67,7 @@ defmodule ExESDB.System do
         strategy: :one_for_one
       )
 
-    msg = "is UP in #{db_type} mode!"
-    IO.puts("#{Themes.system(self(), msg)}")
+    Logger.info("System started", pid: self(), mode: db_type)
     ret
   end
 
@@ -111,7 +109,7 @@ defmodule ExESDB.System do
         stop(:sigquit)
 
       msg ->
-        IO.puts("Unknown signal: #{inspect(msg)}")
+        Logger.warning("Unknown signal received", signal: msg)
         Logger.warning("Received unknown signal: #{inspect(msg)}")
     end
 

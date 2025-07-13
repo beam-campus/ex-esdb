@@ -5,7 +5,6 @@ defmodule ExESDB.Subscriptions do
   use Supervisor
 
   require Logger
-  alias ExESDB.Themes, as: Themes
 
   ####### PLUMBING #######
   def child_spec(opts),
@@ -27,7 +26,7 @@ defmodule ExESDB.Subscriptions do
 
   @impl true
   def init(opts) do
-    IO.puts("#{Themes.subscriptions(self())} is UP.")
+    Logger.info("Subscriptions supervisor started", pid: self())
 
     children = [
       {ExESDB.SubscriptionsReader, opts},

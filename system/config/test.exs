@@ -14,3 +14,9 @@ config :ex_esdb, :khepri,
   db_type: :single,
   seed_nodes: [],
   pub_sub: :ex_esdb_pub_sub
+
+# Suppress visual output during tests
+config :logger, level: :warning
+
+# Or use standard mode for cleaner test output
+config :ex_esdb, :visual_mode, :standard

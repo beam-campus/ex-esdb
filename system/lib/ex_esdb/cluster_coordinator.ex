@@ -11,8 +11,6 @@ defmodule ExESDB.ClusterCoordinator do
   use GenServer
   require Logger
 
-  alias ExESDB.Themes, as: Themes
-
   @doc """
   Attempts to join a Khepri cluster using coordinated approach to prevent split-brain.
   Returns one of: :ok, :coordinator, :no_nodes, :waiting, :failed
@@ -32,7 +30,7 @@ defmodule ExESDB.ClusterCoordinator do
 
   @impl true
   def init(_opts) do
-    IO.puts("#{Themes.cluster_coordinator(self())} is UP")
+    Logger.info("ClusterCoordinator #{inspect(self())} is UP")
     {:ok, %{}}
   end
 
@@ -56,13 +54,13 @@ defmodule ExESDB.ClusterCoordinator do
 
     if Enum.empty?(connected_nodes) do
       Logger.info(
-        "#{Themes.cluster_coordinator(node())} => No connected nodes found via LibCluster, starting as single node cluster"
+        "ClusterCoordinator #{inspect(node())} => No connected nodes found via LibCluster, starting as single node cluster"
       )
 
       :no_nodes
     else
       Logger.info(
-        "#{Themes.cluster_coordinator(node())} => Attempting to join Khepri cluster via LibCluster discovered nodes: #{inspect(connected_nodes)}"
+        "ClusterCoordinator #{inspect(node())} => Attempting to join Khepri cluster via LibCluster discovered nodes: #{inspect(connected_nodes)}"
       )
 
       # Find nodes that already have Khepri clusters running
@@ -83,13 +81,13 @@ defmodule ExESDB.ClusterCoordinator do
   defp handle_no_existing_clusters(connected_nodes) do
     if should_be_cluster_coordinator(connected_nodes) do
       Logger.info(
-        "#{Themes.cluster_coordinator(node())} => Elected as cluster coordinator, starting new cluster"
+        "ClusterCoordinator #{inspect(node())} => Elected as cluster coordinator, starting new cluster"
       )
 
       :coordinator
     else
       Logger.info(
-        "#{Themes.cluster_coordinator(node())} => Waiting for cluster coordinator to establish cluster"
+        "ClusterCoordinator #{inspect(node())} => Waiting for cluster coordinator to establish cluster"
       )
 
       :waiting
@@ -98,34 +96,34 @@ defmodule ExESDB.ClusterCoordinator do
 
   defp join_existing_cluster(store, target_node) do
     Logger.info(
-      "#{Themes.cluster_coordinator(node())} => Joining existing Khepri cluster via: #{inspect(target_node)}"
+      "ClusterCoordinator #{inspect(node())} => Joining existing Khepri cluster via: #{inspect(target_node)}"
     )
 
     case :khepri_cluster.join(store, target_node) do
       :ok ->
         Logger.info(
-          "#{Themes.cluster_coordinator(node())} => Successfully joined existing Khepri cluster via #{inspect(target_node)}"
+          "ClusterCoordinator #{inspect(node())} => Successfully joined existing Khepri cluster via #{inspect(target_node)}"
         )
 
         # Verify we actually joined by checking members
         case :khepri_cluster.members(store) do
           {:ok, members} when length(members) > 1 ->
             Logger.info(
-              "#{Themes.cluster_coordinator(node())} => Cluster join verified, now part of #{length(members)}-node cluster"
+              "ClusterCoordinator #{inspect(node())} => Cluster join verified, now part of #{length(members)}-node cluster"
             )
 
             :ok
 
           {:ok, [_single]} ->
             Logger.warning(
-              "#{Themes.cluster_coordinator(node())} => Join appeared successful but still only 1 member, may need retry"
+              "ClusterCoordinator #{inspect(node())} => Join appeared successful but still only 1 member, may need retry"
             )
 
             :ok
 
           {:error, verify_reason} ->
             Logger.error(
-              "#{Themes.cluster_coordinator(node())} => Join succeeded but verification failed: #{inspect(verify_reason)}"
+              "ClusterCoordinator #{inspect(node())} => Join succeeded but verification failed: #{inspect(verify_reason)}"
             )
 
             :ok
@@ -133,7 +131,7 @@ defmodule ExESDB.ClusterCoordinator do
 
       {:error, reason} ->
         Logger.warning(
-          "#{Themes.cluster_coordinator(node())} => Failed to join via #{inspect(target_node)}: #{inspect(reason)}"
+          "ClusterCoordinator #{inspect(node())} => Failed to join via #{inspect(target_node)}: #{inspect(reason)}"
         )
 
         :failed
@@ -148,28 +146,28 @@ defmodule ExESDB.ClusterCoordinator do
         case :rpc.call(node, :khepri_cluster, :members, [store], 5000) do
           {:ok, members} when members != [] ->
             Logger.debug(
-              "#{Themes.cluster_coordinator(node())} => Found existing cluster on #{inspect(node)} with #{length(members)} members"
+              "ClusterCoordinator #{inspect(node())} => Found existing cluster on #{inspect(node)} with #{length(members)} members"
             )
 
             true
 
           {:ok, []} ->
             Logger.debug(
-              "#{Themes.cluster_coordinator(node())} => Node #{inspect(node)} has empty cluster"
+              "ClusterCoordinator #{inspect(node())} => Node #{inspect(node)} has empty cluster"
             )
 
             false
 
           {:error, reason} ->
             Logger.debug(
-              "#{Themes.cluster_coordinator(node())} => Node #{inspect(node)} cluster check failed: #{inspect(reason)}"
+              "ClusterCoordinator #{inspect(node())} => Node #{inspect(node)} cluster check failed: #{inspect(reason)}"
             )
 
             false
 
           other ->
             Logger.debug(
-              "#{Themes.cluster_coordinator(node())} => Node #{inspect(node)} unexpected response: #{inspect(other)}"
+              "ClusterCoordinator #{inspect(node())} => Node #{inspect(node)} unexpected response: #{inspect(other)}"
             )
 
             false
@@ -177,14 +175,14 @@ defmodule ExESDB.ClusterCoordinator do
       rescue
         e ->
           Logger.debug(
-            "#{Themes.cluster_coordinator(node())} => Node #{inspect(node)} cluster check exception: #{inspect(e)}"
+            "ClusterCoordinator #{inspect(node())} => Node #{inspect(node)} cluster check exception: #{inspect(e)}"
           )
 
           false
       catch
         type, reason ->
           Logger.debug(
-            "#{Themes.cluster_coordinator(node())} => Node #{inspect(node)} cluster check caught: #{inspect(type)} #{inspect(reason)}"
+            "ClusterCoordinator #{inspect(node())} => Node #{inspect(node)} cluster check caught: #{inspect(type)} #{inspect(reason)}"
           )
 
           false

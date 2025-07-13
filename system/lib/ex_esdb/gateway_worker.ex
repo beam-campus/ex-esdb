@@ -15,8 +15,6 @@ defmodule ExESDB.GatewayWorker do
   alias ExESDB.StreamsReader, as: StreamsR
   alias ExESDB.StreamsWriter, as: StreamsW
 
-  alias ExESDB.Themes, as: Themes
-
   require Logger
 
   @type store :: atom()
@@ -318,8 +316,7 @@ defmodule ExESDB.GatewayWorker do
     Process.flag(:trap_exit, true)
     name = gateway_worker_name()
     new_state = Keyword.put(opts, :gateway_worker_name, name)
-    msg = "[#{inspect(name)}] is UP, joining the cluster."
-    IO.puts("#{Themes.gateway_worker(msg)}")
+    Logger.info("GatewayWorker started, joining cluster", name: name)
     Swarm.register_name(name, self())
     {:ok, new_state}
   end
@@ -327,8 +324,7 @@ defmodule ExESDB.GatewayWorker do
   @impl true
   def terminate(reason, state) do
     name = Keyword.get(state, :gateway_worker_name)
-    msg = "[#{inspect(name)}] is TERMINATED with reason #{inspect(reason)}, leaving the cluster."
-    IO.puts("#{Themes.gateway_worker(msg)}")
+    Logger.info("GatewayWorker terminated, leaving cluster", name: name, reason: reason)
     Swarm.unregister_name(name)
     :ok
   end
@@ -336,8 +332,7 @@ defmodule ExESDB.GatewayWorker do
   @impl true
   def handle_info({:EXIT, _pid, reason}, state) do
     name = Keyword.get(state, :gateway_worker_name)
-    msg = "[#{inspect(name)}] is EXITING with reason #{inspect(reason)}, leaving the cluster."
-    IO.puts("#{Themes.gateway_worker(msg)}")
+    Logger.warning("GatewayWorker exiting unexpectedly", name: name, reason: reason)
     Swarm.unregister_name(name)
     {:noreply, state}
   end

@@ -5,7 +5,6 @@ defmodule ExESDB.EmitterPool do
   use Supervisor
 
   require Logger
-  alias ExESDB.Themes, as: Themes
 
   def name(store, sub_topic),
     do: :"#{store}:#{sub_topic}_emitter_pool"
@@ -32,8 +31,7 @@ defmodule ExESDB.EmitterPool do
         )
       end
 
-    msg = "for [#{name(store, sub_topic)}] started with #{length(emitter_names)} emitters"
-    IO.puts("#{Themes.emitter_pool(self(), msg)}")
+    Logger.info("EmitterPool #{inspect(self())} for [#{name(store, sub_topic)}] started with #{length(emitter_names)} emitters")
 
     Supervisor.init(children, strategy: :one_for_one)
   end

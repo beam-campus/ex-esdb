@@ -9,7 +9,7 @@ defmodule ExESDB.StoreManager do
   use GenServer
 
   require Logger
-  alias ExESDB.Themes
+  alias BCUtils.ColorFuncs, as: CF
 
   @type store_id :: atom()
   @type store_config :: keyword()
@@ -109,7 +109,11 @@ defmodule ExESDB.StoreManager do
 
   @impl true
   def init(default_config) do
-    Logger.info("#{Themes.store(self())} StoreManager is starting")
+    Logger.info("STORE [#{CF.black_on_green()}#{inspect(self())}#{CF.reset()}] StoreManager is starting",
+      module: __MODULE__,
+      component: :store,
+      pid: self()
+    )
     
     # Initialize with any pre-configured stores
     initial_stores = initialize_default_stores(default_config)
@@ -119,7 +123,11 @@ defmodule ExESDB.StoreManager do
       default_config: default_config
     }
     
-    Logger.info("#{Themes.store(self())} StoreManager is UP with #{map_size(initial_stores)} stores")
+    Logger.info("STORE [#{CF.black_on_green()}#{inspect(self())}#{CF.reset()}] StoreManager is UP with #{map_size(initial_stores)} stores",
+      module: __MODULE__,
+      component: :store,
+      pid: self()
+    )
     {:ok, state}
   end
 
@@ -142,11 +150,22 @@ defmodule ExESDB.StoreManager do
             })
             
             new_state = %{state | stores: new_stores}
-            Logger.info("#{Themes.store(self())} Created new store: #{store_id}")
+            Logger.info("STORE [#{CF.black_on_green()}#{inspect(self())}#{CF.reset()}] Created new store: #{store_id}",
+              module: __MODULE__,
+              component: :store,
+              pid: self(),
+              store_id: store_id
+            )
             {:reply, {:ok, store_id}, new_state}
           
           {:error, reason} ->
-            Logger.error("#{Themes.store(self())} Failed to create store #{store_id}: #{inspect(reason)}")
+            Logger.error("STORE [#{CF.black_on_green()}#{inspect(self())}#{CF.reset()}] Failed to create store #{store_id}: #{inspect(reason)}",
+              module: __MODULE__,
+              component: :store,
+              pid: self(),
+              store_id: store_id,
+              reason: reason
+            )
             {:reply, {:error, reason}, state}
         end
     end
@@ -163,11 +182,22 @@ defmodule ExESDB.StoreManager do
           :ok ->
             new_stores = Map.delete(state.stores, store_id)
             new_state = %{state | stores: new_stores}
-            Logger.info("#{Themes.store(self())} Removed store: #{store_id}")
+            Logger.info("STORE [#{CF.black_on_green()}#{inspect(self())}#{CF.reset()}] Removed store: #{store_id}",
+              module: __MODULE__,
+              component: :store,
+              pid: self(),
+              store_id: store_id
+            )
             {:reply, :ok, new_state}
           
           {:error, reason} ->
-            Logger.error("#{Themes.store(self())} Failed to remove store #{store_id}: #{inspect(reason)}")
+            Logger.error("STORE [#{CF.black_on_green()}#{inspect(self())}#{CF.reset()}] Failed to remove store #{store_id}: #{inspect(reason)}",
+              module: __MODULE__,
+              component: :store,
+              pid: self(),
+              store_id: store_id,
+              reason: reason
+            )
             {:reply, {:error, reason}, state}
         end
     end
@@ -208,7 +238,13 @@ defmodule ExESDB.StoreManager do
         %{store_id => %{status: :running, config: default_config, pid: nil}}
       
       {:error, reason} ->
-        Logger.error("#{Themes.store(self())} Failed to start default store #{store_id}: #{inspect(reason)}")
+        Logger.error("STORE [#{CF.black_on_green()}#{inspect(self())}#{CF.reset()}] Failed to start default store #{store_id}: #{inspect(reason)}",
+          module: __MODULE__,
+          component: :store,
+          pid: self(),
+          store_id: store_id,
+          reason: reason
+        )
         %{}
     end
   end
@@ -235,15 +271,31 @@ defmodule ExESDB.StoreManager do
     
     case :khepri.start(data_dir, store_id, timeout) do
       {:ok, store} ->
-        Logger.debug("#{Themes.store(self())} Started Khepri store: #{inspect(store)}")
+        Logger.debug("STORE [#{CF.black_on_green()}#{inspect(self())}#{CF.reset()}] Started Khepri store: #{inspect(store)}",
+          module: __MODULE__,
+          component: :store,
+          pid: self(),
+          khepri_store: store
+        )
         {:ok, store}
       
       {:error, {:already_started, store}} ->
-        Logger.debug("#{Themes.store(self())} Khepri store already started: #{inspect(store)}")
+        Logger.debug("STORE [#{CF.black_on_green()}#{inspect(self())}#{CF.reset()}] Khepri store already started: #{inspect(store)}",
+          module: __MODULE__,
+          component: :store,
+          pid: self(),
+          khepri_store: store
+        )
         {:ok, store}
       
       {:error, reason} ->
-        Logger.error("#{Themes.store(self())} Failed to start Khepri store #{store_id}: #{inspect(reason)}")
+        Logger.error("STORE [#{CF.black_on_green()}#{inspect(self())}#{CF.reset()}] Failed to start Khepri store #{store_id}: #{inspect(reason)}",
+          module: __MODULE__,
+          component: :store,
+          pid: self(),
+          store_id: store_id,
+          reason: reason
+        )
         {:error, reason}
     end
   end
@@ -251,11 +303,22 @@ defmodule ExESDB.StoreManager do
   defp stop_store(store_id) do
     case :khepri.stop(store_id) do
       :ok ->
-        Logger.debug("#{Themes.store(self())} Stopped Khepri store: #{store_id}")
+        Logger.debug("STORE [#{CF.black_on_green()}#{inspect(self())}#{CF.reset()}] Stopped Khepri store: #{store_id}",
+          module: __MODULE__,
+          component: :store,
+          pid: self(),
+          store_id: store_id
+        )
         :ok
       
       {:error, reason} ->
-        Logger.error("#{Themes.store(self())} Failed to stop Khepri store #{store_id}: #{inspect(reason)}")
+        Logger.error("STORE [#{CF.black_on_green()}#{inspect(self())}#{CF.reset()}] Failed to stop Khepri store #{store_id}: #{inspect(reason)}",
+          module: __MODULE__,
+          component: :store,
+          pid: self(),
+          store_id: store_id,
+          reason: reason
+        )
         {:error, reason}
     end
   end

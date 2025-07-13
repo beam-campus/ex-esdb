@@ -5,7 +5,6 @@ defmodule ExESDB.SubscriptionsWriter do
   use GenServer
 
   require Logger
-  alias ExESDB.Themes, as: Themes
 
   def put_subscription(
         store,
@@ -71,7 +70,7 @@ defmodule ExESDB.SubscriptionsWriter do
   ######## PLUMBING ############
   @impl true
   def init(opts) do
-    IO.puts("#{Themes.subscriptions_writer(self())} is UP.")
+    Logger.info("SubscriptionsWriter #{inspect(self())} is UP.")
     {:ok, opts}
   end
 

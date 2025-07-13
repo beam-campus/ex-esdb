@@ -5,7 +5,6 @@ defmodule ExESDB.Streams do
   use Supervisor
 
   require Logger
-  alias ExESDB.Themes, as: Themes
 
   def start_link(opts),
     do:
@@ -23,7 +22,7 @@ defmodule ExESDB.Streams do
     ]
 
     ret = Supervisor.init(children, strategy: :one_for_one)
-    IO.puts("#{Themes.streams(self())} is UP.")
+    Logger.info("Streams #{inspect(self())} is UP.")
     ret
   end
 end

@@ -7,7 +7,6 @@ defmodule ExESDB.LeaderWorker do
   alias ExESDB.Emitters
   alias ExESDB.SubscriptionsReader, as: SubsR
   alias ExESDB.SubscriptionsWriter, as: SubsW
-  alias ExESDB.Themes, as: Themes
   ############ API ############
   def activate(store) do
     GenServer.call(
@@ -24,9 +23,23 @@ defmodule ExESDB.LeaderWorker do
   ########## HANDLE_CAST ##########
   @impl true
   def handle_cast({:activate, store}, state) do
-    IO.puts("\n#{Themes.leader_worker(self())} ==> 🚀 ACTIVATING LEADERSHIP RESPONSIBILITIES")
-    IO.puts("  🏆 Node: #{inspect(node())}")
-    IO.puts("  📊 Store: #{inspect(store)}")
+    Logger.info("🚀 ACTIVATING LEADERSHIP RESPONSIBILITIES",
+      component: :leader_worker,
+      pid: self(),
+      arrow: true
+    )
+    
+    Logger.info("🏆 Node: #{inspect(node())}",
+      component: :leader_worker,
+      pid: self(),
+      indent: 1
+    )
+    
+    Logger.info("📊 Store: #{inspect(store)}",
+      component: :leader_worker,
+      pid: self(),
+      indent: 1
+    )
 
     subscriptions =
       store
@@ -36,28 +49,52 @@ defmodule ExESDB.LeaderWorker do
 
     case subscription_count do
       0 ->
-        IO.puts("  📝 No active subscriptions to manage")
+        Logger.info("📝 No active subscriptions to manage",
+          component: :leader_worker,
+          pid: self(),
+          indent: 1
+        )
 
       1 ->
-        IO.puts("  📝 Managing 1 active subscription")
+        Logger.info("📝 Managing 1 active subscription",
+          component: :leader_worker,
+          pid: self(),
+          indent: 1
+        )
 
       num ->
-        IO.puts("  📝 Managing #{num} active subscriptions")
+        Logger.info("📝 Managing #{num} active subscriptions",
+          component: :leader_worker,
+          pid: self(),
+          indent: 1
+        )
     end
 
     if subscription_count > 0 do
-      IO.puts("\n  Starting emitters for active subscriptions:")
+      Logger.info("Starting emitters for active subscriptions:",
+        component: :leader_worker,
+        pid: self(),
+        indent: 1
+      )
 
       subscriptions
       |> Enum.each(fn {key, subscription} ->
-        IO.puts("    ⚙️  Starting emitter for: #{inspect(key)}")
+        Logger.info("⚙️  Starting emitter for: #{inspect(key)}",
+          component: :leader_worker,
+          pid: self(),
+          indent: 2
+        )
 
         store
         |> Emitters.start_emitter_pool(subscription)
       end)
     end
 
-    IO.puts("\n  ✅ Leadership activation complete\n")
+    Logger.info("✅ Leadership activation complete",
+      component: :leader_worker,
+      pid: self(),
+      indent: 1
+    )
 
     {:noreply, state}
   end
@@ -103,13 +140,19 @@ defmodule ExESDB.LeaderWorker do
 
   @impl true
   def terminate(reason, _state) do
-    Logger.warning("#{Themes.cluster(self())} terminating with reason: #{inspect(reason)}")
+    Logger.warning("terminating with reason: #{inspect(reason)}",
+      component: :leader_worker,
+      pid: self()
+    )
     :ok
   end
 
   @impl true
   def init(config) do
-    IO.puts("#{Themes.leader_worker(self())} is UP!")
+    Logger.info("is UP!",
+      component: :leader_worker,
+      pid: self()
+    )
     Process.flag(:trap_exit, true)
     {:ok, config}
   end

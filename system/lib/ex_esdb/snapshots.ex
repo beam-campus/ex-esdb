@@ -5,7 +5,6 @@ defmodule ExESDB.Snapshots do
   use Supervisor
 
   require Logger
-  alias ExESDB.Themes, as: Themes
 
   import ExESDB.Khepri.Conditions
 
@@ -39,7 +38,7 @@ defmodule ExESDB.Snapshots do
     ]
 
     ret = Supervisor.init(children, strategy: :one_for_one)
-    IO.puts("#{Themes.snapshots_system(self())} is UP.")
+    Logger.info("SnapshotsSystem #{inspect(self())} is UP.")
     ret
   end
 
