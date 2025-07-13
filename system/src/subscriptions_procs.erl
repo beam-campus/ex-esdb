@@ -1,5 +1,7 @@
 -module(subscriptions_procs).
 
+-include_lib("khepri/include/khepri.hrl").
+
 -export([put_on_create_func/1, put_on_delete_func/1, on_create_key/0, on_delete_key/0,
          put_on_update_func/1, on_update_key/0]).
 

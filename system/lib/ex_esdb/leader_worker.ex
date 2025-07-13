@@ -27,9 +27,6 @@ defmodule ExESDB.LeaderWorker do
     IO.puts("\n#{Themes.leader_worker(self(), "🚀 ACTIVATING LEADERSHIP RESPONSIBILITIES")}")
     IO.puts("  🏆 Node: #{inspect(node())}")
     IO.puts("  📊 Store: #{inspect(store)}")
-    
-    # Register store with Gater APIs (with retry mechanism)
-    ExESDB.StoreCluster.register_store_with_retry(store)
 
     subscriptions =
       store

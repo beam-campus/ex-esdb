@@ -1,5 +1,34 @@
 # Changelog
 
+## version 0.1.1 (2025.07.13)
+
+### StoreRegistry Refactoring
+
+#### Enhanced Architecture
+
+- **Store Registration Centralization**: Moved store registration functionality from `StoreCluster` to dedicated `StoreRegistry` module
+- **Self-Registration**: `StoreRegistry` now automatically registers its own store during initialization when `store_id` is provided
+- **Simplified StoreCluster**: `StoreCluster` now focuses purely on cluster coordination without store registration concerns
+
+#### API Integration
+
+- **ExESDBGater.API Integration**: `list_stores()` function now directly calls `ExESDB.StoreRegistry.list_stores()` instead of maintaining local state
+- **Single Source of Truth**: Store information is now centralized in `StoreRegistry` across the entire system
+- **Improved Error Handling**: Added proper error handling for StoreRegistry calls in GaterAPI
+
+#### System Integration
+
+- **StoreSystem Supervision**: Added `StoreRegistry` to the `StoreSystem` supervisor with proper startup order
+- **Component Isolation**: Each component now has a single, well-defined responsibility
+- **Cleaner State Management**: Removed redundant store state from multiple components
+
+#### Benefits
+
+- **Separation of Concerns**: Clear boundaries between clustering and registration responsibilities
+- **Maintainability**: Easier to maintain and reason about store registration logic
+- **Testability**: Store registration can now be tested in isolation
+- **Reduced Coupling**: Components are less tightly coupled and more modular
+
 ## version 0.0.17 (2025.07.01)
 
 ### Auto-Clustering

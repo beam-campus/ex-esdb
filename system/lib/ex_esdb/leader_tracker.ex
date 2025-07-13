@@ -18,9 +18,6 @@ defmodule ExESDB.LeaderTracker do
 
   ########### PRIVATE HELPERS ###########
 
-  @doc """
-  Formats subscription data from Khepri into the format expected by Emitters.
-  """
   defp format_subscription_data(data) do
     # Handle different possible data formats from Khepri
     case data do

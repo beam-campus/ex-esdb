@@ -22,6 +22,7 @@ defmodule ExESDB.MixProject do
       erl_opts: erl_opts(),
       erlc_paths: erlc_paths(Mix.env()),
       consolidate_protocols: Mix.env() != :test,
+      compilers: [:erlang, :elixir, :app],
       description: @description,
       docs: docs(),
       package: package(),
@@ -75,10 +76,14 @@ defmodule ExESDB.MixProject do
       "src"
     ]
 
-  def erl_opts,
-    do: [
-      {:i, "deps/khepri/include"}
+  def erl_opts do
+    [
+      # Include paths for Erlang compilation
+      {:i, "deps/khepri/include"},
+      # Support for when used as a dependency
+      {:i, Path.join([Mix.Project.deps_path(), "khepri", "include"])}
     ]
+  end
 
   defp elixirc_paths(:test),
     do: [
@@ -90,6 +95,13 @@ defmodule ExESDB.MixProject do
 
   defp deps do
     [
+      # Runtime dependencies (order matters - base dependencies first)
+      {:phoenix_pubsub, "~> 2.1"},
+      {:khepri, "~> 0.17"},
+      {:jason, "~> 1.4", optional: true},
+      {:ex_esdb_gater, "~> 0.1.14"},
+
+      # Development and test dependencies
       {:dialyze, "~> 0.2.0", only: [:dev], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:makeup_html, ">= 0.0.0", only: :dev, runtime: false},
@@ -98,11 +110,7 @@ defmodule ExESDB.MixProject do
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:meck, "~> 0.9", only: [:test], runtime: false},
       {:eunit_formatters, "~> 0.5", only: [:test], runtime: false},
-      {:mox, "~> 1.0", only: [:test], runtime: false},
-      {:jason, "~> 1.4", optional: true},
-      {:phoenix_pubsub, "~> 2.1"},
-      {:khepri, "~> 0.17"},
-      {:ex_esdb_gater, "~> 0.1.11"}
+      {:mox, "~> 1.0", only: [:test], runtime: false}
     ]
   end
 
@@ -157,14 +165,16 @@ defmodule ExESDB.MixProject do
       name: @app_name,
       description: @description,
       version: @version,
-      # files: [
-      #   "lib",
-      #   "src",
-      #   "priv",
-      #   "mix.exs",
-      #   "../README*",
-      #   "../LICENSE*"
-      # ],
+      files: [
+        "lib",
+        "src",
+        "priv",
+        "mix.exs",
+        "config",
+        "../README*",
+        "../LICENSE*",
+        "CHANGELOG*"
+      ],
       maintainers: ["rgfaber"],
       #      organization: "beam-campus",
       licenses: ["MIT"],

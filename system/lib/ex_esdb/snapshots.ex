@@ -7,21 +7,6 @@ defmodule ExESDB.Snapshots do
   require Logger
   alias ExESDB.Themes, as: Themes
 
-  import ExESDB.Khepri.Conditions
-
-  @type khepri_condition ::
-          ExESDB.Khepri.Conditions.if_all()
-          | ExESDB.Khepri.Conditions.if_any()
-          | ExESDB.Khepri.Conditions.if_name_matches()
-          | ExESDB.Khepri.Conditions.if_path_matches()
-          | ExESDB.Khepri.Conditions.if_has_data()
-          | ExESDB.Khepri.Conditions.if_has_payload()
-          | ExESDB.Khepri.Conditions.if_has_sproc()
-          | ExESDB.Khepri.Conditions.if_data_matches()
-          | ExESDB.Khepri.Conditions.if_node_exists()
-          | ExESDB.Khepri.Conditions.if_payload_version()
-          | ExESDB.Khepri.Conditions.if_child_list_version()
-          | ExESDB.Khepri.Conditions.if_child_list_length()
 
   def start_link(opts),
     do:
