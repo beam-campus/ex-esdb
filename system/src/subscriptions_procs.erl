@@ -34,6 +34,9 @@ put_on_create_func(Store) ->
                           end
                       end
                    end),
+      ok;
+    {error, Reason} ->
+      io:format("Warning: khepri:exists failed in put_on_create_func with reason: ~p~n", [Reason]),
       ok
   end.
 
@@ -57,6 +60,9 @@ put_on_update_func(Store) ->
                           end
                       end
                    end),
+      ok;
+    {error, Reason} ->
+      io:format("Warning: khepri:exists failed in put_on_update_func with reason: ~p~n", [Reason]),
       ok
   end.
 
@@ -80,5 +86,8 @@ put_on_delete_func(Store) ->
                           end
                       end
                    end),
+      ok;
+    {error, Reason} ->
+      io:format("Warning: khepri:exists failed in put_on_delete_func with reason: ~p~n", [Reason]),
       ok
   end.

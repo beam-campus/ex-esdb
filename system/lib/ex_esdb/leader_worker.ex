@@ -9,16 +9,31 @@ defmodule ExESDB.LeaderWorker do
   alias ExESDB.SubscriptionsWriter, as: SubsW
   alias ExESDB.Themes, as: Themes
   ############ API ############
+  @doc """
+  Activates the LeaderWorker for the given store.
+  
+  This function is called when this node becomes the cluster leader.
+  """
   def activate(store) do
-    GenServer.call(
-      __MODULE__,
-      {:save_default_subscriptions, store}
-    )
-
-    GenServer.cast(
-      __MODULE__,
-      {:activate, store}
-    )
+    # Save default subscriptions synchronously
+    case GenServer.call(__MODULE__, {:save_default_subscriptions, store}, 10_000) do
+      {:ok, _result} ->
+        # Now activate leadership responsibilities
+        GenServer.cast(__MODULE__, {:activate, store})
+        IO.puts(Themes.leader_worker(self(), "✅ LeaderWorker activated successfully"))
+        :ok
+      {:error, reason} ->
+        IO.puts(Themes.leader_worker(self(), "❌ Failed to activate LeaderWorker: #{inspect(reason)}"))
+        {:error, reason}
+    end
+  rescue
+    error ->
+      IO.puts(Themes.leader_worker(self(), "❌ LeaderWorker activation failed with error: #{inspect(error)}"))
+      {:error, error}
+  catch
+    :exit, reason ->
+      IO.puts(Themes.leader_worker(self(), "❌ LeaderWorker activation failed with exit: #{inspect(reason)}"))
+      {:error, reason}
   end
 
   ########## HANDLE_CAST ##########
@@ -48,13 +63,27 @@ defmodule ExESDB.LeaderWorker do
     if subscription_count > 0 do
       IO.puts("\n  Starting emitters for active subscriptions:")
 
-      subscriptions
-      |> Enum.each(fn {key, subscription} ->
-        IO.puts("    ⚙️  Starting emitter for: #{inspect(key)}")
+      # Check if EmitterPools is available
+      case Process.whereis(ExESDB.EmitterPools) do
+        nil ->
+          IO.puts("    ⚠️  EmitterPools not available, skipping emitter startup")
+          IO.puts("    ℹ️  EmitterPools will be started when EmitterSystem is ready")
+        
+        _pid ->
+          subscriptions
+          |> Enum.each(fn {key, subscription} ->
+            IO.puts("    ⚙️  Starting emitter for: #{inspect(key)}")
 
-        store
-        |> Emitters.start_emitter_pool(subscription)
-      end)
+            case Emitters.start_emitter_pool(store, subscription) do
+              {:ok, _pid} ->
+                IO.puts("    ✅ Successfully started emitter pool for #{inspect(key)}")
+              {:error, {:already_started, _pid}} ->
+                IO.puts("    ✅ Emitter pool already running for #{inspect(key)}")
+              {:error, reason} ->
+                IO.puts("    ❌ Failed to start emitter pool for #{inspect(key)}: #{inspect(reason)}")
+            end
+          end)
+      end
     end
 
     IO.puts("\n  ✅ Leadership activation complete\n")
@@ -78,11 +107,21 @@ defmodule ExESDB.LeaderWorker do
   ############# HANDLE_CALL ##########
   @impl true
   def handle_call({:save_default_subscriptions, store}, _from, state) do
-    res =
-      store
-      |> SubsW.put_subscription(:by_stream, "$all", "all-events")
+    try do
+      res =
+        store
+        |> SubsW.put_subscription_sync(:by_stream, "$all", "all-events")
 
-    {:reply, {:ok, res}, state}
+      {:reply, res, state}
+    rescue
+      error ->
+        Logger.warning("Failed to save default subscriptions: #{inspect(error)}")
+        {:reply, {:error, error}, state}
+    catch
+      :exit, reason ->
+        Logger.warning("Failed to save default subscriptions (exit): #{inspect(reason)}")
+        {:reply, {:error, reason}, state}
+    end
   end
 
   @impl true
@@ -109,8 +148,21 @@ defmodule ExESDB.LeaderWorker do
 
   @impl true
   def init(config) do
-    IO.puts("#{Themes.leader_worker(self(), "is UP!")}")
+    # Set trap_exit early to handle crashes properly
     Process.flag(:trap_exit, true)
+    
+    # Log startup with process info
+    IO.puts("#{Themes.leader_worker(self(), "is UP!")}")
+    Logger.info("LeaderWorker started successfully with PID #{inspect(self())} and name #{inspect(__MODULE__)}")
+    
+    # Verify we're properly registered
+    case Process.whereis(__MODULE__) do
+      pid when pid == self() ->
+        Logger.info("LeaderWorker registration confirmed: #{inspect(__MODULE__)} -> #{inspect(self())}")
+      other_pid ->
+        Logger.warning("LeaderWorker registration issue: expected #{inspect(self())}, got #{inspect(other_pid)}")
+    end
+    
     {:ok, config}
   end
 

@@ -5,21 +5,27 @@ x-dev-environment: &dev-env
   EX_ESDB_STORE_ID: "reg_gh"
   EX_ESDB_DB_TYPE: "cluster"
   EX_ESDB_TIMEOUT: "10000"
-  EX_ESDB_COOKIE: $EX_ESDB_COOKIE
+  EX_ESDB_STORE_DESCRIPTION: "Greenhouse Tycoon - Regulate Greenhouse"
+  EX_ESDB_STORE_TAGS: "development,cluster,reg-gh,registration"
+  EX_ESDB_COOKIE: ${EX_ESDB_COOKIE}
   EX_ESDB_CLUSTER_SECRET: ${EX_ESDB_CLUSTER_SECRET}
   EX_ESDB_GOSSIP_MULTICAST_ADDR: ${EX_ESDB_GOSSIP_MULTICAST_ADDR}
-  RELEASE_COOKIE: $EX_ESDB_COOKIE
+  RELEASE_COOKIE: ${EX_ESDB_COOKIE}
+  ERLANG_COOKIE: ${EX_ESDB_COOKIE}
   LOG_LEVEL: "debug"
   RUST_LOG: "debug"
 
 x-prod-environment: &prod-env
-  RELEASE_COOKIE: $EX_ESDB_COOKIE
   EX_ESDB_STORE_ID: "reg_gh"
   EX_ESDB_DB_TYPE: "cluster"
   EX_ESDB_TIMEOUT: "5000"
-  EX_ESDB_COOKIE: $EX_ESDB_COOKIE
-  EX_ESDB_CLUSTER_SECRET: $EX_ESDB_CLUSTER_SECRET
+  EX_ESDB_STORE_DESCRIPTION: "Greenhouse Tycoon - Regulate Greenhouse"
+  EX_ESDB_STORE_TAGS: "production,cluster,reg-gh,registration"
+  EX_ESDB_COOKIE: ${EX_ESDB_COOKIE}
+  EX_ESDB_CLUSTER_SECRET: ${EX_ESDB_CLUSTER_SECRET}
   EX_ESDB_GOSSIP_MULTICAST_ADDR: ${EX_ESDB_GOSSIP_MULTICAST_ADDR}
+  RELEASE_COOKIE: ${EX_ESDB_COOKIE}
+  ERLANG_COOKIE: ${EX_ESDB_COOKIE}
   LOG_LEVEL: "info"
   RUST_LOG: "info"
 
@@ -61,13 +67,7 @@ x-esdb-service: &esdb-service
     - ex-esdb-net
   stop_grace_period: 30s
   environment:
-    EX_ESDB_STORE_ID: "reg_gh"
-    EX_ESDB_DB_TYPE: "cluster"
-    EX_ESDB_TIMEOUT: "10000"
-    EX_ESDB_COOKIE: $EX_ESDB_COOKIE
-    EX_ESDB_CLUSTER_SECRET: $EX_ESDB_CLUSTER_SECRET
-    EX_ESDB_GOSSIP_MULTICAST_ADDR: ${EX_ESDB_GOSSIP_MULTICAST_ADDR}
-    RELEASE_COOKIE: $EX_ESDB_COOKIE
+    <<: *dev-env
     LOG_LEVEL: "info"
     RUST_LOG: "warn"
   deploy:
@@ -110,6 +110,11 @@ services:
     <<: *esdb-service
     hostname: reg-gh-0
     container_name: reg-gh-0
+    environment:
+      <<: *dev-env
+      RELEASE_NODE: "ex_esdb@reg-gh-0"
+      LOG_LEVEL: "info"
+      RUST_LOG: "warn"
     volumes:
       - reg-gh-0-data:/data
     labels:
@@ -124,6 +129,11 @@ services:
     <<: *esdb-service
     hostname: reg-gh-1
     container_name: reg-gh-1
+    environment:
+      <<: *dev-env
+      RELEASE_NODE: "ex_esdb@reg-gh-1"
+      LOG_LEVEL: "info"
+      RUST_LOG: "warn"
     volumes:
       - reg-gh-1-data:/data
     labels:
@@ -138,6 +148,11 @@ services:
     <<: *esdb-service
     hostname: reg-gh-2
     container_name: reg-gh-2
+    environment:
+      <<: *dev-env
+      RELEASE_NODE: "ex_esdb@reg-gh-2"
+      LOG_LEVEL: "info"
+      RUST_LOG: "warn"
     volumes:
       - reg-gh-2-data:/data
     labels:

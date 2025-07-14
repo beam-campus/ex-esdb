@@ -41,6 +41,7 @@ defmodule ExESDB.NodeMonitor do
 
   @impl true
   def init(opts) do
+    Process.flag(:trap_exit, true)
     probe_interval = Keyword.get(opts, :probe_interval, @default_probe_interval)
     failure_threshold = Keyword.get(opts, :failure_threshold, @default_failure_threshold)
     probe_timeout = Keyword.get(opts, :probe_timeout, @default_probe_timeout)
@@ -129,6 +130,14 @@ defmodule ExESDB.NodeMonitor do
 
   @impl true
   def handle_info(_, state), do: {:noreply, state}
+
+  @impl true
+  def terminate(reason, _state) do
+    IO.puts("#{Themes.node_monitor(self(), "⚠️  Shutting down gracefully. Reason: #{inspect(reason)}")}")
+    # Disable node monitoring
+    :net_kernel.monitor_nodes(false)
+    :ok
+  end
 
   ## Private Functions
 

@@ -5,9 +5,17 @@ defmodule ExESDB.CoreSystem do
   This supervisor uses :one_for_all strategy because these components are 
   tightly coupled and must restart together to maintain consistency.
 
-  Components:
-  - StoreSystem: Manages store lifecycle and clustering
-  - PersistenceSystem: Manages streams, snapshots, and subscriptions
+  Startup order:
+  1. PersistenceSystem: Manages streams, snapshots, and subscriptions (foundation)
+  2. NotificationSystem: Manages leadership and event emission (depends on persistence)
+  3. StoreSystem: Manages store lifecycle and clustering (depends on persistence & notification)
+  
+  The NotificationSystem includes:
+  - LeaderSystem: Leadership responsibilities and subscription management
+  - EmitterSystem: Event emission and distribution
+  
+  This ensures that leadership and event distribution are core capabilities
+  available in both single-node and cluster modes.
   """
   use Supervisor
 
@@ -16,8 +24,9 @@ defmodule ExESDB.CoreSystem do
   @impl true
   def init(opts) do
     children = [
-      {ExESDB.StoreSystem, opts},
-      {ExESDB.PersistenceSystem, opts}
+      {ExESDB.PersistenceSystem, opts},
+      {ExESDB.NotificationSystem, opts},
+      {ExESDB.StoreSystem, opts}
     ]
 
     IO.puts(Themes.core_system(self(), "is UP"))

@@ -1,14 +1,13 @@
-defmodule ExESDB.LeadershipSystem do
+defmodule ExESDB.NotificationSystem do
   @moduledoc """
-  Supervisor for leadership and event emission components.
+  Supervisor for event notification and distribution components.
   
-  This supervisor manages components that are only active when this node
-  is the cluster leader. Uses :rest_for_one because EmitterSystem depends
-  on LeaderSystem.
+  This supervisor manages the core event notification functionality:
+  - LeaderSystem: Leadership responsibilities and subscription management
+  - EmitterSystem: Event emission and distribution
   
-  Components:
-  - LeaderSystem: Leader election and management
-  - EmitterSystem: Event emission (depends on leadership)
+  This is a core component that runs in both single-node and cluster modes.
+  The leadership determination happens at the store level, not the clustering level.
   """
   use Supervisor
   
@@ -17,13 +16,13 @@ defmodule ExESDB.LeadershipSystem do
   @impl true
   def init(opts) do
     children = [
-      # LeaderSystem must start first
+      # LeaderSystem handles leadership responsibilities
       {ExESDB.LeaderSystem, opts},
-      # EmitterSystem depends on leadership
+      # EmitterSystem handles event distribution
       {ExESDB.EmitterSystem, opts}
     ]
 
-    IO.puts("#{Themes.leader_system(self(), "LeadershipSystem is UP")}")
+    IO.puts("#{Themes.notification_system(self(), "is UP")}") 
     
     # Use :rest_for_one because EmitterSystem depends on LeaderSystem
     Supervisor.init(children, 
@@ -41,7 +40,7 @@ defmodule ExESDB.LeadershipSystem do
     %{
       id: __MODULE__,
       start: {__MODULE__, :start_link, [opts]},
-      restart: :transient,  # Can restart on normal shutdown
+      restart: :permanent,
       shutdown: :infinity,
       type: :supervisor
     }

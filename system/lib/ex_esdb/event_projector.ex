@@ -30,10 +30,20 @@ defmodule ExESDB.EventProjector do
   ##### PLUMBING #####
   @impl true
   def init(opts) do
+    Process.flag(:trap_exit, true)
     Logger.info("#{Themes.projector(self(), "is UP.")}")
     opts[:pub_sub]
     |> PubSub.subscribe(to_string(opts[:store_id]))
     {:ok, opts}
+  end
+
+  @impl true
+  def terminate(reason, state) do
+    Logger.info("#{Themes.projector(self(), "⚠️  Shutting down gracefully. Reason: #{inspect(reason)}")}")
+    # Unsubscribe from PubSub
+    state[:pub_sub]
+    |> PubSub.unsubscribe(to_string(state[:store_id]))
+    :ok
   end
 
   def start_link(opts) do

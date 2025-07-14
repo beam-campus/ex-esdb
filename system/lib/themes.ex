@@ -11,6 +11,9 @@ defmodule ExESDB.Themes do
   def core_system(pid, msg),
     do: "[#{CF.black_on_magenta()}#{inspect(pid)}#{CF.reset()}] [CoreSystem] #{msg}"
 
+  def notification_system(pid, msg),
+    do: "[#{CF.black_on_cyan()}#{inspect(pid)}#{CF.reset()}] [NotificationSystem] #{msg}"
+
   def store(pid, msg),
     do: "[#{CF.black_on_green()}#{inspect(pid)}#{CF.reset()}] [Store] #{msg}"
 

@@ -11,6 +11,8 @@ defmodule ExESDB.Options do
   @pub_sub EnVars.pub_sub()
   @writer_idle_ms EnVars.writer_idle_ms()
   @reader_idle_ms EnVars.reader_idle_ms()
+  @store_description EnVars.store_description()
+  @store_tags EnVars.store_tags()
 
   def sys_env(key), do: System.get_env(key)
   def app_env, do: Application.get_env(:ex_esdb, :khepri)
@@ -68,6 +70,24 @@ defmodule ExESDB.Options do
     end
   end
 
+  def store_description do
+    case sys_env(@store_description) do
+      nil -> app_env(:store_description)
+      store_description -> store_description
+    end
+  end
+
+  def store_tags do
+    case sys_env(@store_tags) do
+      nil -> 
+        app_env(:store_tags) || []
+      tags_string -> 
+        tags_string
+        |> String.split(",")
+        |> Enum.map(&String.trim/1)
+        |> Enum.reject(&(&1 == ""))
+    end
+  end
 
   defp to_unique_atom(candidate) do
     try do

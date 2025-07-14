@@ -22,7 +22,10 @@ defmodule ExESDB.StoreCluster do
         node() == leader_node
 
       msg ->
-        Logger.debug(Themes.store_cluster(node(), "leader lookup failed: #{inspect(msg)}"))
+        IO.puts(
+          Themes.store_cluster(self(), "🔍 Leader lookup failed on #{node()}: #{inspect(msg)}")
+        )
+
         false
     end
   end
@@ -36,7 +39,27 @@ defmodule ExESDB.StoreCluster do
         )
       )
 
-      store |> LeaderWorker.activate()
+      case LeaderWorker.activate(store) do
+        :ok ->
+          IO.puts(
+            Themes.store_cluster(
+              self(),
+              "✅ LeaderWorker successfully activated"
+            )
+          )
+
+          :ok
+
+        {:error, reason} ->
+          IO.puts(
+            Themes.store_cluster(
+              self(),
+              "❌ Failed to activate LeaderWorker on #{node()}: #{inspect(reason)}"
+            )
+          )
+
+          {:error, reason}
+      end
     end
   end
 
@@ -48,8 +71,7 @@ defmodule ExESDB.StoreCluster do
 
         # If we became the leader, activate LeaderWorker
         if node() == leader_node do
-          store
-          |> LeaderWorker.activate()
+          activate_leader_worker(store, leader_node)
         end
 
         state
@@ -58,7 +80,7 @@ defmodule ExESDB.StoreCluster do
       # First time detecting leader or same leader
       previous_leader == nil ->
         if leader_node != nil do
-          IO.puts(Themes.store_cluster(self(), "==> LEADER DETECTED: 🏆 #{inspect(leader_node)}"))
+          IO.puts(Themes.store_cluster(self(), "🏆 LEADER DETECTED 🏆 => #{leader_node}"))
 
           activate_leader_worker(store, leader_node)
         end
@@ -105,8 +127,11 @@ defmodule ExESDB.StoreCluster do
         # In cluster mode, use StoreCoordinator if available
         case Process.whereis(ExESDB.StoreCoordinator) do
           nil ->
-            Logger.warning(
-              Themes.store_cluster(node(), "StoreCoordinator not available, trying direct join")
+            IO.puts(
+              Themes.store_cluster(
+                self(),
+                "⚠️ StoreCoordinator not available on #{node()}, trying direct join"
+              )
             )
 
             join_cluster_direct(store)
@@ -117,12 +142,15 @@ defmodule ExESDB.StoreCluster do
 
       :single ->
         # In single mode, just ensure the store is started locally
-        IO.puts(Themes.store_cluster(self(), "👍 Running in single-node mode"))
+        IO.puts(Themes.store_cluster(self(), "👍 Running in single-node mode on #{node()}"))
         :coordinator
 
       _ ->
-        Logger.warning(
-          Themes.store_cluster(node(), "Unknown db_type, defaulting to single-node mode")
+        IO.puts(
+          Themes.store_cluster(
+            self(),
+            "⚠️ Unknown db_type on #{node()}, defaulting to single-node mode"
+          )
         )
 
         :coordinator
@@ -134,21 +162,30 @@ defmodule ExESDB.StoreCluster do
     connected_nodes = Node.list()
 
     if Enum.empty?(connected_nodes) do
-      Logger.info(
-        Themes.store_cluster(node(), "No connected nodes, starting as single node cluster")
+      IO.puts(
+        Themes.store_cluster(
+          self(),
+          "ℹ️ No connected nodes on #{node()}, starting as single node cluster"
+        )
       )
 
       :no_nodes
     else
-      Logger.info(
-        "#{Themes.store_cluster(node(), "Attempting direct join to cluster via: #{inspect(connected_nodes)}")}"
+      IO.puts(
+        Themes.store_cluster(
+          self(),
+          "🔗 Attempting direct join to cluster from #{node()} via: #{inspect(connected_nodes)}"
+        )
       )
 
       # Try to find a node with an existing cluster
       case find_cluster_node(store, connected_nodes) do
         nil ->
-          Logger.info(
-            Themes.store_cluster(node(), "No existing cluster found, starting as coordinator")
+          IO.puts(
+            Themes.store_cluster(
+              self(),
+              "ℹ️ No existing cluster found on #{node()}, starting as coordinator"
+            )
           )
 
           :coordinator
@@ -162,20 +199,20 @@ defmodule ExESDB.StoreCluster do
   defp join_khepri_cluster(store, node) do
     case :khepri_cluster.join(store, node) do
       :ok ->
-        Logger.info(
+        IO.puts(
           Themes.store_cluster(
-            node(),
-            "Successfully joined cluster via #{inspect(node)}"
+            self(),
+            "✅ Successfully joined cluster on #{node()} via #{node}"
           )
         )
 
         :ok
 
       {:error, reason} ->
-        Logger.warning(
+        IO.puts(
           Themes.store_cluster(
-            node(),
-            "Failed to join via #{inspect(node)}: #{inspect(reason)}"
+            self(),
+            "⚠️ Failed to join via #{inspect(node)} from #{node()}: #{inspect(reason)}"
           )
         )
 
@@ -190,9 +227,9 @@ defmodule ExESDB.StoreCluster do
 
     # Check if we are the new leader
     if node() == new_leader do
-      IO.puts("  🚀 This node is now the leader!")
+      IO.puts("  🚀 This node (#{node()}) is now the leader!")
     else
-      IO.puts("  📞 Following new leader: #{inspect(new_leader)}")
+      IO.puts("  📞 Node #{node()} following new leader: #{inspect(new_leader)}")
     end
 
     # Also trigger a membership check to show updated leadership in membership
@@ -248,12 +285,15 @@ defmodule ExESDB.StoreCluster do
   defp leave(store) do
     case store |> :khepri_cluster.reset() do
       :ok ->
-        IO.puts(Themes.store_cluster(node(), "=> Left cluster"))
+        IO.puts(Themes.store_cluster(self(), "👋 Left cluster from #{node()}"))
         :ok
 
       {:error, reason} ->
-        Logger.error(
-          Themes.store_cluster(node(), "=> Failed to leave cluster. reason: #{inspect(reason)}")
+        IO.puts(
+          Themes.store_cluster(
+            self(),
+            "❌ Failed to leave cluster from #{node()}. reason: #{inspect(reason)}"
+          )
         )
 
         {:error, reason}
@@ -272,17 +312,20 @@ defmodule ExESDB.StoreCluster do
 
     case join_via_connected_nodes(store) do
       :ok ->
-        Logger.info(
-          Themes.store_cluster(node(), "=> Successfully joined [#{inspect(store)}] cluster")
+        IO.puts(
+          Themes.store_cluster(
+            self(),
+            "✅ Successfully joined [#{inspect(store)}] cluster from #{node()}"
+          )
         )
 
       # Store registration is now handled by StoreRegistry itself
 
       :coordinator ->
-        Logger.info(
+        IO.puts(
           Themes.store_cluster(
-            node(),
-            " => Acting as cluster coordinator, Khepri cluster already initialized"
+            self(),
+            "👑 Acting as cluster coordinator on #{node()}, Khepri cluster already initialized"
           )
         )
 
@@ -299,20 +342,20 @@ defmodule ExESDB.StoreCluster do
         Process.send_after(self(), :join, timeout)
 
       :waiting ->
-        Logger.alert(
+        IO.puts(
           Themes.store_cluster(
-            node(),
-            " => Waiting for cluster coordinator, will retry in #{timeout * 2}ms"
+            self(),
+            "⏳ Waiting for cluster coordinator on #{node()}, will retry in #{timeout * 2}ms"
           )
         )
 
         Process.send_after(self(), :join, timeout * 2)
 
       :failed ->
-        Logger.alert(
+        IO.puts(
           Themes.store_cluster(
-            node(),
-            " => Failed to join discovered nodes, will retry in #{timeout * 3}ms"
+            self(),
+            "🔄 Failed to join discovered nodes from #{node()}, will retry in #{timeout * 3}ms"
           )
         )
 
@@ -334,7 +377,7 @@ defmodule ExESDB.StoreCluster do
         last_error = Keyword.get(state, :last_member_error)
 
         if last_error != reason do
-          IO.puts("⚠️⚠️ Failed to get store members. reason: #{inspect(reason)} ⚠️⚠️")
+          IO.puts("⚠️⚠️ Failed to get store members on #{node()}. reason: #{inspect(reason)} ⚠️⚠️")
         end
 
         new_state = Keyword.put(state, :last_member_error, reason)
@@ -348,7 +391,7 @@ defmodule ExESDB.StoreCluster do
 
         # Only report if membership has changed
         if normalized_current != normalized_previous do
-          IO.puts("\n#{Themes.store_cluster(self(), "MEMBERSHIP CHANGED")}")
+          IO.puts("\n#{Themes.store_cluster(self(), "🔄 MEMBERSHIP CHANGED on #{node()}")}")
 
           # Report additions
           new_members = normalized_current -- normalized_previous
@@ -391,7 +434,9 @@ defmodule ExESDB.StoreCluster do
         :undefined ->
           # Only report if we previously had a leader
           if previous_leader != nil do
-            IO.puts(Themes.store_cluster(self(), "==> ⚠️ LEADERSHIP LOST: No leader found"))
+            IO.puts(
+              Themes.store_cluster(self(), "==> ⚠️ LEADERSHIP LOST on #{node()}: No leader found")
+            )
           end
 
           state |> Keyword.put(:current_leader, nil)
@@ -406,7 +451,8 @@ defmodule ExESDB.StoreCluster do
     state[:store_id]
     |> leave()
 
-    msg = "🔻🔻 #{Themes.store_cluster(pid, "going down with reason: #{inspect(reason)}")} 🔻🔻"
+    msg =
+      "🔻🔻 #{Themes.store_cluster(pid, "going down on #{node()} with reason: #{inspect(reason)}")} 🔻🔻"
 
     IO.puts(msg)
     {:noreply, state}
@@ -414,7 +460,7 @@ defmodule ExESDB.StoreCluster do
 
   @impl true
   def handle_info({:EXIT, pid, reason}, state) do
-    IO.puts("#{Themes.store_cluster(pid, "exited with reason: #{inspect(reason)}")}")
+    IO.puts("#{Themes.store_cluster(pid, "exited on #{node()} with reason: #{inspect(reason)}")}")
 
     state[:store_id]
     |> leave()
@@ -424,20 +470,28 @@ defmodule ExESDB.StoreCluster do
 
   @impl true
   def handle_info({:nodeup, node}, state) do
-    Logger.info("#{Themes.store_cluster(self(), "detected new node: #{inspect(node)}")}")
+    IO.puts(
+      "#{Themes.store_cluster(self(), "🌐 Detected new node from #{node()}: #{inspect(node)}")}"
+    )
 
     store = state[:store_id]
 
     # Check if we should handle this nodeup event
     if should_handle_nodeup?(store) do
-      Logger.info(
-        Themes.store_cluster(node(), "attempting coordinated cluster join due to new node")
+      IO.puts(
+        Themes.store_cluster(
+          self(),
+          "🔗 Attempting coordinated cluster join from #{node()} due to new node"
+        )
       )
 
       case join_via_connected_nodes(store) do
         :ok ->
-          Logger.info(
-            Themes.store_cluster(node(), "successfully joined cluster after nodeup event")
+          IO.puts(
+            Themes.store_cluster(
+              self(),
+              "✅ Successfully joined cluster from #{node()} after nodeup event"
+            )
           )
 
           # Store registration is now handled by StoreRegistry itself
@@ -446,18 +500,30 @@ defmodule ExESDB.StoreCluster do
           Process.send(self(), :check_leader, [])
 
         :coordinator ->
-          Logger.info(Themes.store_cluster(node(), "acting as coordinator after nodeup event"))
+          IO.puts(
+            Themes.store_cluster(
+              self(),
+              "👑 Acting as coordinator on #{node()} after nodeup event"
+            )
+          )
+
           # Store registration is now handled by StoreRegistry itself
           # Trigger immediate leadership check when acting as coordinator
           Process.send(self(), :check_leader, [])
 
         _ ->
-          Logger.debug(
-            Themes.store_cluster(node(), "coordinated join not successful, will retry later")
+          IO.puts(
+            Themes.store_cluster(
+              self(),
+              "🔄 Coordinated join not successful on #{node()}, will retry later"
+            )
           )
       end
     else
-      Logger.debug(Themes.store_cluster(node(), "already in cluster, ignoring nodeup event"))
+      IO.puts(
+        Themes.store_cluster(self(), "✅ Already in cluster on #{node()}, ignoring nodeup event")
+      )
+
       # Still trigger membership and leadership checks to detect any changes
       Process.send(self(), :check_members, [])
       Process.send(self(), :check_leader, [])
@@ -468,7 +534,7 @@ defmodule ExESDB.StoreCluster do
 
   @impl true
   def handle_info({:nodedown, node}, state) do
-    Logger.info(Themes.store_cluster(self(), "detected node down: #{inspect(node)}"))
+    IO.puts(Themes.store_cluster(self(), "🔴 Detected node down from #{node()}: #{inspect(node)}"))
     # Trigger immediate membership and leadership checks after node down event
     Process.send(self(), :check_members, [])
     Process.send(self(), :check_leader, [])
@@ -483,7 +549,9 @@ defmodule ExESDB.StoreCluster do
   ############# PLUMBING #############
   @impl true
   def terminate(reason, state) do
-    Logger.warning(Themes.store_cluster(self(), "terminating with reason: #{inspect(reason)}"))
+    IO.puts(
+      Themes.store_cluster(self(), "⚠️ Terminating on #{node()} with reason: #{inspect(reason)}")
+    )
 
     state[:store_id]
     |> leave()
@@ -495,7 +563,7 @@ defmodule ExESDB.StoreCluster do
   def init(config) do
     timeout = config[:timeout] || 1000
     state = Keyword.put(config, :timeout, timeout)
-    IO.puts(Themes.store_cluster(self(), "is UP"))
+    IO.puts(Themes.store_cluster(self(), "🚀 is UP on #{node()}"))
     Process.flag(:trap_exit, true)
 
     # Subscribe to LibCluster events

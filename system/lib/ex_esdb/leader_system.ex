@@ -21,10 +21,13 @@ defmodule ExESDB.LeaderSystem do
     Process.flag(:trap_exit, true)
 
     children = [
-      {ExESDB.LeaderWorker, config},
-      {ExESDB.LeaderTracker, config}
+      # LeaderTracker must start first to establish subscription tracking infrastructure
+      {ExESDB.LeaderTracker, config},
+      # LeaderWorker depends on the tracking infrastructure being ready
+      {ExESDB.LeaderWorker, config}
     ]
 
-    Supervisor.init(children, strategy: :one_for_one)
+    # Use :rest_for_one because LeaderWorker depends on LeaderTracker
+    Supervisor.init(children, strategy: :rest_for_one)
   end
 end

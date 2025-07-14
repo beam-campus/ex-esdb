@@ -21,6 +21,21 @@ defmodule ExESDB.SubscriptionsWriter do
           {:put_subscription, store, type, selector, subscription_name, start_from, subscriber}
         )
 
+  def put_subscription_sync(
+        store,
+        type,
+        selector,
+        subscription_name \\ "transient",
+        start_from \\ 0,
+        subscriber \\ nil
+      ),
+      do:
+        GenServer.call(
+          __MODULE__,
+          {:put_subscription_sync, store, type, selector, subscription_name, start_from, subscriber},
+          10_000
+        )
+
   def delete_subscription(store, type, selector, subscription_name),
     do:
       GenServer.cast(
@@ -68,11 +83,54 @@ defmodule ExESDB.SubscriptionsWriter do
     {:noreply, state}
   end
 
+  @impl GenServer
+  def handle_call(
+        {:put_subscription_sync, store, type, selector, subscription_name, start_from, subscriber},
+        _from,
+        state
+      ) do
+    try do
+      subscription =
+        %{
+          selector: selector,
+          type: type,
+          subscription_name: subscription_name,
+          start_from: start_from,
+          subscriber: subscriber
+        }
+
+      result = if :subscriptions_store.exists(store, subscription) do
+        store
+        |> :subscriptions_store.update_subscription(subscription)
+      else
+        store
+        |> :subscriptions_store.put_subscription(subscription)
+      end
+
+      {:reply, {:ok, result}, state}
+    rescue
+      error ->
+        Logger.warning("Failed to put subscription: #{inspect(error)}")
+        {:reply, {:error, error}, state}
+    catch
+      :exit, reason ->
+        Logger.warning("Failed to put subscription (exit): #{inspect(reason)}")
+        {:reply, {:error, reason}, state}
+    end
+  end
+
   ######## PLUMBING ############
   @impl true
   def init(opts) do
+    Process.flag(:trap_exit, true)
     IO.puts("#{Themes.subscriptions_writer(self(), "is UP.")}")
     {:ok, opts}
+  end
+
+  @impl true
+  def terminate(reason, _state) do
+    IO.puts("#{Themes.subscriptions_writer(self(), "⚠️  Shutting down gracefully. Reason: #{inspect(reason)}")}")
+    :ok
   end
 
   def start_link(opts),
