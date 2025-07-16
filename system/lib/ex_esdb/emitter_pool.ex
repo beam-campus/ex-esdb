@@ -1,7 +1,5 @@
 defmodule ExESDB.EmitterPool do
-  @moduledoc """
-    As part of the ExESDB.System,
-  """
+  @moduledoc false
   use Supervisor
 
   require Logger

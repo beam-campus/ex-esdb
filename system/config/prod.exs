@@ -25,7 +25,7 @@ config :ex_esdb,
   logger: true,
   log_level: :debug
 
-config :ex_esdb, :khepri,
+config :ex_esdb, :ex_esdb,
   data_dir: "/data",
   store_id: :reg_gh,
   timeout: 2_000,

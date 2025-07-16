@@ -74,4 +74,31 @@ defmodule ExESDB.StoreWorker do
         {:error, [config: opts, store: nil]}
     end
   end
+
+  @impl true
+  def terminate(reason, [config: opts, store: store]) do
+    IO.puts(Themes.store(self(), "⚠️  Shutting down gracefully. Reason: #{inspect(reason)}"))
+    
+    # Stop Khepri store gracefully if it was started
+    if store do
+      store_id = opts[:store_id]
+      Logger.info("Stopping Khepri store: #{inspect(store_id)}")
+      
+      case :khepri.stop(store_id) do
+        :ok ->
+          Logger.info("Successfully stopped Khepri store: #{inspect(store_id)}")
+        {:error, reason} ->
+          Logger.warning("Failed to stop Khepri store #{inspect(store_id)}: #{inspect(reason)}")
+        other ->
+          Logger.warning("Unexpected response stopping Khepri store #{inspect(store_id)}: #{inspect(other)}")
+      end
+    end
+    
+    :ok
+  end
+
+  def terminate(reason, _state) do
+    IO.puts(Themes.store(self(), "⚠️  Shutting down gracefully. Reason: #{inspect(reason)}"))
+    :ok
+  end
 end

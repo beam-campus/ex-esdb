@@ -7,6 +7,7 @@ This document outlines the new layered supervision architecture implemented for 
 ## Architecture Layout
 
 ```
+SINGLE NODE MODE:
 ExESDB.System (strategy: :rest_for_one)
 ├── ExESDB.CoreSystem (strategy: :one_for_all)
 │   ├── ExESDB.StoreSystem (strategy: :rest_for_one)
@@ -16,14 +17,29 @@ ExESDB.System (strategy: :rest_for_one)
 │       ├── ExESDB.Streams (Supervisor)
 │       ├── ExESDB.Snapshots (Supervisor)
 │       └── ExESDB.Subscriptions (Supervisor)
+└── ExESDB.GatewaySystem (strategy: :one_for_one)
+    ├── PartitionSupervisor (GatewayWorkers)
+    └── PubSub (conditional)
+
+CLUSTER MODE:
+ExESDB.System (strategy: :rest_for_one)
+├── ExESDB.CoreSystem (strategy: :one_for_all)
+│   ├── ExESDB.StoreSystem (strategy: :rest_for_one)
+│   │   ├── ExESDB.Store (GenServer)
+│   │   └── ExESDB.StoreCluster (GenServer)
+│   └── ExESDB.PersistenceSystem (strategy: :one_for_one)
+│       ├── ExESDB.Streams (Supervisor)
+│       ├── ExESDB.Snapshots (Supervisor)
+│       └── ExESDB.Subscriptions (Supervisor)
+├── LibCluster (for node discovery)
 ├── ExESDB.LeadershipSystem (strategy: :rest_for_one)
 │   ├── ExESDB.LeaderSystem (Supervisor)
 │   └── ExESDB.EmitterSystem (Supervisor)
 │       └── PartitionSupervisor (EmitterPools)
-├── ExESDB.GatewaySystem (strategy: :one_for_one)
-│   ├── PartitionSupervisor (GatewayWorkers)
-│   └── PubSub (conditional)
-└── [Conditional] LibCluster & ClusterSystem (for cluster mode)
+├── ExESDB.ClusterSystem (cluster coordination)
+└── ExESDB.GatewaySystem (strategy: :one_for_one) [STARTS LAST]
+    ├── PartitionSupervisor (GatewayWorkers)
+    └── PubSub (conditional)
 ```
 
 ## Key Components
@@ -103,6 +119,8 @@ Used when components are independent:
 - **Selective restarts**: Only affected components restart on failure
 - **Reduced downtime**: Critical services can remain available during non-critical failures
 - **Better observability**: Clearer supervision tree for debugging
+- **Proper startup order**: In cluster mode, core infrastructure starts first, then clustering, then external interface
+- **Race condition prevention**: LibCluster starts after core stores are ready, preventing premature node discovery
 
 ## Migration Notes
 

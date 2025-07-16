@@ -48,8 +48,15 @@ defmodule ExESDB.SubscriptionsReader do
 
   @impl true
   def init(opts) do
+    Process.flag(:trap_exit, true)
     IO.puts("#{Themes.subscriptions_reader(self(), "is UP")}")
     {:ok, opts}
+  end
+
+  @impl true
+  def terminate(reason, _state) do
+    IO.puts("#{Themes.subscriptions_reader(self(), "⚠️  Shutting down gracefully. Reason: #{inspect(reason)}")}")
+    :ok
   end
 
   def child_spec(opts),

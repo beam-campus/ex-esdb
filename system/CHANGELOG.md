@@ -1,5 +1,132 @@
 # Changelog
 
+## version 0.1.7 (2025.07.16)
+
+### Configuration System Modernization
+
+#### Legacy Configuration Removal
+
+- **Removed khepri configuration**: Eliminated legacy `config :ex_esdb, :khepri` configuration format
+- **Modernized Options module**: Updated `ExESDB.Options` to use umbrella-aware configuration patterns
+- **Consistent configuration format**: All configurations now use `config :your_app_name, :ex_esdb, [options]` format
+- **Improved isolation**: Better configuration isolation between applications in umbrella projects
+
+#### Configuration Documentation
+
+- **New configuration guide**: Added comprehensive `guides/configuring_exesdb_apps.md` guide
+- **Standalone application examples**: Complete configuration examples for single-app deployments
+- **Umbrella application examples**: Detailed examples for multi-app umbrella projects
+- **Environment variable documentation**: Complete reference for all environment variable overrides
+- **Migration guide**: Instructions for migrating from legacy khepri configuration
+
+#### Configuration Features
+
+- **Context management**: Enhanced context switching for umbrella applications
+- **Explicit context support**: Added `app_env/3` functions for explicit context usage
+- **Context wrapper support**: Added `with_context/2` for scoped configuration access
+- **Libcluster integration**: Emphasized libcluster usage over deprecated seed_nodes mechanism
+
+#### Benefits
+
+- **Better umbrella support**: Proper configuration isolation for umbrella applications
+- **Clearer configuration patterns**: Consistent `config :app_name, :ex_esdb` format
+- **Improved developer experience**: Comprehensive documentation and examples
+- **Enhanced maintainability**: Removed legacy code paths and simplified configuration logic
+
+## version 0.1.2 (2025.07.14)
+
+### Store Configuration Enhancement
+
+#### New Environment Variables
+
+- **`EX_ESDB_STORE_DESCRIPTION`**: Human-readable description of the store for documentation and operational purposes
+- **`EX_ESDB_STORE_TAGS`**: Comma-separated tags for store categorization and filtering (e.g., "production,cluster,core")
+
+#### Rich Store Configuration
+
+- **Operational Metadata**: Added `created_at`, `version`, and `status` fields to store configuration
+- **Resource Management**: Added `priority` and `auto_start` fields for resource allocation control
+- **Administrative Info**: Enhanced store registry with `tags`, `environment`, and `description` fields
+- **Enhanced Querying**: Store registry now supports filtering by tags, environment, priority, and other metadata
+
+#### Configuration Integration
+
+- **Runtime Configuration**: New environment variables integrated into `config/runtime.exs`
+- **Options System**: Added parsers in `ExESDB.Options` with comma-separated tag parsing
+- **Store Registry**: Enhanced `build_store_config/1` to include all new metadata fields
+- **Development Environment**: Updated `dev-env/*.yaml` files with new environment variables
+
+### Architectural Refactoring
+
+#### NotificationSystem Introduction
+
+- **New Core Component**: Created `ExESDB.NotificationSystem` as a core supervisor for event notification
+- **Leadership Integration**: Moved `LeaderSystem` from clustering layer to core system
+- **Core System Enhancement**: Updated `CoreSystem` to include `NotificationSystem` alongside `PersistenceSystem` and `StoreSystem`
+- **Supervision Order**: `PersistenceSystem` → `NotificationSystem` → `StoreSystem` for proper dependency management
+
+#### LeaderWorker Availability Fix
+
+- **Core System Integration**: LeaderWorker now starts as part of core system, not clustering components
+- **Startup Order**: LeaderWorker is available before clustering components attempt to use it
+- **Resolved `:noproc` Error**: Fixed LeaderWorker activation failures by ensuring it's always running when needed
+- **Single and Cluster Mode**: LeaderWorker now available in both single-node and cluster modes
+
+#### System Architecture Cleanup
+
+- **Removed LeadershipSystem**: Consolidated functionality into `NotificationSystem`
+- **Cleaner Separation**: Core functionality (leadership, events) vs clustering (coordination, membership)
+- **Improved Documentation**: Updated supervision tree documentation to reflect new architecture
+- **Simplified Dependencies**: Reduced coupling between core and clustering components
+
+### Process Management Enhancement
+
+#### Graceful Shutdown Implementation
+
+- **Universal Coverage**: All 18 GenServer processes now implement graceful shutdown
+- **Terminate Callbacks**: Added `terminate/2` callbacks to all GenServers for proper cleanup
+- **Exit Trapping**: Enabled `Process.flag(:trap_exit, true)` on all GenServers
+- **Resource Cleanup**: Proper cleanup of Swarm registrations, PubSub subscriptions, and Khepri stores
+
+#### Enhanced Process Lifecycle
+
+- **Swarm Registration Cleanup**: Worker processes properly unregister from Swarm on shutdown
+- **PubSub Subscription Cleanup**: EventProjector properly unsubscribes from topics
+- **Khepri Store Shutdown**: Store processes gracefully stop Khepri instances
+- **Network Monitoring**: NodeMonitor properly disables network monitoring on shutdown
+
+### Development Environment
+
+#### Configuration Updates
+
+- **proc-sup Configuration**: Added description "Process Supervisor Event Store" and tags "development,cluster,proc-sup,core"
+- **reg-gh Configuration**: Added description "Registration System Event Store" and tags "development,cluster,reg-gh,registration"
+- **Environment-Specific Tags**: Different tags for development vs production environments
+- **Consistent Formatting**: Standardized environment variable layout across all configuration files
+
+### Benefits
+
+#### Operational Improvements
+
+- **Enhanced Monitoring**: Rich store metadata enables better operational visibility
+- **Improved Debugging**: Store descriptions and tags help identify issues faster
+- **Better Resource Management**: Priority and auto-start fields enable fine-grained control
+- **Cleaner Shutdown**: All processes terminate gracefully without resource leaks
+
+#### Development Experience
+
+- **Clearer Architecture**: Separation of core vs clustering concerns
+- **Consistent Configuration**: Standardized environment variable management
+- **Better Testability**: Core components can be tested independently of clustering
+- **Simplified Debugging**: LeaderWorker availability issues resolved
+
+#### System Reliability
+
+- **Reduced Race Conditions**: Proper startup order prevents timing-related failures
+- **Resource Leak Prevention**: Graceful shutdown prevents resource accumulation
+- **Improved Fault Tolerance**: Better separation of concerns reduces cascade failures
+- **Enhanced Observability**: Rich metadata supports better monitoring and alerting
+
 ## version 0.1.1 (2025.07.13)
 
 ### StoreRegistry Refactoring

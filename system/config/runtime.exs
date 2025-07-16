@@ -15,28 +15,16 @@ config :logger, :console,
     libcluster_noise: {ExESDB.LoggerFilters, :filter_libcluster}
   ]
 
-config :ex_esdb, :khepri,
+config :ex_esdb, :ex_esdb,
   data_dir: data_dir(),
   store_id: store_id(),
   timeout: timeout(),
   db_type: db_type(),
-  pub_sub: pub_sub()
+  pub_sub: pub_sub(),
+  store_description: store_description(),
+  store_tags: store_tags()
 
+# LibCluster configuration now uses SharedClusterConfig for consistency
+# This prevents conflicts between ExESDB and ExESDBGater
 config :libcluster,
-  topologies: [
-    ex_esdb_cluster: [
-      # The selected clustering strategy. Required.
-      strategy: Cluster.Strategy.Gossip,
-      # Configuration for the selected strategy. Optional.
-      config: [
-        port: 45_892,
-        # The IP address or hostname on which to listen for cluster connections.
-        if_addr: "0.0.0.0",
-        # Use broadcast for cluster discovery
-        multicast_addr: System.get_env(EnVars.gossip_multicast_addr()) || "239.255.0.1",
-        broadcast_only: true,
-        # Shared secret for cluster security - read from environment at runtime
-        secret: System.get_env(EnVars.cluster_secret()) || "dev_cluster_secret"
-      ]
-    ]
-  ]
+  topologies: ExESDBGater.SharedClusterConfig.topology()

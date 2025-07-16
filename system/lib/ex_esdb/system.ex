@@ -3,10 +3,27 @@ defmodule ExESDB.System do
     This module is the top level supervisor for the ExESDB system.
     
     It uses a layered supervision architecture for better fault tolerance:
-    - CoreSystem: Critical infrastructure (StoreSystem + PersistenceSystem)
-    - LeadershipSystem: Leader election and event emission
-    - GatewaySystem: External interface with pooled workers
-    - Conditional clustering components (LibCluster, ClusterSystem)
+    
+    SINGLE NODE MODE:
+    1. CoreSystem: Critical infrastructure (PersistenceSystem + NotificationSystem + StoreSystem)
+    2. GatewaySystem: External interface with pooled workers
+    
+    CLUSTER MODE:
+    1. CoreSystem: Critical infrastructure (PersistenceSystem + NotificationSystem + StoreSystem)
+    2. LibCluster: Node discovery and connection (after core is ready)
+    3. ClusterSystem: Cluster coordination and membership
+    4. GatewaySystem: External interface (LAST - only after clustering is ready)
+    
+    NotificationSystem (part of CoreSystem) includes:
+    - LeaderSystem: Leadership responsibilities and subscription management
+    - EmitterSystem: Event emission and distribution
+    
+    IMPORTANT: Core functionality (Store, Persistence) must be fully operational 
+    before any clustering/membership/registration components start. This ensures 
+    the server is ready to handle requests before announcing itself to the cluster.
+    
+    In cluster mode, GatewaySystem starts LAST to prevent external connections
+    until the entire distributed system is properly initialized.
     
     Note: Store management is now handled by the distributed ex-esdb-gater API.
   """
@@ -14,44 +31,66 @@ defmodule ExESDB.System do
 
   alias ExESDB.Options, as: Options
   alias ExESDB.Themes, as: Themes
+  alias ExESDBGater.LibClusterHelper, as: LibClusterHelper
 
   require Logger
   require Phoenix.PubSub
 
   @impl true
   def init(opts) do
-    db_type = Options.db_type()
+    # Support umbrella configuration patterns
+    otp_app = Keyword.get(opts, :otp_app, :ex_esdb)
+    
+    # Set the configuration context for this process and its children
+    Options.set_context(otp_app)
+    
+    db_type = if otp_app != :ex_esdb do
+      Options.db_type(otp_app)
+    else
+      Options.db_type()
+    end
 
     Logger.info("Starting ExESDB in #{db_type} mode")
+    Logger.info("Using configuration from OTP app: #{inspect(otp_app)}")
 
+    # Core infrastructure - must start first
     children = [
-      # Core infrastructure - must start first
-      {ExESDB.CoreSystem, opts},
-      # Leadership and event emission
-      {ExESDB.LeadershipSystem, opts},
-      # External interface
-      {ExESDB.GatewaySystem, opts}
+      {ExESDB.CoreSystem, opts}
     ]
 
     # Conditionally add clustering components based on db_type
+    # IMPORTANT: Clustering components are added AFTER core infrastructure
+    # to ensure the Store and PersistenceSystem are fully operational before any clustering attempts
     children =
       case db_type do
         :cluster ->
-          topologies = Options.topologies()
           Logger.info("Adding clustering components for cluster mode")
 
-          [
-            {Cluster.Supervisor, [topologies, [name: ExESDB.LibCluster]]},
-            {ExESDB.ClusterSystem, opts}
-          ] ++ children
+          libcluster_child = LibClusterHelper.maybe_add_libcluster(nil)
+          Logger.info("LibClusterHelper result: #{inspect(libcluster_child)}")
+
+          cluster_children =
+            [
+              libcluster_child,
+              # ClusterSystem handles cluster coordination and membership
+              {ExESDB.ClusterSystem, opts},
+              # GatewaySystem starts LAST to ensure external interface is only available after clustering is ready
+              {ExESDB.GatewaySystem, opts}
+            ]
+            |> Enum.filter(& &1)
+
+          Logger.info("Cluster children after filtering: #{inspect(cluster_children)}")
+
+          children ++ cluster_children
 
         :single ->
           Logger.info("Skipping clustering components for single-node mode")
-          children
+          # In single-node mode, GatewaySystem can start immediately after CoreSystem
+          children ++ [{ExESDB.GatewaySystem, opts}]
 
         _ ->
           Logger.warning("Unknown db_type: #{inspect(db_type)}, defaulting to single-node mode")
-          children
+          children ++ [{ExESDB.GatewaySystem, opts}]
       end
 
     :os.set_signal(:sigterm, :handle)

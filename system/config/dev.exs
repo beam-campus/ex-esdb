@@ -27,7 +27,7 @@ config :logger, :console,
 
 config :ex_esdb, :logger, level: :debug
 
-config :ex_esdb, :khepri,
+config :ex_esdb, :ex_esdb,
   data_dir: "tmp/reg_gh",
   store_id: :reg_gh,
   timeout: 10_000,

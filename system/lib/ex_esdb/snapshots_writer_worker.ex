@@ -22,11 +22,21 @@ defmodule ExESDB.SnapshotsWriterWorker do
 
   @impl true
   def init({store, source_uuid, stream_uuid, partition}) do
+    Process.flag(:trap_exit, true)
     cluster_id = SnapshotsWriter.cluster_id(store, source_uuid, stream_uuid)
     Swarm.register_name(cluster_id, self())
     msg = "[#{inspect(self())}] is UP on partition #{inspect(partition)}, joining the cluster."
     IO.puts("#{Themes.snapshots_writer_worker(self(), msg)}")
     {:ok, {store, source_uuid, stream_uuid, partition}}
+  end
+
+  @impl true
+  def terminate(reason, {store, source_uuid, stream_uuid, _partition}) do
+    cluster_id = SnapshotsWriter.cluster_id(store, source_uuid, stream_uuid)
+    IO.puts("#{Themes.snapshots_writer_worker(self(), "⚠️  Shutting down gracefully. Reason: #{inspect(reason)}")}")
+    # Unregister from Swarm
+    Swarm.unregister_name(cluster_id)
+    :ok
   end
 
   ################ IMPLEMENTATION ################

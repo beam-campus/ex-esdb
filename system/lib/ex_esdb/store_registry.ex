@@ -31,6 +31,67 @@ defmodule ExESDB.StoreRegistry do
         {:list_stores}
       )
 
+  @doc """
+  Queries stores by database type (e.g., :single, :cluster).
+
+  This demonstrates the value of having richer store information
+  beyond just store_id.
+  """
+  def list_stores_by_db_type(db_type) do
+    case list_stores() do
+      {:ok, stores} ->
+        filtered_stores =
+          stores
+          |> Enum.filter(fn %{store: store_config} ->
+            store_config[:db_type] == db_type
+          end)
+
+        {:ok, filtered_stores}
+
+      error ->
+        error
+    end
+  end
+
+  @doc """
+  Queries stores by timeout configuration.
+
+  Useful for finding stores with specific performance characteristics.
+  """
+  def list_stores_by_timeout(timeout) do
+    case list_stores() do
+      {:ok, stores} ->
+        filtered_stores =
+          stores
+          |> Enum.filter(fn %{store: store_config} ->
+            store_config[:timeout] == timeout
+          end)
+
+        {:ok, filtered_stores}
+
+      error ->
+        error
+    end
+  end
+
+  @doc """
+  Gets detailed store information for a specific store_id.
+
+  Returns the full store configuration including all operational parameters.
+  """
+  def get_store_info(store_id) do
+    case list_stores() do
+      {:ok, stores} ->
+        case Enum.find(stores, fn %{store: %{store_id: id}} -> id == store_id end) do
+          nil -> {:error, :not_found}
+          store -> {:ok, store}
+        end
+
+      error ->
+        error
+    end
+  end
+
   def sync_stores do
     other_registries()
     |> Enum.map(fn registry ->
@@ -98,7 +159,7 @@ defmodule ExESDB.StoreRegistry do
         IO.puts(
           Themes.store_registry(
             self(),
-            "✍️ Registering store [#{inspect(maybe_store)}] on node [#{inspect(maybe_node)}]"
+            "✍️ Registering store [#{maybe_store_id}] on node [#{inspect(maybe_node)}]"
           )
         )
 
@@ -106,11 +167,11 @@ defmodule ExESDB.StoreRegistry do
 
         [store_with_node | stores]
 
-      %{store: store, node: node} ->
-        Logger.warning(
+      %{store: %{store_id: store_id}, node: node} ->
+        IO.puts(
           Themes.store_registry(
             self(),
-            "Store [#{inspect(store)}] on node [#{inspect(node)}] already registered"
+            "⚠️ Store [#{store_id}] on node [#{inspect(node)}] already registered"
           )
         )
 
@@ -148,7 +209,7 @@ defmodule ExESDB.StoreRegistry do
     IO.puts(
       Themes.store_registry(
         self(),
-        "👋 Unregistering store [#{inspect(gone_id)}] on node [#{inspect(gone_node)}]"
+        "👋 Unregistering store [#{gone_id}] on node [#{inspect(gone_node)}]"
       )
     )
 
@@ -162,7 +223,7 @@ defmodule ExESDB.StoreRegistry do
   end
 
   @impl true
-  def handle_info({:announce, store_config}, state) do
+  def handle_info({:announce, %{store_id: store_id} = store_config}, state) do
     # Announce to other registries and collect their stores
     collected_stores = announce(store_config, node())
 
@@ -176,7 +237,7 @@ defmodule ExESDB.StoreRegistry do
     IO.puts(
       Themes.store_registry(
         self(),
-        "📢 Announced store and synced with #{length(collected_stores)} stores from #{length(other_registries())} registries"
+        "📢 Announced store #{store_id} from node #{node()} 📢"
       )
     )
 
@@ -187,31 +248,33 @@ defmodule ExESDB.StoreRegistry do
   ####################### PLUMBING #######################
   @impl true
   def init(opts) do
+    Process.flag(:trap_exit, true)
     Swarm.register_name(registry_name(), self())
     IO.puts(Themes.store_registry(self(), "is UP"))
 
     # Initialize state as a map with stores
-    state = %{
+    init_state = %{
       config: opts,
       stores: []
     }
 
     # Add our own store to initial state if store_id is provided
-    if store_id = Keyword.get(opts, :store_id) do
-      store_config = %{store_id: store_id}
-      local_store = %{store: store_config, node: node()}
-      state = %{state | stores: [local_store]}
+    state =
+      if store_id = Keyword.get(opts, :store_id) do
+        store_config = build_store_config(opts)
+        local_store = %{store: store_config, node: node()}
 
-      IO.puts(
-        Themes.store_registry(
-          self(),
-          "🏪 Added own store [#{inspect(store_id)}] to registry"
+        IO.puts(
+          Themes.store_registry(
+            self(),
+            "🏪 Added own store [#{inspect(store_id)}] with full config to registry."
+          )
         )
-      )
 
-      # Schedule announcement after a short delay to avoid blocking init
-      Process.send_after(self(), {:announce, store_config}, 500)
-    end
+        # Schedule announcement after a short delay to avoid blocking init
+        Process.send_after(self(), {:announce, store_config}, 500)
+        %{init_state | stores: [local_store]}
+      end
 
     {:ok, state}
   end
@@ -226,17 +289,19 @@ defmodule ExESDB.StoreRegistry do
 
   @impl true
   def terminate(reason, state) do
-    Logger.warning(Themes.store_registry(self(), "terminating with reason: #{inspect(reason)}"))
+    IO.puts(
+      Themes.store_registry(self(), "⚠️ Terminating on #{node()} with reason: #{inspect(reason)}")
+    )
 
     # Unregister this store from all other registries before shutting down
     if store_id = Keyword.get(state.config, :store_id) do
-      store_config = %{store_id: store_id}
+      store_config = build_store_config(state.config)
       unregister(store_config, node())
 
       IO.puts(
         Themes.store_registry(
           self(),
-          "👋 Unregistered store [#{inspect(store_id)}] from #{length(other_registries())} other registries"
+          "👋 Unregistered store [#{inspect(store_id)}] from #{length(other_registries())} other registries."
         )
       )
     end
@@ -253,4 +318,37 @@ defmodule ExESDB.StoreRegistry do
       type: :worker
     }
   end
+
+  ####################### HELPERS #######################
+
+  @doc """
+  Transforms a keyword list configuration into a rich store configuration map.
+
+  This function extracts all relevant store configuration options and creates
+  a structured map that can be used for store registration and querying.
+  """
+  def build_store_config(opts) when is_list(opts) do
+    %{
+      store_id: Keyword.get(opts, :store_id),
+      data_dir: Keyword.get(opts, :data_dir),
+      timeout: Keyword.get(opts, :timeout),
+      db_type: Keyword.get(opts, :db_type),
+      pub_sub: Keyword.get(opts, :pub_sub),
+      reader_idle_ms: Keyword.get(opts, :reader_idle_ms),
+      writer_idle_ms: Keyword.get(opts, :writer_idle_ms),
+      store_description: Keyword.get(opts, :store_description),
+      # Operational metadata
+      created_at: Keyword.get(opts, :created_at, DateTime.utc_now()),
+      version: Keyword.get(opts, :version, 1),
+      status: Keyword.get(opts, :status, :active),
+      # Resource management
+      priority: Keyword.get(opts, :priority, :normal),
+      auto_start: Keyword.get(opts, :auto_start, true),
+      # Administrative
+      tags: Keyword.get(opts, :store_tags, []),
+      environment: Keyword.get(opts, :environment)
+    }
+  end
+
+  def build_store_config(opts), do: opts
 end

@@ -1,0 +1,4 @@
+networks:
+  ex-esdb-net:
+    name: ex-esdb-net
+    driver: bridge

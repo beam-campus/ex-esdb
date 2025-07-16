@@ -28,6 +28,7 @@ defmodule ExESDB.EmitterWorker do
 
   @impl GenServer
   def init({store, sub_topic, subscriber}) do
+    Process.flag(:trap_exit, true)
     scheduler_id = :erlang.system_info(:scheduler_id)
     topic = :emitter_group.topic(store, sub_topic)
     :ok = :emitter_group.join(store, sub_topic, self())

@@ -63,6 +63,22 @@ defmodule ExESDB.LeaderTracker do
     store = state[:store_id]
 
     if StoreCluster.leader?(store) do
+      # Make sure the LeaderWorker is running
+      case Process.whereis(ExESDB.LeaderWorker) do
+        nil ->
+          IO.puts("LeaderWorker is not running. Starting LeaderWorker...")
+          case ExESDB.LeaderWorker.start_link(store_id: store) do
+            {:ok, _pid} ->
+              IO.puts("LeaderWorker started successfully.")
+              :ok
+            {:error, reason} ->
+              IO.puts("Failed to start LeaderWorker: #{inspect(reason)}")
+              {:error, reason}
+          end
+        _pid ->
+          :ok
+      end
+
       # Extract subscription data and start emitter pool
       subscription_data = format_subscription_data(data)
 

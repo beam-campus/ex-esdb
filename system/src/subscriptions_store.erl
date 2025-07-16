@@ -28,7 +28,13 @@ key(Subscription) when is_map(Subscription) ->
 -spec exists(atom(), map()) -> boolean().
 exists(Store, Subscription) ->
   Key = key(Subscription),
-  khepri:exists(Store, [subscriptions, Key]).
+  case khepri:exists(Store, [subscriptions, Key]) of
+    true -> true;
+    false -> false;
+    {error, Reason} ->
+      io:format("Warning: khepri:exists failed in exists/2 with reason: ~p~n", [Reason]),
+      false
+  end.
 
 -spec put_subscription(atom(), map()) -> ok.
 put_subscription(Store, Subscription) ->

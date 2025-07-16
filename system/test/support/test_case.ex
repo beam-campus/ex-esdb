@@ -8,7 +8,7 @@ defmodule ExESDB.TestCase do
   require Logger
 
   setup do
-    {:ok, esdb_meta} = start_supervised({ESDBSystem, Options.app_env()})
+    {:ok, esdb_meta} = start_supervised({ESDBSystem, Options.app_env(:ex_esdb)})
     Logger.debug("esdb_meta: #{inspect(esdb_meta, pretty: true)}")
     [esdb_meta: esdb_meta]
   end

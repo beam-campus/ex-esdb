@@ -38,6 +38,16 @@ defmodule ExESDB.EnVars do
   def reader_idle_ms, do: "EX_ESDB_READER_IDLE_MS"
 
   @doc """
+    Returns the store description. default: `nil`
+  """
+  def store_description, do: "EX_ESDB_STORE_DESCRIPTION"
+
+  @doc """
+    Returns the store tags as comma-separated values. default: `nil`
+  """
+  def store_tags, do: "EX_ESDB_STORE_TAGS"
+
+  @doc """
     Returns the gossip multicast address. default: `255.255.255.255`
   """
   def gossip_multicast_addr, do: "EX_ESDB_GOSSIP_MULTICAST_ADDR"
