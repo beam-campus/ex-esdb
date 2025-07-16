@@ -15,7 +15,7 @@ config :logger, :console,
     libcluster_noise: {ExESDB.LoggerFilters, :filter_libcluster}
   ]
 
-config :ex_esdb, :khepri,
+config :ex_esdb, :ex_esdb,
   data_dir: data_dir(),
   store_id: store_id(),
   timeout: timeout(),

@@ -5,20 +5,22 @@ defmodule ExESDB.StreamsHelper do
 
   import ExESDB.Khepri.Conditions
 
-  def calculate_versions(start_version, count, direction) 
+  def calculate_versions(start_version, count, direction)
       when is_integer(start_version) and is_integer(count) and count > 0 do
     case direction do
       :forward -> start_version..(start_version + count - 1)
       :backward -> start_version..(start_version - count + 1)
     end
   end
-  
+
   # Handle invalid inputs gracefully
   def calculate_versions(start_version, count, direction) do
     require Logger
+
     Logger.warning(
       "Invalid parameters for calculate_versions: start_version=#{inspect(start_version)}, count=#{inspect(count)}, direction=#{inspect(direction)}"
     )
+
     # Return empty range for invalid inputs
     0..-1
   end
@@ -72,9 +74,12 @@ defmodule ExESDB.StreamsHelper do
            stream_id,
            if_node_exists(exists: true)
          ]) do
-      {:ok, 0} -> -1  # No events in stream, so version is -1
-      {:ok, count} -> count - 1  # Convert 1-based count to 0-based version
-      _ -> -1  # Stream doesn't exist
+      # No events in stream, so version is -1
+      {:ok, 0} -> -1
+      # Convert 1-based count to 0-based version
+      {:ok, count} -> count - 1
+      # Stream doesn't exist
+      _ -> -1
     end
   end
 

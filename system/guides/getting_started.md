@@ -32,35 +32,49 @@ end
 
 ## Configuration
 
+> **Note**: For detailed configuration examples including umbrella applications, see the [Configuring ExESDB Applications](configuring-exesdb-apps.md) guide.
+
 1. in your `config/config.exs` file:
 
 ```elixir
-config :ex_esdb, :khepri,
-  # the directory where the khepri store will be created
-  data_dir: "/data",
-  # the id of the khepri store.
-  store_id: :ex_esdb_store,
-  # the type of database setup to use
-  db_type: :single,
-  # a global timeout in milliseconds
-  timeout: 10_000,
-  # a list of seed nodes to connect to
-  seed_nodes: [],
-  # the name of the pub/sub module to use
-  pub_sub: :ex_esdb_pub_sub
+# Example standalone configuration
+# If your app is named :my_event_store
+config :my_event_store, :ex_esdb,
+  data_dir: "/var/lib/ex_esdb",
+  store_id: :my_store,
+  timeout: 5000,
+  db_type: :cluster,
+  pub_sub: :my_pubsub,
+  reader_idle_ms: 15000,
+  writer_idle_ms: 12000,
+  store_description: "My Event Store",
+  store_tags: ["production", "events"]
 
+# Configure libcluster (recommended)
+config :libcluster,
+  topologies: [
+    example: [
+      strategy: Cluster.Strategy.Gossip,
+      config: [
+        port: 45892,
+        if_addr: "0.0.0.0",
+        multicast_addr: "230.1.1.251",
+        multicast_ttl: 1,
+        secret: "my_secret"
+      ]
+    ]
+  ]
 ```
 
 2. from the ENVIRONMENT:
 
 ```bash
 
-EX_ESDB_DATA_DIR="/data"
-EX_ESDB_STORE_ID=ex_esdb_store
-EX_ESDB_DB_TYPE=single
-EX_ESDB_TIMEOUT=10000
-EX_ESDB_SEED_NODES=""
-EX_ESDB_PUB_SUB=ex_esdb_pub_sub
+EX_ESDB_DATA_DIR="/var/lib/ex_esdb"
+EX_ESDB_STORE_ID=my_store
+EX_ESDB_DB_TYPE=cluster
+EX_ESDB_TIMEOUT=5000
+EX_ESDB_PUB_SUB=my_pubsub
 
 ```
 
@@ -72,7 +86,7 @@ defmodule MyApp.Application do
 
   @impl true
   def start(_type, _args) do
-    opts = ExESDB.Options.app_env()
+opts = ExESDB.Options.app_env(:my_event_store)
     children = [
       {ExESDB.System, opts},
     ]

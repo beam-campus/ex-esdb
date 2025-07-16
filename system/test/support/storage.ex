@@ -18,7 +18,7 @@ defmodule ExESDB.TestSupport.Storage do
   end
 
   defp esdb_check do
-    case ExESDB.System.start(Options.app_env()) do
+    case ExESDB.System.start(Options.app_env(:ex_esdb)) do
       {:ok, _} ->
         :timer.sleep(1_000)
         :ok

@@ -8,7 +8,7 @@ defmodule ExESDB.EventStoreTest do
   require Logger
 
   setup do
-    opts = Options.app_env()
+    opts = Options.app_env(:ex_esdb)
 
     start_supervised!({EventStore, opts})
 
@@ -22,7 +22,7 @@ defmodule ExESDB.EventStoreTest do
   describe "GIVEN a valid set of options" do
     test "WHEN the EventStore is started
           THEN the EventStore is started and the pid is returned" do
-      opts = Options.app_env()
+      opts = Options.app_env(:ex_esdb)
       {:ok, res} = EventStore.start_link(opts)
       Logger.warning("EventStore pid: #{inspect(res, pretty: true)}")
     end
@@ -30,7 +30,7 @@ defmodule ExESDB.EventStoreTest do
 
   describe "append_to_stream/3" do
     test "appends events to a new stream" do
-      opts = Options.app_env()
+      opts = Options.app_env(:ex_esdb)
       stream_name = "test_stream"
       events = [%{type: "TestEvent", data: "test data"}]
 

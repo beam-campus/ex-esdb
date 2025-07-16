@@ -38,9 +38,20 @@ defmodule ExESDB.System do
 
   @impl true
   def init(opts) do
-    db_type = Options.db_type()
+    # Support umbrella configuration patterns
+    otp_app = Keyword.get(opts, :otp_app, :ex_esdb)
+    
+    # Set the configuration context for this process and its children
+    Options.set_context(otp_app)
+    
+    db_type = if otp_app != :ex_esdb do
+      Options.db_type(otp_app)
+    else
+      Options.db_type()
+    end
 
     Logger.info("Starting ExESDB in #{db_type} mode")
+    Logger.info("Using configuration from OTP app: #{inspect(otp_app)}")
 
     # Core infrastructure - must start first
     children = [
@@ -53,22 +64,23 @@ defmodule ExESDB.System do
     children =
       case db_type do
         :cluster ->
-          topologies = Options.topologies()
           Logger.info("Adding clustering components for cluster mode")
 
           libcluster_child = LibClusterHelper.maybe_add_libcluster(nil)
           Logger.info("LibClusterHelper result: #{inspect(libcluster_child)}")
-          
-          cluster_children = [
-            libcluster_child,
-            # ClusterSystem handles cluster coordination and membership
-            {ExESDB.ClusterSystem, opts},
-            # GatewaySystem starts LAST to ensure external interface is only available after clustering is ready
-            {ExESDB.GatewaySystem, opts}
-          ] |> Enum.filter(&(&1))
-          
+
+          cluster_children =
+            [
+              libcluster_child,
+              # ClusterSystem handles cluster coordination and membership
+              {ExESDB.ClusterSystem, opts},
+              # GatewaySystem starts LAST to ensure external interface is only available after clustering is ready
+              {ExESDB.GatewaySystem, opts}
+            ]
+            |> Enum.filter(& &1)
+
           Logger.info("Cluster children after filtering: #{inspect(cluster_children)}")
-          
+
           children ++ cluster_children
 
         :single ->

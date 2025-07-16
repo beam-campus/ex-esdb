@@ -1,5 +1,38 @@
 # Changelog
 
+## version 0.1.7 (2025.07.16)
+
+### Configuration System Modernization
+
+#### Legacy Configuration Removal
+
+- **Removed khepri configuration**: Eliminated legacy `config :ex_esdb, :khepri` configuration format
+- **Modernized Options module**: Updated `ExESDB.Options` to use umbrella-aware configuration patterns
+- **Consistent configuration format**: All configurations now use `config :your_app_name, :ex_esdb, [options]` format
+- **Improved isolation**: Better configuration isolation between applications in umbrella projects
+
+#### Configuration Documentation
+
+- **New configuration guide**: Added comprehensive `guides/configuring_exesdb_apps.md` guide
+- **Standalone application examples**: Complete configuration examples for single-app deployments
+- **Umbrella application examples**: Detailed examples for multi-app umbrella projects
+- **Environment variable documentation**: Complete reference for all environment variable overrides
+- **Migration guide**: Instructions for migrating from legacy khepri configuration
+
+#### Configuration Features
+
+- **Context management**: Enhanced context switching for umbrella applications
+- **Explicit context support**: Added `app_env/3` functions for explicit context usage
+- **Context wrapper support**: Added `with_context/2` for scoped configuration access
+- **Libcluster integration**: Emphasized libcluster usage over deprecated seed_nodes mechanism
+
+#### Benefits
+
+- **Better umbrella support**: Proper configuration isolation for umbrella applications
+- **Clearer configuration patterns**: Consistent `config :app_name, :ex_esdb` format
+- **Improved developer experience**: Comprehensive documentation and examples
+- **Enhanced maintainability**: Removed legacy code paths and simplified configuration logic
+
 ## version 0.1.2 (2025.07.14)
 
 ### Store Configuration Enhancement

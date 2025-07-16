@@ -4,7 +4,7 @@ defmodule ExESDB.MixProject do
 
   @app_name :ex_esdb
   @elixir_version "~> 1.17"
-  @version "0.1.3"
+  @version "0.2.0"
   @source_url "https://github.com/beam-campus/ex-esdb"
   #  @homepage_url "https://github.com/beam-campus/ex-esdb"
   @docs_url "https://hexdocs.pm/ex_esdb"
@@ -100,7 +100,7 @@ defmodule ExESDB.MixProject do
       {:phoenix_pubsub, "~> 2.1"},
       {:khepri, "~> 0.17"},
       {:jason, "~> 1.4", optional: true},
-      {:ex_esdb_gater, "~> 0.1.18"},
+      {:ex_esdb_gater, "~> 0.1.19"},
 
       # Development and test dependencies
       {:dialyze, "~> 0.2.0", only: [:dev], runtime: false},
@@ -152,6 +152,10 @@ defmodule ExESDB.MixProject do
         "guides/how_exesdb_handles_multiple_stores.md": [
           filename: "multiple-stores",
           title: "Multiple Stores"
+        ],
+        "guides/configuring_exesdb_apps.md": [
+          filename: "configuring-exesdb-apps",
+          title: "Configuring ExESDB Applications"
         ],
         "../README.md": [
           filename: "readme",

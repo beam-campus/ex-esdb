@@ -41,14 +41,18 @@ defmodule ExESDB.Themes do
   def monitor(pid, msg),
     do: "[#{CF.yellow_on_magenta()}#{inspect(pid)}#{CF.reset()}] [Monitor] #{msg}"
 
+  ############################### EMITTER SYSTEM ###############################
+  def emitter_system(pid, msg),
+    do: "[#{CF.cyan_on_black()}#{inspect(pid)}#{CF.reset()}] [EmitterSystem] #{msg}"
+
   def emitter_pool(pid, msg),
-    do: "[#{CF.yellow_on_black()}#{inspect(pid)}#{CF.reset()}] [EmitterPool] #{msg}"
+    do: "[#{CF.cyan_on_black()}#{inspect(pid)}#{CF.reset()}] [EmitterPool] #{msg}"
 
   def emitter_worker(pid, msg),
-    do: "[#{CF.yellow_on_black()}#{inspect(pid)}#{CF.reset()}] [Emitter] #{msg}"
+    do: "[#{CF.cyan_on_black()}#{inspect(pid)}#{CF.reset()}] [Emitter] #{msg}"
 
   def persistent_emitter_worker(pid, msg),
-    do: "[#{CF.yellow_on_black()}#{inspect(pid)}#{CF.reset()}] [PersistentEmitter] #{msg}"
+    do: "[#{CF.cyan_on_black()}#{inspect(pid)}#{CF.reset()}] [PersistentEmitter] #{msg}"
 
   def pubsub(pid, msg),
     do: "[#{CF.black_on_cyan()}#{inspect(pid)}#{CF.reset()}] [PubSub] #{msg}"

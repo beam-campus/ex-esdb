@@ -1,16 +1,16 @@
 defmodule ExESDB.NotificationSystem do
   @moduledoc """
   Supervisor for event notification and distribution components.
-  
+
   This supervisor manages the core event notification functionality:
   - LeaderSystem: Leadership responsibilities and subscription management
   - EmitterSystem: Event emission and distribution
-  
+
   This is a core component that runs in both single-node and cluster modes.
   The leadership determination happens at the store level, not the clustering level.
   """
   use Supervisor
-  
+
   alias ExESDB.Themes, as: Themes
 
   @impl true
@@ -22,10 +22,10 @@ defmodule ExESDB.NotificationSystem do
       {ExESDB.EmitterSystem, opts}
     ]
 
-    IO.puts("#{Themes.notification_system(self(), "is UP")}") 
-    
+    IO.puts("#{Themes.notification_system(self(), "is UP")}")
+
     # Use :rest_for_one because EmitterSystem depends on LeaderSystem
-    Supervisor.init(children, 
+    Supervisor.init(children,
       strategy: :rest_for_one,
       max_restarts: 5,
       max_seconds: 30

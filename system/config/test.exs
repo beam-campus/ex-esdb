@@ -7,10 +7,9 @@ config :ex_unit,
   exclude: [:skip],
   logger: true
 
-config :ex_esdb, :khepri,
+config :ex_esdb, :ex_esdb,
   data_dir: "tmp/ex_esdb_store",
   store_id: :ex_test_store,
   timeout: 1_000,
   db_type: :single,
-  seed_nodes: [],
   pub_sub: :ex_esdb_pub_sub

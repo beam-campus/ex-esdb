@@ -13,12 +13,23 @@ defmodule ExESDB.App do
 
   @impl true
   def start(_type, _args) do
-    config = Options.app_env()
+    # Support umbrella configuration patterns
+    # Check if there's an :otp_app in the application environment
+    otp_app = Application.get_env(:ex_esdb, :otp_app, :ex_esdb)
+    
+    # Set the context for configuration access
+    Options.set_context(otp_app)
+    
+    config = Options.app_env(otp_app)
     store_id = config[:store_id]
     Logger.warning("Attempting to start ExESDB with options: #{inspect(config, pretty: true)}")
+    Logger.warning("Using configuration from OTP app: #{inspect(otp_app)}")
+
+    # Pass the otp_app to the system configuration
+    enhanced_config = Keyword.put(config, :otp_app, otp_app)
 
     children = [
-      {ExESDB.System, config}
+      {ExESDB.System, enhanced_config}
     ]
 
     opts = [strategy: :one_for_one, name: ExESDB.Supervisor]
