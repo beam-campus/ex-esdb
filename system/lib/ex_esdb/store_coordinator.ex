@@ -10,6 +10,7 @@ defmodule ExESDB.StoreCoordinator do
   """
   use GenServer
 
+  alias ExESDB.StoreNaming, as: StoreNaming
   alias ExESDB.Themes, as: Themes
 
   @doc """
@@ -17,14 +18,16 @@ defmodule ExESDB.StoreCoordinator do
   Returns one of: :ok, :coordinator, :no_nodes, :waiting, :failed
   """
   def join_cluster(store) do
-    GenServer.call(__MODULE__, {:join_cluster, store}, 10_000)
+    name = StoreNaming.genserver_name(__MODULE__, store)
+    GenServer.call(name, {:join_cluster, store}, 10_000)
   end
 
   @doc """
   Checks if this node should handle nodeup events (i.e., not already in a cluster)
   """
   def should_handle_nodeup?(store) do
-    GenServer.call(__MODULE__, {:should_handle_nodeup, store}, 5_000)
+    name = StoreNaming.genserver_name(__MODULE__, store)
+    GenServer.call(name, {:should_handle_nodeup, store}, 5_000)
   end
 
   ## GenServer Implementation
@@ -50,7 +53,10 @@ defmodule ExESDB.StoreCoordinator do
 
   @impl true
   def terminate(reason, _state) do
-    IO.puts(Themes.store_coordinator(self(), "⚠️  Shutting down gracefully. Reason: #{inspect(reason)}"))
+    IO.puts(
+      Themes.store_coordinator(self(), "⚠️  Shutting down gracefully. Reason: #{inspect(reason)}")
+    )
+
     :ok
   end
 
@@ -245,7 +251,10 @@ defmodule ExESDB.StoreCoordinator do
 
   defp should_be_store_coordinator(connected_nodes) do
     # Use deterministic election: lowest node name becomes coordinator
-    all_nodes = [node() | connected_nodes] |> Enum.sort()
+    all_nodes =
+      [node() | connected_nodes]
+      |> Enum.sort()
+
     node() == List.first(all_nodes)
   end
 
@@ -265,8 +274,10 @@ defmodule ExESDB.StoreCoordinator do
   ## Child Spec and Startup
 
   def child_spec(opts) do
+    store_id = StoreNaming.extract_store_id(opts)
+
     %{
-      id: __MODULE__,
+      id: ExESDB.StoreNaming.child_spec_id(__MODULE__, store_id),
       start: {__MODULE__, :start_link, [opts]},
       restart: :permanent,
       shutdown: 5_000,
@@ -275,6 +286,9 @@ defmodule ExESDB.StoreCoordinator do
   end
 
   def start_link(opts) do
-    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+    store_id = StoreNaming.extract_store_id(opts)
+    name = StoreNaming.genserver_name(__MODULE__, store_id)
+
+    GenServer.start_link(__MODULE__, opts, name: name)
   end
 end

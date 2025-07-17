@@ -7,14 +7,16 @@ defmodule ExESDB.SubscriptionsReader do
   import ExESDB.Khepri.Conditions
 
   alias ExESDB.Themes, as: Themes
+  alias ExESDB.StoreNaming
   require Logger
 
-  def get_subscriptions(store),
-    do:
-      GenServer.call(
-        __MODULE__,
-        {:get_subscriptions, store}
-      )
+  def get_subscriptions(store) do
+    name = StoreNaming.genserver_name(__MODULE__, store)
+    GenServer.call(
+      name,
+      {:get_subscriptions, store}
+    )
+  end
 
   ################ HANDLE_CALL #############
   @impl GenServer
@@ -38,13 +40,16 @@ defmodule ExESDB.SubscriptionsReader do
   end
 
   ############### PLUMBING ###############
-  def start_link(opts),
-    do:
-      GenServer.start_link(
-        __MODULE__,
-        opts,
-        name: __MODULE__
-      )
+  def start_link(opts) do
+    store_id = StoreNaming.extract_store_id(opts)
+    name = StoreNaming.genserver_name(__MODULE__, store_id)
+    
+    GenServer.start_link(
+      __MODULE__,
+      opts,
+      name: name
+    )
+  end
 
   @impl true
   def init(opts) do
@@ -59,12 +64,15 @@ defmodule ExESDB.SubscriptionsReader do
     :ok
   end
 
-  def child_spec(opts),
-    do: %{
-      id: __MODULE__,
+  def child_spec(opts) do
+    store_id = StoreNaming.extract_store_id(opts)
+    
+    %{
+      id: StoreNaming.child_spec_id(__MODULE__, store_id),
       start: {__MODULE__, :start_link, [opts]},
       type: :worker,
       restart: :permanent,
       shutdown: 5000
     }
+  end
 end

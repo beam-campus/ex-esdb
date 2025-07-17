@@ -33,8 +33,10 @@ defmodule ExESDB.Emitters do
 
     args = {store, sub_topic, subscriber, pool_size, filter}
 
+    partition_name = ExESDB.StoreNaming.partition_name(ExESDB.EmitterPools, store)
+    
     DynamicSupervisor.start_child(
-      {:via, PartitionSupervisor, {ExESDB.EmitterPools, partition(args)}},
+      {:via, PartitionSupervisor, {partition_name, partition(args)}},
       {ExESDB.EmitterPool, args}
     )
   end

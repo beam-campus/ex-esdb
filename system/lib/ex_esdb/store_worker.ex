@@ -8,6 +8,7 @@ defmodule ExESDB.StoreWorker do
   require Logger
 
   alias ExESDB.Themes, as: Themes
+  alias ExESDB.StoreNaming
 
   defp start_khepri(opts) do
     store = opts[:store_id]
@@ -25,10 +26,10 @@ defmodule ExESDB.StoreWorker do
       - `{:error, reason}` if unsuccessful.
 
   """
-  def get_state,
+  def get_state(store_id \\ nil),
     do:
       GenServer.call(
-        __MODULE__,
+        StoreNaming.genserver_name(__MODULE__, store_id),
         {:get_state}
       )
 
@@ -40,8 +41,10 @@ defmodule ExESDB.StoreWorker do
 
   #### PLUMBING
   def child_spec(opts) do
+    store_id = StoreNaming.extract_store_id(opts)
+    
     %{
-      id: __MODULE__,
+      id: StoreNaming.child_spec_id(__MODULE__, store_id),
       start: {__MODULE__, :start_link, [opts]},
       restart: :permanent,
       shutdown: 10_000,
@@ -49,13 +52,16 @@ defmodule ExESDB.StoreWorker do
     }
   end
 
-  def start_link(opts),
-    do:
-      GenServer.start_link(
-        __MODULE__,
-        opts,
-        name: __MODULE__
-      )
+  def start_link(opts) do
+    store_id = StoreNaming.extract_store_id(opts)
+    name = StoreNaming.genserver_name(__MODULE__, store_id)
+    
+    GenServer.start_link(
+      __MODULE__,
+      opts,
+      name: name
+    )
+  end
 
   # Server Callbacks
   @impl true

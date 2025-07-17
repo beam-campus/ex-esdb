@@ -18,33 +18,34 @@ defmodule ExESDB.Options do
   @store_tags EnVars.store_tags()
 
   def sys_env(key), do: System.get_env(key)
-  
+
   # Support for umbrella configuration patterns
   def app_env(otp_app) when is_atom(otp_app) do
-    Application.get_env(otp_app, :ex_esdb, [])
+    config = Application.get_env(otp_app, :ex_esdb, [])
+    enhanced_config = Keyword.put(config, :otp_app, otp_app)
+    enhanced_config
   end
-  
-  
+
   # Support for umbrella configuration patterns with defaults
   def app_env(otp_app, key, default) when is_atom(otp_app) and is_atom(key) do
     Keyword.get(app_env(otp_app), key, default)
   end
 
   def topologies, do: Application.get_env(:libcluster, :topologies)
-  
+
   # Configuration context support for umbrella apps
   def set_context(otp_app) when is_atom(otp_app) do
     Process.put(:ex_esdb_otp_app, otp_app)
   end
-  
+
   def get_context do
-    Process.get(:ex_esdb_otp_app, :ex_esdb)
+    Process.get(:otp_app, :ex_esdb)
   end
-  
+
   def with_context(otp_app, fun) when is_atom(otp_app) and is_function(fun, 0) do
     previous_context = Process.get(:ex_esdb_otp_app)
     Process.put(:ex_esdb_otp_app, otp_app)
-    
+
     try do
       fun.()
     after
@@ -66,6 +67,7 @@ defmodule ExESDB.Options do
 
   def data_dir do
     context = get_context()
+
     if context != :ex_esdb do
       data_dir(context)
     else
@@ -85,6 +87,7 @@ defmodule ExESDB.Options do
 
   def store_id do
     context = get_context()
+
     if context != :ex_esdb do
       store_id(context)
     else
@@ -104,6 +107,7 @@ defmodule ExESDB.Options do
 
   def timeout do
     context = get_context()
+
     if context != :ex_esdb do
       timeout(context)
     else
@@ -123,6 +127,7 @@ defmodule ExESDB.Options do
 
   def db_type do
     context = get_context()
+
     if context != :ex_esdb do
       db_type(context)
     else
@@ -142,6 +147,7 @@ defmodule ExESDB.Options do
 
   def pub_sub do
     context = get_context()
+
     if context != :ex_esdb do
       pub_sub(context)
     else
@@ -161,6 +167,7 @@ defmodule ExESDB.Options do
 
   def reader_idle_ms do
     context = get_context()
+
     if context != :ex_esdb do
       reader_idle_ms(context)
     else
@@ -180,6 +187,7 @@ defmodule ExESDB.Options do
 
   def writer_idle_ms do
     context = get_context()
+
     if context != :ex_esdb do
       writer_idle_ms(context)
     else
@@ -199,6 +207,7 @@ defmodule ExESDB.Options do
 
   def store_description do
     context = get_context()
+
     if context != :ex_esdb do
       store_description(context)
     else
@@ -224,6 +233,7 @@ defmodule ExESDB.Options do
 
   def store_tags do
     context = get_context()
+
     if context != :ex_esdb do
       store_tags(context)
     else

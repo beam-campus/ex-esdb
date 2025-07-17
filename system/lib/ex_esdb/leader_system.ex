@@ -5,15 +5,19 @@ defmodule ExESDB.LeaderSystem do
   use Supervisor
   require Logger
   alias ExESDB.Themes, as: Themes
+  alias ExESDB.StoreNaming
   ############### PlUMBIng ############
   #
-  def start_link(opts),
-    do:
-      Supervisor.start_link(
-        __MODULE__,
-        opts,
-        name: __MODULE__
-      )
+  def start_link(opts) do
+    store_id = StoreNaming.extract_store_id(opts)
+    name = StoreNaming.genserver_name(__MODULE__, store_id)
+    
+    Supervisor.start_link(
+      __MODULE__,
+      opts,
+      name: name
+    )
+  end
 
   @impl true
   def init(config) do
@@ -29,5 +33,17 @@ defmodule ExESDB.LeaderSystem do
 
     # Use :rest_for_one because LeaderWorker depends on LeaderTracker
     Supervisor.init(children, strategy: :rest_for_one)
+  end
+  
+  def child_spec(opts) do
+    store_id = StoreNaming.extract_store_id(opts)
+    
+    %{
+      id: StoreNaming.child_spec_id(__MODULE__, store_id),
+      start: {__MODULE__, :start_link, [opts]},
+      restart: :permanent,
+      shutdown: :infinity,
+      type: :supervisor
+    }
   end
 end

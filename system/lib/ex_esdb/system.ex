@@ -40,15 +40,16 @@ defmodule ExESDB.System do
   def init(opts) do
     # Support umbrella configuration patterns
     otp_app = Keyword.get(opts, :otp_app, :ex_esdb)
-    
+
     # Set the configuration context for this process and its children
     Options.set_context(otp_app)
-    
-    db_type = if otp_app != :ex_esdb do
-      Options.db_type(otp_app)
-    else
-      Options.db_type()
-    end
+
+    db_type =
+      if otp_app != :ex_esdb do
+        Options.db_type(otp_app)
+      else
+        Options.db_type()
+      end
 
     Logger.info("Starting ExESDB in #{db_type} mode")
     Logger.info("Using configuration from OTP app: #{inspect(otp_app)}")
@@ -132,13 +133,39 @@ defmodule ExESDB.System do
     Application.stop(:ex_esdb)
   end
 
-  def start_link(opts),
-    do:
-      Supervisor.start_link(
-        __MODULE__,
-        opts,
-        name: __MODULE__
-      )
+  @doc """
+  Generate a store-specific name for this system supervisor.
+
+  This allows multiple ExESDB systems to run on the same node with different stores.
+
+  ## Examples
+
+      iex> ExESDB.System.system_name("my_store")
+      :"exesdb_system_my_store"
+      
+      iex> ExESDB.System.system_name(nil)
+      ExESDB.System
+  """
+  def system_name(store_id) when is_binary(store_id) do
+    String.to_atom("exesdb_system_#{store_id}")
+  end
+
+  def system_name(store_id) when is_atom(store_id) and not is_nil(store_id) do
+    String.to_atom("exesdb_system_#{store_id}")
+  end
+
+  def system_name(_), do: __MODULE__
+
+  def start_link(opts) do
+    store_id = Keyword.get(opts, :store_id)
+    name = system_name(store_id)
+
+    Supervisor.start_link(
+      __MODULE__,
+      opts,
+      name: name
+    )
+  end
 
   def start(opts) do
     case start_link(opts) do
@@ -149,8 +176,11 @@ defmodule ExESDB.System do
   end
 
   def child_spec(opts) do
+    store_id = Keyword.get(opts, :store_id)
+    id = system_name(store_id)
+
     %{
-      id: __MODULE__,
+      id: id,
       start: {__MODULE__, :start_link, [opts]},
       type: :supervisor
     }

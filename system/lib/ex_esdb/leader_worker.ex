@@ -8,6 +8,7 @@ defmodule ExESDB.LeaderWorker do
   alias ExESDB.SubscriptionsReader, as: SubsR
   alias ExESDB.SubscriptionsWriter, as: SubsW
   alias ExESDB.Themes, as: Themes
+  alias ExESDB.StoreNaming
   ############ API ############
   @doc """
   Activates the LeaderWorker for the given store.
@@ -15,16 +16,38 @@ defmodule ExESDB.LeaderWorker do
   This function is called when this node becomes the cluster leader.
   """
   def activate(store) do
-    # Save default subscriptions synchronously
-    case GenServer.call(__MODULE__, {:save_default_subscriptions, store}, 10_000) do
-      {:ok, _result} ->
-        # Now activate leadership responsibilities
-        GenServer.cast(__MODULE__, {:activate, store})
-        IO.puts(Themes.leader_worker(self(), "✅ LeaderWorker activated successfully"))
-        :ok
-      {:error, reason} ->
-        IO.puts(Themes.leader_worker(self(), "❌ Failed to activate LeaderWorker: #{inspect(reason)}"))
-        {:error, reason}
+    # For backward compatibility, try to find the LeaderWorker process
+    # First try with store-specific naming, then fall back to global naming
+    name = StoreNaming.genserver_name(__MODULE__, store)
+    
+    process_name = case Process.whereis(name) do
+      nil ->
+        # Fall back to global naming for backward compatibility
+        case Process.whereis(__MODULE__) do
+          nil ->
+            {:error, :not_found}
+          _pid ->
+            __MODULE__
+        end
+      _pid ->
+        name
+    end
+    
+    case process_name do
+      {:error, :not_found} ->
+        {:error, :not_found}
+      valid_name ->
+        # Save default subscriptions synchronously
+        case GenServer.call(valid_name, {:save_default_subscriptions, store}, 10_000) do
+          {:ok, _result} ->
+            # Now activate leadership responsibilities
+            GenServer.cast(valid_name, {:activate, store})
+            IO.puts(Themes.leader_worker(self(), "✅ LeaderWorker activated successfully"))
+            :ok
+          {:error, reason} ->
+            IO.puts(Themes.leader_worker(self(), "❌ Failed to activate LeaderWorker: #{inspect(reason)}"))
+            {:error, reason}
+        end
     end
   rescue
     error ->
@@ -64,7 +87,8 @@ defmodule ExESDB.LeaderWorker do
       IO.puts("\n  Starting emitters for active subscriptions:")
 
       # Check if EmitterPools is available
-      case Process.whereis(ExESDB.EmitterPools) do
+      emitter_pools_name = StoreNaming.partition_name(ExESDB.EmitterPools, store)
+      case Process.whereis(emitter_pools_name) do
         nil ->
           IO.puts("    ⚠️  EmitterPools not available, skipping emitter startup")
           IO.puts("    ℹ️  EmitterPools will be started when EmitterSystem is ready")
@@ -132,33 +156,39 @@ defmodule ExESDB.LeaderWorker do
 
   ############# PLUMBING #############
   #
-  def start_link(opts),
-    do:
-      GenServer.start_link(
-        __MODULE__,
-        opts,
-        name: __MODULE__
-      )
+  def start_link(opts) do
+    store_id = StoreNaming.extract_store_id(opts)
+    name = StoreNaming.genserver_name(__MODULE__, store_id)
+    
+    GenServer.start_link(
+      __MODULE__,
+      opts,
+      name: name
+    )
+  end
 
   @impl true
   def terminate(reason, _state) do
     Logger.warning("#{Themes.cluster(self(), "terminating with reason: #{inspect(reason)}")}")
     :ok
   end
-
   @impl true
   def init(config) do
     # Set trap_exit early to handle crashes properly
     Process.flag(:trap_exit, true)
     
-    # Log startup with process info
-    IO.puts("#{Themes.leader_worker(self(), "is UP!")}")
-    Logger.info("LeaderWorker started successfully with PID #{inspect(self())} and name #{inspect(__MODULE__)}")
+    # Extract store_id and calculate the store-specific name
+    store_id = StoreNaming.extract_store_id(config)
+    expected_name = StoreNaming.genserver_name(__MODULE__, store_id)
     
-    # Verify we're properly registered
-    case Process.whereis(__MODULE__) do
+    # Log startup with process info
+    IO.puts("#{Themes.leader_worker(self(), "is UP!")}") 
+    Logger.info("LeaderWorker started successfully with PID #{inspect(self())} and name #{inspect(expected_name)}")
+    
+    # Verify we're properly registered with the store-specific name
+    case Process.whereis(expected_name) do
       pid when pid == self() ->
-        Logger.info("LeaderWorker registration confirmed: #{inspect(__MODULE__)} -> #{inspect(self())}")
+        Logger.info("LeaderWorker registration confirmed: #{inspect(expected_name)} -> #{inspect(self())}")
       other_pid ->
         Logger.warning("LeaderWorker registration issue: expected #{inspect(self())}, got #{inspect(other_pid)}")
     end
@@ -166,12 +196,15 @@ defmodule ExESDB.LeaderWorker do
     {:ok, config}
   end
 
-  def child_spec(opts),
-    do: %{
-      id: __MODULE__,
+  def child_spec(opts) do
+    store_id = StoreNaming.extract_store_id(opts)
+    
+    %{
+      id: StoreNaming.child_spec_id(__MODULE__, store_id),
       start: {__MODULE__, :start_link, [opts]},
       restart: :permanent,
       shutdown: 10_000,
       type: :worker
     }
+  end
 end

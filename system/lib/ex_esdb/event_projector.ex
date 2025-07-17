@@ -6,6 +6,7 @@ defmodule ExESDB.EventProjector do
 
   alias ExESDB.Themes, as: Themes
   alias Phoenix.PubSub, as: PubSub
+  alias ExESDB.StoreNaming
 
   require Logger
 
@@ -47,16 +48,21 @@ defmodule ExESDB.EventProjector do
   end
 
   def start_link(opts) do
+    store_id = StoreNaming.extract_store_id(opts)
+    name = StoreNaming.genserver_name(__MODULE__, store_id)
+    
     GenServer.start_link(
       __MODULE__,
       opts,
-      name: __MODULE__
+      name: name
     )
   end
 
   def child_spec(opts) do
+    store_id = StoreNaming.extract_store_id(opts)
+    
     %{
-      id: __MODULE__,
+      id: StoreNaming.child_spec_id(__MODULE__, store_id),
       start: {__MODULE__, :start_link, [opts]},
       type: :worker,
       restart: :permanent,

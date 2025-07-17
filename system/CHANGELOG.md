@@ -1,5 +1,74 @@
 # Changelog
 
+## version 0.3.1 (2025.07.17)
+
+### LeaderWorker Registration Fix
+
+#### Problem Resolution
+
+- **Fixed LeaderWorker registration warnings**: Resolved warning messages "LeaderWorker registration issue: expected #PID<...>, got nil"
+- **Store-specific registration verification**: LeaderWorker now properly verifies its registration using the store-specific name instead of the hardcoded module name
+- **Improved logging**: Registration confirmation logs now show the actual store-specific process name
+
+#### Technical Implementation
+
+- **Updated init/1 function**: LeaderWorker now extracts store_id from config and uses `StoreNaming.genserver_name/2` to determine the expected registration name
+- **Correct registration check**: Uses `Process.whereis(expected_name)` instead of `Process.whereis(__MODULE__)` for verification
+- **Enhanced logging**: Log messages now show the actual store-specific name used for registration
+
+#### Benefits
+
+- **Cleaner logs**: Eliminates confusing registration warning messages during startup
+- **Better debugging**: Registration verification now works correctly with store-specific naming
+- **Improved reliability**: Proper registration verification helps identify actual process registration issues
+
+## version 0.3.0 (2025.07.17)
+
+### Multiple Stores Naming Conflicts Fix
+
+#### Problem Resolution
+
+- **Fixed naming conflicts**: Resolved `already started` errors when multiple umbrella applications attempted to start their own ExESDB systems
+- **Store isolation**: Each store now has its own isolated set of partition supervisors
+- **Multi-tenancy support**: Different applications can maintain completely separate event stores within the same Elixir node
+
+#### Updated Components
+
+- **ExESDB.Emitters**: Updated `start_emitter_pool/3` to use store-specific partition names
+- **ExESDB.EmitterSystem**: Updated supervisor child spec to use store-specific partition names
+- **ExESDB.GatewaySystem**: Updated supervisor child spec to use store-specific partition names
+- **ExESDB.LeaderWorker**: Updated process lookup to use store-specific partition names
+- **ExESDB.Snapshots**: Updated supervisor child specs to use store-specific partition names
+- **ExESDB.SnapshotsReader**: Updated `start_child/2` to use store-specific partition names
+- **ExESDB.SnapshotsWriter**: Updated `start_child/2` to use store-specific partition names
+- **ExESDB.Streams**: Updated supervisor child specs to use store-specific partition names
+- **ExESDB.StreamsReader**: Updated `start_child/2` to use store-specific partition names
+- **ExESDB.StreamsWriter**: Updated `start_child/2` to use store-specific partition names
+
+#### Technical Implementation
+
+- **Store-specific naming**: All modules now use `ExESDB.StoreNaming.partition_name/2` to generate unique process names
+- **Unique process names**: Each store gets its own partition supervisors (e.g., `:exesdb_streamswriters_store_one`, `:exesdb_streamswriters_store_two`)
+- **Backward compatibility**: Existing single-store deployments continue to work unchanged
+- **Consistent pattern**: All partition supervisors follow the same naming convention
+
+#### Affected Processes
+
+- **ExESDB.StreamsWriters**: Now store-specific to prevent conflicts
+- **ExESDB.StreamsReaders**: Now store-specific to prevent conflicts
+- **ExESDB.SnapshotsWriters**: Now store-specific to prevent conflicts
+- **ExESDB.SnapshotsReaders**: Now store-specific to prevent conflicts
+- **ExESDB.EmitterPools**: Now store-specific to prevent conflicts
+- **ExESDB.GatewayWorkers**: Now store-specific to prevent conflicts
+
+#### Benefits
+
+- **True multi-tenancy**: Multiple applications can run separate ExESDB systems without conflicts
+- **Better isolation**: Each store operates independently with its own resources
+- **Improved reliability**: Eliminates startup failures due to naming conflicts
+- **Enhanced scalability**: Supports complex umbrella application architectures
+- **Maintained compatibility**: Zero breaking changes for existing deployments
+
 ## version 0.1.7 (2025.07.16)
 
 ### Configuration System Modernization
