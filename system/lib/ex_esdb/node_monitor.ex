@@ -11,6 +11,7 @@ defmodule ExESDB.NodeMonitor do
   use GenServer
   require Logger
 
+  alias ExESDB.StoreNaming
   alias ExESDB.Themes
 
   # 2 seconds
@@ -22,52 +23,19 @@ defmodule ExESDB.NodeMonitor do
 
   ## Public API
 
-  @doc "Start the node monitor"
-  def start_link(opts \\ []) do
-    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
-  end
-
   @doc "Get current cluster health status"
-  def health_status do
-    GenServer.call(__MODULE__, :health_status, 5_000)
+  def health_status(store_id \\ nil) do
+    name = StoreNaming.genserver_name(__MODULE__, store_id)
+    GenServer.call(name, :health_status, 5_000)
   end
 
   @doc "Force probe a specific node"
-  def probe_node(node) do
-    GenServer.call(__MODULE__, {:probe_node, node}, 10_000)
+  def probe_node(node, store_id \\ nil) do
+    name = StoreNaming.genserver_name(__MODULE__, store_id)
+    GenServer.call(name, {:probe_node, node}, 10_000)
   end
 
   ## GenServer Implementation
-
-  @impl true
-  def init(opts) do
-    Process.flag(:trap_exit, true)
-    probe_interval = Keyword.get(opts, :probe_interval, @default_probe_interval)
-    failure_threshold = Keyword.get(opts, :failure_threshold, @default_failure_threshold)
-    probe_timeout = Keyword.get(opts, :probe_timeout, @default_probe_timeout)
-    store_id = Keyword.get(opts, :store_id, :reg_gh)
-
-    # Enable node monitoring
-    :ok = :net_kernel.monitor_nodes(true, [:nodedown_reason])
-
-    # Schedule initial health probe
-    Process.send_after(self(), :health_probe, probe_interval)
-
-    IO.puts("#{Themes.node_monitor(self(), "probing every: #{inspect(probe_interval)}ms")}")
-
-    {:ok,
-     %{
-       probe_interval: probe_interval,
-       failure_threshold: failure_threshold,
-       probe_timeout: probe_timeout,
-       store_id: store_id,
-       # Track consecutive failures per node
-       node_failures: %{},
-       # Last successful contact per node
-       last_seen: %{},
-       known_nodes: MapSet.new()
-     }}
-  end
 
   @impl true
   def handle_call(:health_status, _from, state) do
@@ -133,7 +101,10 @@ defmodule ExESDB.NodeMonitor do
 
   @impl true
   def terminate(reason, _state) do
-    IO.puts("#{Themes.node_monitor(self(), "⚠️  Shutting down gracefully. Reason: #{inspect(reason)}")}")
+    IO.puts(
+      "#{Themes.node_monitor(self(), "⚠️  Shutting down gracefully. Reason: #{inspect(reason)}")}"
+    )
+
     # Disable node monitoring
     :net_kernel.monitor_nodes(false)
     :ok
@@ -347,11 +318,57 @@ defmodule ExESDB.NodeMonitor do
     )
   end
 
+  ################## PLUMBING ##################
+
+  @impl true
+  def init(opts) do
+    Process.flag(:trap_exit, true)
+    probe_interval = Keyword.get(opts, :probe_interval, @default_probe_interval)
+    failure_threshold = Keyword.get(opts, :failure_threshold, @default_failure_threshold)
+    probe_timeout = Keyword.get(opts, :probe_timeout, @default_probe_timeout)
+    store_id = Keyword.get(opts, :store_id, :reg_gh)
+
+    # Enable node monitoring
+    :ok = :net_kernel.monitor_nodes(true, [:nodedown_reason])
+
+    # Schedule initial health probe
+    Process.send_after(self(), :health_probe, probe_interval)
+
+    IO.puts("#{Themes.node_monitor(self(), "probing every: #{inspect(probe_interval)}ms")}")
+
+    {:ok,
+     %{
+       probe_interval: probe_interval,
+       failure_threshold: failure_threshold,
+       probe_timeout: probe_timeout,
+       store_id: store_id,
+       # Track consecutive failures per node
+       node_failures: %{},
+       # Last successful contact per node
+       last_seen: %{},
+       known_nodes: MapSet.new()
+     }}
+  end
+
+  @doc "Start the node monitor"
+  def start_link(opts \\ []) do
+    store_id = StoreNaming.extract_store_id(opts)
+    name = StoreNaming.genserver_name(__MODULE__, store_id)
+
+    GenServer.start_link(
+      __MODULE__,
+      opts,
+      name: name
+    )
+  end
+
   ## Child Spec
 
   def child_spec(opts) do
+    store_id = StoreNaming.extract_store_id(opts)
+
     %{
-      id: __MODULE__,
+      id: StoreNaming.child_spec_id(__MODULE__, store_id),
       start: {__MODULE__, :start_link, [opts]},
       restart: :permanent,
       shutdown: 5_000,

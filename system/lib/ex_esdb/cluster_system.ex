@@ -6,16 +6,21 @@ defmodule ExESDB.ClusterSystem do
   - ClusterCoordinator: Handles coordination logic and split-brain prevention
   - NodeMonitor: Monitors node health and handles failures
 
-  Note: StoreCluster is managed at the System level since it's mode-aware.
+  Note: KhepriCluster is managed at the System level since it's mode-aware.
   """
   use Supervisor
 
+  alias ExESDB.StoreNaming, as: StoreNaming
   alias ExESDB.Themes, as: Themes
+
+  defp store_id(opts) do
+    Keyword.get(opts, :store_id, :ex_esdb)
+  end
 
   @impl true
   def init(opts) do
     children = [
-      # StoreCoordinator handles coordination logic and split-brain prevention
+      # ClusterCoordinator handles coordination logic and split-brain prevention
       {ExESDB.StoreCoordinator, opts},
       # NodeMonitor provides fast failure detection
       {ExESDB.NodeMonitor, node_monitor_config(opts)}
@@ -27,12 +32,16 @@ defmodule ExESDB.ClusterSystem do
   end
 
   def start_link(opts) do
-    Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
+    Supervisor.start_link(
+      __MODULE__,
+      opts,
+      name: StoreNaming.genserver_name(__MODULE__, store_id(opts))
+    )
   end
 
   def child_spec(opts) do
     %{
-      id: __MODULE__,
+      id: StoreNaming.child_spec_id(__MODULE__, store_id(opts)),
       start: {__MODULE__, :start_link, [opts]},
       restart: :permanent,
       shutdown: :infinity,
@@ -42,7 +51,7 @@ defmodule ExESDB.ClusterSystem do
 
   # Helper function to configure NodeMonitor options
   defp node_monitor_config(opts) do
-    store_id = Keyword.get(opts, :store_id, :ex_esdb)
+    store_id = store_id(opts)
 
     # More lenient configuration for node monitoring to prevent cascading failures
     [

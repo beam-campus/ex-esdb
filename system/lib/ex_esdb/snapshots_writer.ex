@@ -51,9 +51,10 @@ defmodule ExESDB.SnapshotsWriter do
 
   defp start_worker(store, source_uuid, stream_uuid) do
     partition = partition_for(store, source_uuid, stream_uuid)
+    partition_name = ExESDB.StoreNaming.partition_name(ExESDB.SnapshotsWriters, store)
 
     case DynamicSupervisor.start_child(
-           {:via, PartitionSupervisor, {ExESDB.SnapshotsWriters, partition}},
+           {:via, PartitionSupervisor, {partition_name, partition}},
            {ExESDB.SnapshotsWriterWorker, {store, source_uuid, stream_uuid, partition}}
          ) do
       {:ok, pid} -> pid

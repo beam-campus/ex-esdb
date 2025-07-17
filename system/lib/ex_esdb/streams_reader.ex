@@ -72,9 +72,10 @@ defmodule ExESDB.StreamsReader do
 
   defp start_reader(store, stream_id) do
     partition = partition_for(store, stream_id)
+    partition_name = ExESDB.StoreNaming.partition_name(ExESDB.StreamsReaders, store)
 
     case DynamicSupervisor.start_child(
-           {:via, PartitionSupervisor, {ExESDB.StreamsReaders, partition}},
+           {:via, PartitionSupervisor, {partition_name, partition}},
            {ExESDB.StreamsReaderWorker, {store, stream_id, partition}}
          ) do
       {:ok, pid} -> pid

@@ -5,6 +5,7 @@ defmodule ExESDB.StoreRegistry do
   alias ExESDB.Themes, as: Themes
   require Logger
   alias UUIDv7
+  alias ExESDB.StoreNaming
 
   def registry_name, do: {:store_registry, :erlang.phash2(UUIDv7.generate())}
 
@@ -280,10 +281,13 @@ defmodule ExESDB.StoreRegistry do
   end
 
   def start_link(opts) do
+    store_id = StoreNaming.extract_store_id(opts)
+    name = StoreNaming.genserver_name(__MODULE__, store_id)
+    
     GenServer.start_link(
       __MODULE__,
       opts,
-      name: __MODULE__
+      name: name
     )
   end
 
@@ -310,8 +314,10 @@ defmodule ExESDB.StoreRegistry do
   end
 
   def child_spec(opts) do
+    store_id = StoreNaming.extract_store_id(opts)
+    
     %{
-      id: __MODULE__,
+      id: StoreNaming.child_spec_id(__MODULE__, store_id),
       start: {__MODULE__, :start_link, [opts]},
       restart: :permanent,
       shutdown: 5_000,

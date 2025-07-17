@@ -59,9 +59,10 @@ defmodule ExESDB.StreamsWriter do
 
   defp start_writer(store, stream_id) do
     partition = partition_for(store, stream_id)
+    partition_name = ExESDB.StoreNaming.partition_name(ExESDB.StreamsWriters, store)
 
     case DynamicSupervisor.start_child(
-           {:via, PartitionSupervisor, {ExESDB.StreamsWriters, partition}},
+           {:via, PartitionSupervisor, {partition_name, partition}},
            {ExESDB.StreamsWriterWorker, {store, stream_id, partition}}
          ) do
       {:ok, pid} -> pid

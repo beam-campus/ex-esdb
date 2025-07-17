@@ -6,6 +6,7 @@ defmodule ExESDB.SubscriptionsWriter do
 
   require Logger
   alias ExESDB.Themes, as: Themes
+  alias ExESDB.StoreNaming
 
   def put_subscription(
         store,
@@ -14,12 +15,13 @@ defmodule ExESDB.SubscriptionsWriter do
         subscription_name \\ "transient",
         start_from \\ 0,
         subscriber \\ nil
-      ),
-      do:
-        GenServer.cast(
-          __MODULE__,
-          {:put_subscription, store, type, selector, subscription_name, start_from, subscriber}
-        )
+      ) do
+    name = StoreNaming.genserver_name(__MODULE__, store)
+    GenServer.cast(
+      name,
+      {:put_subscription, store, type, selector, subscription_name, start_from, subscriber}
+    )
+  end
 
   def put_subscription_sync(
         store,
@@ -28,20 +30,22 @@ defmodule ExESDB.SubscriptionsWriter do
         subscription_name \\ "transient",
         start_from \\ 0,
         subscriber \\ nil
-      ),
-      do:
-        GenServer.call(
-          __MODULE__,
-          {:put_subscription_sync, store, type, selector, subscription_name, start_from, subscriber},
-          10_000
-        )
+      ) do
+    name = StoreNaming.genserver_name(__MODULE__, store)
+    GenServer.call(
+      name,
+      {:put_subscription_sync, store, type, selector, subscription_name, start_from, subscriber},
+      10_000
+    )
+  end
 
-  def delete_subscription(store, type, selector, subscription_name),
-    do:
-      GenServer.cast(
-        __MODULE__,
-        {:delete_subscription, store, type, selector, subscription_name}
-      )
+  def delete_subscription(store, type, selector, subscription_name) do
+    name = StoreNaming.genserver_name(__MODULE__, store)
+    GenServer.cast(
+      name,
+      {:delete_subscription, store, type, selector, subscription_name}
+    )
+  end
 
   ############ CALLBACKS ############
   @impl true
@@ -133,20 +137,26 @@ defmodule ExESDB.SubscriptionsWriter do
     :ok
   end
 
-  def start_link(opts),
-    do:
-      GenServer.start_link(
-        __MODULE__,
-        opts,
-        name: __MODULE__
-      )
+  def start_link(opts) do
+    store_id = StoreNaming.extract_store_id(opts)
+    name = StoreNaming.genserver_name(__MODULE__, store_id)
+    
+    GenServer.start_link(
+      __MODULE__,
+      opts,
+      name: name
+    )
+  end
 
-  def child_spec(opts),
-    do: %{
-      id: __MODULE__,
+  def child_spec(opts) do
+    store_id = StoreNaming.extract_store_id(opts)
+    
+    %{
+      id: StoreNaming.child_spec_id(__MODULE__, store_id),
       start: {__MODULE__, :start_link, [opts]},
       type: :worker,
       restart: :permanent,
       shutdown: 5000
     }
+  end
 end

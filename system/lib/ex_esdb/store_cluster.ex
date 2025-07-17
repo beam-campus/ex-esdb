@@ -8,6 +8,7 @@ defmodule ExESDB.StoreCluster do
   alias ExESDB.Options, as: Options
   alias ExESDB.StoreCoordinator, as: StoreCoordinator
   alias ExESDB.Themes, as: Themes
+  alias ExESDB.StoreNaming
 
   # defp ping?(node) do
   #   case :net_adm.ping(node) do
@@ -575,20 +576,26 @@ defmodule ExESDB.StoreCluster do
     {:ok, state}
   end
 
-  def start_link(opts),
-    do:
-      GenServer.start_link(
-        __MODULE__,
-        opts,
-        name: __MODULE__
-      )
+  def start_link(opts) do
+    store_id = StoreNaming.extract_store_id(opts)
+    name = StoreNaming.genserver_name(__MODULE__, store_id)
+    
+    GenServer.start_link(
+      __MODULE__,
+      opts,
+      name: name
+    )
+  end
 
-  def child_spec(opts),
-    do: %{
-      id: __MODULE__,
+  def child_spec(opts) do
+    store_id = StoreNaming.extract_store_id(opts)
+    
+    %{
+      id: StoreNaming.child_spec_id(__MODULE__, store_id),
       start: {__MODULE__, :start_link, [opts]},
       restart: :permanent,
       shutdown: 10_000,
       type: :worker
     }
+  end
 end

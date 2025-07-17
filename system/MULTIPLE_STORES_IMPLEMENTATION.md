@@ -1,5 +1,22 @@
 # Multiple Stores Implementation Summary
 
+## Multi-Store Operation Overview
+
+Multi-store operation in ExESDB enables running multiple independent event stores within a single cluster instance. This capability allows for:
+
+- **Logical Separation**: Different stores can represent different domains, tenants, or environments
+- **Dynamic Management**: Stores can be created and removed on-demand during runtime
+- **Independent Operation**: Each store maintains its own event streams, subscriptions, and data storage
+- **Cluster Efficiency**: All stores share the same cluster infrastructure while maintaining data isolation
+
+Each store operates as a separate Khepri-backed event store with its own:
+- Data directory for persistent storage
+- Configuration settings (inheriting from defaults)
+- Event streams and subscription management
+- Raft consensus logs and snapshots
+
+This design provides a scalable foundation for multi-tenant applications, domain-driven architectures, and flexible event store management without requiring separate cluster deployments.
+
 ## What Was Implemented
 
 We successfully implemented dynamic store creation functionality in ExESDB, allowing users to create multiple event stores on-demand within a single cluster.

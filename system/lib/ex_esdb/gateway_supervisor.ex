@@ -23,20 +23,26 @@ defmodule ExESDB.GatewaySupervisor do
     Supervisor.init(children, strategy: :one_for_one)
   end
 
-  def start_link(opts),
-    do:
-      Supervisor.start_link(
-        __MODULE__,
-        opts,
-        name: __MODULE__
-      )
+  def start_link(opts) do
+    store_id = ExESDB.StoreNaming.extract_store_id(opts)
+    name = ExESDB.StoreNaming.genserver_name(__MODULE__, store_id)
+    
+    Supervisor.start_link(
+      __MODULE__,
+      opts,
+      name: name
+    )
+  end
 
-  def child_spec(opts),
-    do: %{
-      id: __MODULE__,
+  def child_spec(opts) do
+    store_id = ExESDB.StoreNaming.extract_store_id(opts)
+    
+    %{
+      id: ExESDB.StoreNaming.child_spec_id(__MODULE__, store_id),
       start: {__MODULE__, :start_link, [opts]},
       type: :supervisor,
       restart: :permanent,
       shutdown: 5000
     }
+  end
 end
