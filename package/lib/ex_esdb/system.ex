@@ -2,30 +2,39 @@ defmodule ExESDB.System do
   @moduledoc """
     This module is the top level supervisor for the ExESDB system.
     
-    It uses a layered supervision architecture for better fault tolerance:
+    It uses a fully reactive, event-driven architecture where:
     
-    SINGLE NODE MODE:
-    1. CoreSystem: Critical infrastructure (PersistenceSystem + NotificationSystem + StoreSystem)
-    2. GatewaySystem: External interface with pooled workers
+    1. ControlSystem: Event coordination infrastructure (PubSub + ControlPlane)
+    2. All other systems: Start in parallel and report readiness via events
     
-    CLUSTER MODE:
-    1. CoreSystem: Critical infrastructure (PersistenceSystem + NotificationSystem + StoreSystem)
-    2. LibCluster: Node discovery and connection (after core is ready)
-    3. ClusterSystem: Cluster coordination and membership
-    4. GatewaySystem: External interface (LAST - only after clustering is ready)
+    ## Reactive Design Principles:
     
-    NotificationSystem (part of CoreSystem) includes:
-    - LeaderSystem: Leadership responsibilities and subscription management
-    - EmitterSystem: Event emission and distribution
+    - **No cluster/single distinction**: All systems start uniformly and adapt based on discovery
+    - **Parallel startup**: Systems start independently and report readiness asynchronously  
+    - **Event-driven coordination**: Control Plane orchestrates via pub/sub events
+    - **Self-organizing**: Nodes discover each other and emit cluster events
     
-    IMPORTANT: Core functionality (Store, Persistence) must be fully operational 
-    before any clustering/membership/registration components start. This ensures 
-    the server is ready to handle requests before announcing itself to the cluster.
+    ## System Lifecycle:
     
-    In cluster mode, GatewaySystem starts LAST to prevent external connections
-    until the entire distributed system is properly initialized.
+    1. ControlSystem starts first (PubSub + ControlPlane)
+    2. All other systems start in parallel:
+       - PersistenceSystem
+       - NotificationSystem  
+       - StoreSystem
+       - ClusterSystem (handles node discovery)
+       - GatewaySystem
+    3. Systems report readiness to ControlPlane via events
+    4. ControlPlane coordinates system-wide readiness
     
-    Note: Store management is now handled by the distributed ex-esdb-gater API.
+    ## Node Discovery & Clustering:
+    
+    - ClusterSystem always starts (handles both single and cluster modes)
+    - LibCluster integration for automatic node discovery
+    - Nodes emit events when joining/leaving cluster
+    - Other systems react to cluster membership changes
+    
+    Note: This reactive design eliminates startup race conditions and 
+    provides better fault tolerance through event-driven coordination.
   """
   use Supervisor
 
@@ -43,40 +52,22 @@ defmodule ExESDB.System do
     # Set the configuration context for this process and its children
     Options.set_context(otp_app)
 
-    db_type = Options.db_type(otp_app)
-
-    # Core infrastructure - must start first
+    # Reactive architecture - all systems start in parallel after ControlSystem
+    # No cluster/single distinction - systems adapt based on node discovery events
+    libcluster_child = LibClusterHelper.maybe_add_libcluster(nil)
+    
     children = [
-      {ExESDB.CoreSystem, opts}
+      # ControlSystem MUST start first - provides event coordination infrastructure
+      {ExESDB.ControlSystem, opts},
+      
+      # All other systems start in parallel and report readiness via events
+      {ExESDB.PersistenceSystem, opts},
+      {ExESDB.NotificationSystem, opts}, 
+      {ExESDB.StoreSystem, opts},
+      {ExESDB.ClusterSystem, opts},
+      {ExESDB.GatewaySystem, opts}
     ]
-
-    # Conditionally add clustering components based on db_type
-    # IMPORTANT: Clustering components are added AFTER core infrastructure
-    # to ensure the Store and PersistenceSystem are fully operational before any clustering attempts
-    children =
-      case db_type do
-        :cluster ->
-          libcluster_child = LibClusterHelper.maybe_add_libcluster(nil)
-
-          cluster_children =
-            [
-              libcluster_child,
-              # ClusterSystem handles cluster coordination and membership
-              {ExESDB.ClusterSystem, opts},
-              # GatewaySystem starts LAST to ensure external interface is only available after clustering is ready
-              {ExESDB.GatewaySystem, opts}
-            ]
-            |> Enum.filter(& &1)
-
-          children ++ cluster_children
-
-        :single ->
-          # In single-node mode, GatewaySystem can start immediately after CoreSystem
-          children ++ [{ExESDB.GatewaySystem, opts}]
-
-        _ ->
-          children ++ [{ExESDB.GatewaySystem, opts}]
-      end
+    |> maybe_add_libcluster(libcluster_child)
 
     :os.set_signal(:sigterm, :handle)
     :os.set_signal(:sigquit, :handle)
@@ -86,11 +77,10 @@ defmodule ExESDB.System do
     ret =
       Supervisor.init(
         children,
-        strategy: :rest_for_one
+        strategy: :one_for_one  # Changed to one_for_one for better fault isolation
       )
 
-    msg = "is UP in #{db_type} mode!"
-    IO.puts(Themes.system(self(), msg))
+    IO.puts(Themes.system(self(), "is UP in reactive mode!"))
     ret
   end
 
@@ -285,4 +275,8 @@ defmodule ExESDB.System do
       type: :supervisor
     }
   end
+  
+  # Helper function to conditionally add LibCluster to children
+  defp maybe_add_libcluster(children, nil), do: children
+  defp maybe_add_libcluster(children, libcluster_child), do: children ++ [libcluster_child]
 end

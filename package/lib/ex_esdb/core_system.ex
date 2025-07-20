@@ -6,9 +6,11 @@ defmodule ExESDB.CoreSystem do
   tightly coupled and must restart together to maintain consistency.
 
   Startup order:
-  1. PersistenceSystem: Manages streams, snapshots, and subscriptions (foundation)
-  2. NotificationSystem: Manages leadership and event emission (depends on persistence)
-  3. StoreSystem: Manages store lifecycle and clustering (depends on persistence & notification)
+  1. PubSub: Phoenix.PubSub instance for internal coordination
+  2. ControlPlane: Event-driven coordination system (depends on PubSub)
+  3. PersistenceSystem: Manages streams, snapshots, and subscriptions (foundation)
+  4. NotificationSystem: Manages leadership and event emission (depends on persistence)
+  5. StoreSystem: Manages store lifecycle and clustering (depends on persistence & notification)
 
   The NotificationSystem includes:
   - LeaderSystem: Leadership responsibilities and subscription management
@@ -27,6 +29,10 @@ defmodule ExESDB.CoreSystem do
   @impl true
   def init(opts) do
     children = [
+      # PubSub must start first as it's required by Control Plane
+      {ExESDB.PubSub, opts},
+      # Control Plane starts early to provide coordination for other systems
+      {ExESDB.ControlPlane, opts},
       {ExESDB.PersistenceSystem, opts},
       {ExESDB.NotificationSystem, opts},
       {ExESDB.StoreSystem, opts}

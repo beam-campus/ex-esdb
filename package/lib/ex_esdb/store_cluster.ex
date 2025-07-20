@@ -2,7 +2,7 @@ defmodule ExESDB.StoreCluster do
   @moduledoc false
   use GenServer
 
-  require Logger
+  # Events published via ControlPlane instead of direct logging
 
   alias ExESDB.LeaderWorker, as: LeaderWorker
   alias ExESDB.Options, as: Options
@@ -23,9 +23,8 @@ defmodule ExESDB.StoreCluster do
         node() == leader_node
 
       msg ->
-        IO.puts(
-          Themes.store_cluster(self(), "🔍 Leader lookup failed on #{node()}: #{inspect(msg)}")
-        )
+        Phoenix.PubSub.broadcast(ExESDB.PubSub, "exesdb:control:#{store}:leadership", 
+          {:store_cluster_event, %{event_type: :leader_lookup_failed, node: node(), message: inspect(msg)}})
 
         false
     end
@@ -33,31 +32,19 @@ defmodule ExESDB.StoreCluster do
 
   def activate_leader_worker(store, leader_node) do
     if node() == leader_node do
-      IO.puts(
-        Themes.store_cluster(
-          self(),
-          "==> 🚀 This node is the leader, activating LeaderWorker"
-        )
-      )
+      Phoenix.PubSub.broadcast(ExESDB.PubSub, "exesdb:control:#{store}:leadership", 
+        {:store_cluster_event, %{event_type: :activating_leader_worker, leader_node: leader_node}})
 
       case LeaderWorker.activate(store) do
         :ok ->
-          IO.puts(
-            Themes.store_cluster(
-              self(),
-              "✅ LeaderWorker successfully activated"
-            )
-          )
+          Phoenix.PubSub.broadcast(ExESDB.PubSub, "exesdb:control:#{store}:leadership", 
+            {:store_cluster_event, %{event_type: :leader_worker_activated}})
 
           :ok
 
         {:error, reason} ->
-          IO.puts(
-            Themes.store_cluster(
-              self(),
-              "❌ Failed to activate LeaderWorker on #{node()}: #{inspect(reason)}"
-            )
-          )
+          Phoenix.PubSub.broadcast(ExESDB.PubSub, "exesdb:control:#{store}:leadership", 
+            {:store_cluster_event, %{event_type: :leader_worker_activation_failed, reason: reason}})
 
           {:error, reason}
       end
@@ -91,7 +78,8 @@ defmodule ExESDB.StoreCluster do
   end
 
   defp handle_first_leader_detection(leader_node, store, state) do
-    IO.puts(Themes.store_cluster(self(), "🏆 LEADER DETECTED 🏆 => #{leader_node}"))
+    Phoenix.PubSub.broadcast(ExESDB.PubSub, "exesdb:control:#{store}:leadership", 
+      {:store_cluster_event, %{event_type: :leader_detected, leader_node: leader_node}})
     activate_leader_worker(store, leader_node)
     Keyword.put(state, :current_leader, leader_node)
   end
@@ -558,6 +546,7 @@ defmodule ExESDB.StoreCluster do
     {:noreply, state}
   end
 
+
   ############# PLUMBING #############
   @impl true
   def terminate(reason, state) do
@@ -573,7 +562,7 @@ defmodule ExESDB.StoreCluster do
 
   @impl true
   def init(config) do
-    store_id = StoreNaming.extract_store_id(config)
+    _store_id = StoreNaming.extract_store_id(config)
     timeout = config[:timeout] || 1000
     state = Keyword.put(config, :timeout, timeout)
     

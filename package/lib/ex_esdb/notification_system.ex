@@ -18,7 +18,12 @@ defmodule ExESDB.NotificationSystem do
 
   @impl true
   def init(opts) do
+    # Add subsystem name to opts for LoggerWorker
+    logger_opts = Keyword.put(opts, :subsystem_name, :notification_system)
+    
     children = [
+      # LoggerWorker starts first to capture all events from this subsystem
+      {ExESDB.LoggerWorker, logger_opts},
       # LeaderSystem handles leadership responsibilities
       {ExESDB.LeaderSystem, opts},
       # EmitterSystem handles event distribution

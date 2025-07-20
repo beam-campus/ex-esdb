@@ -21,7 +21,7 @@ defmodule ExESDB.GatewayWorker do
 
   alias ExESDB.ConsistencyChecker, as: ConsistencyChecker
 
-  require Logger
+  alias ExESDB.Events
 
   @type store :: atom()
   @type stream :: String.t()
@@ -96,15 +96,16 @@ defmodule ExESDB.GatewayWorker do
 
   @impl GenServer
   def handle_call({:append_events, store, stream_id, expected_version, events}, _from, state) do
-    Logger.warning(
-      "[GATEWAY_WORKER] append_events to stream #{inspect(stream_id)} with expected version #{inspect(expected_version)}"
-    )
+    # Publish stream write requested event
+    topic = Events.build_topic(store, :gateway)
+    event = Events.build_event(:stream_write_requested, %{stream_id: stream_id, expected_version: expected_version})
+    Phoenix.PubSub.broadcast(ExESDB.PubSub, topic, {:gateway_event, event})
 
     current_version =
       store
       |> StreamsH.get_version!(stream_id)
 
-    Logger.warning("[GATEWAY_WORKER] current version is #{inspect(current_version)}")
+    # Current version info published via events
 
     reply =
       case current_version
@@ -255,17 +256,20 @@ defmodule ExESDB.GatewayWorker do
     name = gateway_worker_name(store_id)
     new_state = Keyword.put(opts, :gateway_worker_name, name)
     
-    msg = "[#{inspect(name)}] is UP, joining the cluster."
-    IO.puts(Themes.gateway_worker(self(), msg))
+    # Publish gateway worker started event
+    topic = Events.build_topic(store_id, :gateway)
+    event = Events.build_event(:gateway_worker_started, %{worker_name: name})
+    Phoenix.PubSub.broadcast(ExESDB.PubSub, topic, {:gateway_event, event})
 
     # Register with Swarm if available
     case register_with_swarm(name) do
       :ok ->
         {:ok, new_state}
       {:error, reason} ->
-        Logger.warning(
-          "Failed to register with Swarm: #{inspect(reason)}. Continuing without distributed registration."
-        )
+        # Publish registration failed event
+        topic = Events.build_topic(store_id, :gateway)
+        event = Events.build_event(:registration_failed, %{service: "swarm", reason: reason})
+        Phoenix.PubSub.broadcast(ExESDB.PubSub, topic, {:gateway_event, event})
         {:ok, new_state}
     end
   end
@@ -291,16 +295,16 @@ defmodule ExESDB.GatewayWorker do
       Swarm.unregister_name(name)
       :ok
     rescue
-      error ->
-        Logger.warning("Failed to unregister from Swarm: #{inspect(error)}")
+      _error ->
+        # Error during unregistration - silently handle
         :error
     catch
-      :exit, reason ->
-        Logger.warning("Failed to unregister from Swarm (exit): #{inspect(reason)}")
+      :exit, _reason ->
+        # Exit during unregistration - silently handle
         :error
 
-      type, reason ->
-        Logger.warning("Failed to unregister from Swarm (#{type}): #{inspect(reason)}")
+      _type, _reason ->
+        # Other error during unregistration - silently handle
         :error
     end
   end

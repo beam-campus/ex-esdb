@@ -17,7 +17,7 @@ defmodule ExESDB.PersistenceWorker do
   alias ExESDB.StoreNaming
   alias ExESDB.Themes
 
-  require Logger
+  alias ExESDB.Events
 
   # 5 seconds
   @default_persistence_interval 5_000
@@ -51,7 +51,10 @@ defmodule ExESDB.PersistenceWorker do
 
     case GenServer.whereis(worker_name) do
       nil ->
-        Logger.warning("PersistenceWorker for store #{store_id} not found")
+        # Publish persistence error event
+        topic = Events.build_topic(store_id, :persistence)
+        event = Events.build_event(:persistence_error, %{operation: "request_persistence", reason: "worker_not_found", store_id: store_id})
+        Phoenix.PubSub.broadcast(ExESDB.PubSub, topic, {:persistence_event, event})
         :error
 
       pid ->
@@ -69,7 +72,10 @@ defmodule ExESDB.PersistenceWorker do
 
     case GenServer.whereis(worker_name) do
       nil ->
-        Logger.warning("PersistenceWorker for store #{store_id} not found")
+        # Publish persistence error event
+        topic = Events.build_topic(store_id, :persistence)
+        event = Events.build_event(:persistence_error, %{operation: "force_persistence", reason: "worker_not_found", store_id: store_id})
+        Phoenix.PubSub.broadcast(ExESDB.PubSub, topic, {:persistence_event, event})
         :error
 
       pid ->
@@ -96,7 +102,10 @@ defmodule ExESDB.PersistenceWorker do
       last_persistence_time: System.monotonic_time(:millisecond)
     }
 
-    IO.puts("#{Themes.persistence_worker(self(), "for store [#{store_id}] is UP")}")
+    # Publish persistence worker started event
+    topic = Events.build_topic(store_id, :persistence)
+    event = Events.build_event(:persistence_worker_started, %{worker_type: "persistence_worker", store_id: store_id})
+    Phoenix.PubSub.broadcast(ExESDB.PubSub, topic, {:persistence_event, event})
 
     {:ok, state}
   end
@@ -189,7 +198,10 @@ defmodule ExESDB.PersistenceWorker do
         :ok
 
       {success, errors} ->
-        Logger.warning("Persisted #{success} stores, #{errors} errors")
+        # Publish partial success event
+        topic = Events.build_topic(List.first(pending_stores) || :unknown, :persistence)
+        event = Events.build_event(:persistence_completed, %{success_count: success, error_count: errors, result: "partial_success"})
+        Phoenix.PubSub.broadcast(ExESDB.PubSub, topic, {:persistence_event, event})
         {:error, {:partial_success, success, errors}}
     end
   end
@@ -201,12 +213,15 @@ defmodule ExESDB.PersistenceWorker do
         :ok
 
       error ->
-        Logger.error("Failed to request persistence for store #{store_id}: #{inspect(error)}")
+        # Publish persistence error event
+        topic = Events.build_topic(store_id, :persistence)
+        event = Events.build_event(:persistence_error, %{operation: "persist_store", reason: error, store_id: store_id})
+        Phoenix.PubSub.broadcast(ExESDB.PubSub, topic, {:persistence_event, event})
         {:error, error}
     end
   end
 
-  defp flush_async(store_id) do
+  defp flush_async(_store_id) do
     # DISABLED: Flush operations disabled to prevent Khepri tree corruption
     # Previous timeout issues resolved by increased StreamsWriter timeout (30s)
     # See PATCH_RECORD.md Phase 8 for details
