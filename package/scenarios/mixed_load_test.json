@@ -1,0 +1,43 @@
+{
+  "name": "Mixed Load Test",
+  "description": "A complex scenario that tests various aspects of the system",
+  "steps": [
+    {
+      "action": "wait",
+      "params": {
+        "duration": 2000
+      },
+      "description": "Initial warm-up period"
+    },
+    {
+      "action": "load_test",
+      "params": {
+        "intensity": "medium",
+        "duration": 10000
+      },
+      "description": "Medium load for 10 seconds"
+    },
+    {
+      "action": "wait",
+      "params": {
+        "duration": 3000
+      },
+      "description": "Recovery period"
+    },
+    {
+      "action": "load_test",
+      "params": {
+        "intensity": "high",
+        "duration": 5000
+      },
+      "description": "High load burst for 5 seconds"
+    },
+    {
+      "action": "wait",
+      "params": {
+        "duration": 2000
+      },
+      "description": "Final cooldown"
+    }
+  ]
+}
