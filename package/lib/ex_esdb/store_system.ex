@@ -22,7 +22,12 @@ defmodule ExESDB.StoreSystem do
 
   @impl true
   def init(opts) do
+    # Add subsystem name to opts for LoggerWorker
+    logger_opts = Keyword.put(opts, :subsystem_name, :store_system)
+    
     children = [
+      # LoggerWorker starts first to capture all events from this subsystem
+      {ExESDB.LoggerWorker, logger_opts},
       # Store must start first as other components depend on it
       {ExESDB.Store, opts},
       # StoreCluster handles clustering coordination and depends on Store

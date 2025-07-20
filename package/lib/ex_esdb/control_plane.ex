@@ -47,7 +47,6 @@ defmodule ExESDB.ControlPlane do
   use GenServer
   
   alias Phoenix.PubSub
-  require Logger
   
   @type store_id :: atom()
   @type topic_category :: :cluster | :leadership | :subscriptions | :coordination | :system
@@ -92,14 +91,10 @@ defmodule ExESDB.ControlPlane do
       event = build_event(store_id, event_type, data)
       topic = build_topic(store_id, category)
       
-      Logger.debug("ControlPlane publishing #{event_type} to #{topic}", 
-        event: event, topic: topic)
-      
       case PubSub.broadcast(ExESDB.PubSub, topic, {:control_plane_event, event}) do
         :ok -> :ok
         error -> 
-          Logger.error("Failed to publish control plane event", 
-            error: error, event: event, topic: topic)
+          # Don't log here as it would cause recursion - let caller handle
           error
       end
     else
@@ -122,7 +117,7 @@ defmodule ExESDB.ControlPlane do
   def subscribe(store_id, category) do
     if valid_category?(category) do
       topic = build_topic(store_id, category)
-      Logger.debug("ControlPlane subscribing to #{topic}")
+      # Subscription successful - no logging needed
       PubSub.subscribe(ExESDB.PubSub, topic)
     else
       {:error, {:invalid_category, category}}
@@ -136,7 +131,7 @@ defmodule ExESDB.ControlPlane do
   def unsubscribe(store_id, category) do
     if valid_category?(category) do
       topic = build_topic(store_id, category)
-      Logger.debug("ControlPlane unsubscribing from #{topic}")
+      # Unsubscription successful - no logging needed
       PubSub.unsubscribe(ExESDB.PubSub, topic)
     else
       {:error, {:invalid_category, category}}
@@ -169,7 +164,8 @@ defmodule ExESDB.ControlPlane do
   
   @impl GenServer
   def init(opts) do
-    Logger.info("ControlPlane starting up as system coordinator")
+    store_id = Keyword.get(opts, :store_id)
+    PubSub.broadcast(ExESDB.PubSub, "exesdb:control:#{store_id}:system", {:control_plane_event, %{event_type: :control_plane_starting, node: node()}})
     
     # Subscribe to our own coordination events
     :ok = subscribe_to_coordination_events(opts)
@@ -181,8 +177,8 @@ defmodule ExESDB.ControlPlane do
       opts: opts,
       store_id: Keyword.get(opts, :store_id),
       managed_systems: %{},
-      startup_sequence: [:persistence, :notification, :store, :gateway],
-      current_startup_step: 0,
+      expected_systems: [:persistence, :notification, :store, :cluster, :gateway],
+      ready_systems: MapSet.new(),
       system_status: :initializing
     }
     
@@ -201,60 +197,76 @@ defmodule ExESDB.ControlPlane do
       topics: get_active_topics(),
       managed_systems: state.managed_systems,
       system_status: state.system_status,
-      current_startup_step: state.current_startup_step
+      expected_systems: state.expected_systems,
+      ready_systems: MapSet.to_list(state.ready_systems),
+      systems_ready_count: MapSet.size(state.ready_systems)
     }
     {:reply, stats, state}
   end
   
   @impl GenServer
   def handle_cast(:initialize_system, state) do
-    Logger.info("ControlPlane: Starting system initialization sequence")
+    # Event published by :initialize_system cast above
     
     # Publish system initialization started event
-    publish(state.store_id, :system, :initialization_started, %{
-      sequence: state.startup_sequence,
-      node: node()
-    })
+    # Systems should start in parallel and report back when ready
+    PubSub.broadcast(ExESDB.PubSub, "exesdb:control:#{state.store_id}:system", {:control_plane_event, %{event_type: :initialization_started, expected_systems: state.expected_systems, node: node()}})
     
-    # Start the first system
-    new_state = start_next_system(state)
-    {:noreply, new_state}
+    {:noreply, %{state | system_status: :waiting_for_systems}}
   end
   
+  
   @impl GenServer
-  def handle_cast({:system_initialized, system_name}, state) do
-    Logger.info("ControlPlane: System #{system_name} initialized successfully")
+  def handle_info({:control_plane_event, %{event_type: :subsystem_ready, data: %{system: system_name}} = event}, state) do
+    # System readiness handled via event
     
-    # Update managed systems
-    new_managed = Map.put(state.managed_systems, system_name, :running)
-    updated_state = %{state | managed_systems: new_managed}
+    # Add system to ready systems
+    new_ready_systems = MapSet.put(state.ready_systems, system_name)
+    new_managed_systems = Map.put(state.managed_systems, system_name, :ready)
     
-    # Publish system started event
-    publish(state.store_id, :system, :subsystem_initialized, %{
-      system: system_name,
-      node: node()
-    })
+    updated_state = %{
+      state | 
+      ready_systems: new_ready_systems,
+      managed_systems: new_managed_systems,
+      events_published: state.events_published + 1,
+      events_by_category: Map.update(state.events_by_category, event.event_type, 1, &(&1 + 1))
+    }
     
-    # Start next system if any remaining
-    final_state = start_next_system(updated_state)
+    # Check if all expected systems are ready
+    final_state = check_system_readiness(updated_state)
     {:noreply, final_state}
   end
   
   @impl GenServer
-  def handle_cast({:system_failed, system_name, reason}, state) do
-    Logger.error("ControlPlane: System #{system_name} failed to initialize: #{inspect(reason)}")
+  def handle_info({:control_plane_event, %{event_type: :subsystem_starting, data: %{system: system_name}} = event}, state) do
+    # System starting handled via event
     
-    # Publish system failure event
-    publish(state.store_id, :system, :subsystem_failed, %{
-      system: system_name,
-      reason: reason,
-      node: node()
-    })
+    new_managed_systems = Map.put(state.managed_systems, system_name, :starting)
     
-    # For now, we'll continue with the next system
-    # In production, you might want different failure handling strategies
-    new_state = start_next_system(state)
-    {:noreply, new_state}
+    updated_state = %{
+      state | 
+      managed_systems: new_managed_systems,
+      events_published: state.events_published + 1,
+      events_by_category: Map.update(state.events_by_category, event.event_type, 1, &(&1 + 1))
+    }
+    
+    {:noreply, updated_state}
+  end
+  
+  @impl GenServer
+  def handle_info({:control_plane_event, %{event_type: :subsystem_failed, data: %{system: system_name}} = event}, state) do
+    # System failure handled via event
+    
+    new_managed_systems = Map.put(state.managed_systems, system_name, :failed)
+    
+    updated_state = %{
+      state | 
+      managed_systems: new_managed_systems,
+      events_published: state.events_published + 1,
+      events_by_category: Map.update(state.events_by_category, event.event_type, 1, &(&1 + 1))
+    }
+    
+    {:noreply, updated_state}
   end
   
   @impl GenServer
@@ -319,49 +331,23 @@ defmodule ExESDB.ControlPlane do
     :ok = subscribe(store_id, :coordination)
   end
   
-  defp start_next_system(state) do
-    if state.current_startup_step < length(state.startup_sequence) do
-      system_name = Enum.at(state.startup_sequence, state.current_startup_step)
-      Logger.info("ControlPlane: Starting #{system_name} system")
-      
-      # Attempt to start the system
-      case start_system(system_name, state.opts) do
-        :ok ->
-          # Update state to reflect the system is starting
-          new_managed = Map.put(state.managed_systems, system_name, :starting)
-          %{state | 
-            managed_systems: new_managed,
-            current_startup_step: state.current_startup_step + 1
-          }
-        
-        {:error, reason} ->
-          Logger.error("ControlPlane: Failed to start #{system_name}: #{inspect(reason)}")
-          # Continue with next system despite failure
-          %{state | current_startup_step: state.current_startup_step + 1}
-      end
-    else
-      Logger.info("ControlPlane: All systems initialized, system is ready")
+  
+  defp check_system_readiness(state) do
+    expected_set = MapSet.new(state.expected_systems)
+    
+    if MapSet.equal?(state.ready_systems, expected_set) do
+      # All systems ready - publish system_ready event below
       
       # Publish system ready event
-      publish(state.store_id, :system, :system_ready, %{
-        managed_systems: Map.keys(state.managed_systems),
-        node: node()
-      })
+      PubSub.broadcast(ExESDB.PubSub, "exesdb:control:#{state.store_id}:system", {:control_plane_event, %{event_type: :system_ready, ready_systems: MapSet.to_list(state.ready_systems), node: node()}})
       
       %{state | system_status: :ready}
+    else
+      missing_systems = MapSet.difference(expected_set, state.ready_systems)
+      # Still waiting for systems - publish waiting event
+      PubSub.broadcast(ExESDB.PubSub, "exesdb:control:#{state.store_id}:system", {:control_plane_event, %{event_type: :systems_pending, missing_systems: MapSet.to_list(missing_systems), ready_systems: MapSet.to_list(state.ready_systems)}})
+      state
     end
-  end
-  
-  defp start_system(system_name, opts) do
-    # This is a placeholder implementation
-    # In the actual implementation, you would dynamically start supervisors
-    # or coordinate with a DynamicSupervisor
-    Logger.info("ControlPlane: Would start #{system_name} system with opts: #{inspect(opts)}")
-    
-    # For now, simulate successful startup
-    # In real implementation, this would start actual supervisors
-    Process.send_after(self(), {:simulate_system_start, system_name}, 100)
-    :ok
   end
   
   defp stop_all_systems(state) do
@@ -370,12 +356,9 @@ defmodule ExESDB.ControlPlane do
     |> Map.keys()
     |> Enum.reverse()
     |> Enum.each(fn system_name ->
-      Logger.info("ControlPlane: Stopping #{system_name}")
+      # Publish system stopping event
       # In actual implementation, you would stop the supervisors
-      publish(state.store_id, :system, :subsystem_stopping, %{
-        system: system_name,
-        node: node()
-      })
+      PubSub.broadcast(ExESDB.PubSub, "exesdb:control:#{state.store_id}:system", {:control_plane_event, %{event_type: :subsystem_stopping, system: system_name, node: node()}})
     end)
   end
   

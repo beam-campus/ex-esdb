@@ -74,6 +74,92 @@ defmodule ExESDB.LeaderTracker do
       subscriber: nil
     }
   end
+  
+  # Delegate to GatewayAPI and Emitters to assume leadership responsibilities
+  # Publish events instead of logging directly
+  defp assume_leadership_duties(store_id) do
+    # Publish event about starting leadership duties
+    ExESDB.ControlPlane.publish(store_id, :leadership, :leadership_duties_starting, %{
+      leader_node: node()
+    })
+    
+    try do
+      # Use GatewayAPI to retrieve all subscriptions
+      case ExESDB.GatewayAPI.list_subscriptions(store_id) do
+        {:ok, subscriptions} when is_list(subscriptions) ->
+          # Publish event about subscriptions found
+          ExESDB.ControlPlane.publish(store_id, :leadership, :subscriptions_loaded, %{
+            subscription_count: length(subscriptions),
+            leader_node: node()
+          })
+          
+          # Delegate to Emitters module to handle leadership assumption
+          # The Emitters module should publish its own events about pools starting up
+          case Emitters.assume_leadership_responsibilities(store_id, subscriptions) do
+            :ok ->
+              ExESDB.ControlPlane.publish(store_id, :leadership, :leadership_duties_assumed, %{
+                leader_node: node(),
+                subscription_count: length(subscriptions)
+              })
+            {:error, reason} ->
+              ExESDB.ControlPlane.publish(store_id, :leadership, :leadership_duties_failed, %{
+                leader_node: node(),
+                reason: reason
+              })
+          end
+          
+        {:error, reason} ->
+          ExESDB.ControlPlane.publish(store_id, :leadership, :subscription_loading_failed, %{
+            leader_node: node(),
+            reason: reason
+          })
+          
+        [] ->
+          ExESDB.ControlPlane.publish(store_id, :leadership, :no_subscriptions_found, %{
+            leader_node: node()
+          })
+      end
+      
+    rescue
+      error ->
+        ExESDB.ControlPlane.publish(store_id, :leadership, :leadership_duties_error, %{
+          leader_node: node(),
+          error: inspect(error)
+        })
+    end
+  end
+  
+  # Delegate to Emitters to step down from leadership gracefully
+  # Publish events instead of logging directly
+  defp step_down_from_leadership(store_id) do
+    # Publish event about starting step-down process
+    ExESDB.ControlPlane.publish(store_id, :leadership, :leadership_stepdown_starting, %{
+      node: node()
+    })
+    
+    try do
+      # Delegate to Emitters module to handle graceful shutdown
+      # The Emitters module should handle its own graceful shutdown and publish relevant events
+      case Emitters.step_down_from_leadership(store_id) do
+        :ok ->
+          ExESDB.ControlPlane.publish(store_id, :leadership, :leadership_stepdown_completed, %{
+            node: node()
+          })
+        {:error, reason} ->
+          ExESDB.ControlPlane.publish(store_id, :leadership, :leadership_stepdown_failed, %{
+            node: node(),
+            reason: reason
+          })
+      end
+      
+    rescue
+      error ->
+        ExESDB.ControlPlane.publish(store_id, :leadership, :leadership_stepdown_error, %{
+          node: node(),
+          error: inspect(error)
+        })
+    end
+  end
 
   ########### HANDLE_INFO ###########
   @impl GenServer
@@ -180,6 +266,47 @@ defmodule ExESDB.LeaderTracker do
     {:noreply, state}
   end
 
+  # Handle khepri_leader_changed events immediately
+  @impl GenServer
+  def handle_info({:control_plane_event, %{event_type: :khepri_leader_changed, data: data}}, state) do
+    store_id = state[:store_id]
+    %{old_leader: old_leader, new_leader: new_leader, cluster_members: cluster_members} = data
+    
+    # Publish event about receiving leadership change (LoggerWorker will handle logging)
+    ExESDB.ControlPlane.publish(store_id, :leadership, :khepri_leader_changed_received, %{
+      old_leader: old_leader,
+      new_leader: new_leader,
+      cluster_members: cluster_members,
+      this_node: node()
+    })
+    
+    # Immediately respond if this node became the leader
+    if new_leader == node() do
+      # LeaderTracker publishes its own event about assuming responsibilities
+      ExESDB.ControlPlane.publish(store_id, :leadership, :leader_responsibilities_assumed, %{
+        leader_node: node(),
+        old_leader: old_leader,
+        cluster_members: cluster_members
+      })
+      
+      # Load subscriptions via GatewayAPI and delegate emitter pool management to Emitters
+      spawn(fn -> assume_leadership_duties(store_id) end)
+      
+    else
+      # Publish event about stepping down from leadership
+      ExESDB.ControlPlane.publish(store_id, :leadership, :leader_stepping_down, %{
+        old_leader: old_leader,
+        new_leader: new_leader,
+        this_node: node()
+      })
+      
+      # Let Emitters module handle its own graceful shutdown when it receives the events
+      spawn(fn -> step_down_from_leadership(store_id) end)
+    end
+    
+    {:noreply, state}
+  end
+
   @impl GenServer
   def handle_info(_, state) do
     {:noreply, state}
@@ -192,6 +319,10 @@ defmodule ExESDB.LeaderTracker do
     store = Keyword.get(opts, :store_id)
     IO.puts("#{Themes.leader_tracker(self(), "is UP.")}")
 
+    # Subscribe to leadership and cluster events for reactive behavior
+    :ok = ExESDB.ControlPlane.subscribe(store, :leadership)
+    :ok = ExESDB.ControlPlane.subscribe(store, :cluster)
+    
     :ok =
       store
       |> :subscriptions.setup_tracking(self())
