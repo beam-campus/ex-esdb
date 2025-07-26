@@ -6,7 +6,6 @@ defmodule ExESDB.EmitterWorker do
   """
   use GenServer
 
-  alias ExESDB.Options, as: Options
   alias Phoenix.PubSub, as: PubSub
 
   require ExESDB.Themes, as: Themes
@@ -21,9 +20,14 @@ defmodule ExESDB.EmitterWorker do
     end
   end
 
-  defp emit(pub_sub, topic, event) do
-    pub_sub
-    |> PubSub.broadcast(topic, {:events, [event]})
+  # Always emit events to :ex_esdb_events if the emitter is active
+  defp emit(_pub_sub, topic, event) do
+    if Process.get(:emitter_active) do
+      :ex_esdb_events
+      |> PubSub.broadcast(topic, {:events, [event]})
+    else
+      {:error, :not_active}
+    end
   end
 
   @impl GenServer
@@ -31,9 +35,10 @@ defmodule ExESDB.EmitterWorker do
     Process.flag(:trap_exit, true)
     scheduler_id = :erlang.system_info(:scheduler_id)
     topic = :emitter_group.topic(store, sub_topic)
-    
+
     :ok = :emitter_group.join(store, sub_topic, self())
-    
+    Process.put(:emitter_active, true)
+
     # Enhanced prominent multi-line activation message
     IO.puts("")
     IO.puts("┌──────────────────────────────────────────────────────────────────────┐")
@@ -51,6 +56,9 @@ defmodule ExESDB.EmitterWorker do
 
   @impl GenServer
   def terminate(reason, %{store: store, selector: selector}) do
+    # Mark process as inactive to prevent further broadcasts
+    Process.put(:emitter_active, false)
+
     # Enhanced prominent multi-line termination message
     IO.puts("")
     IO.puts("╔══════════════════════════════════════════════════════════════════════╗")
@@ -62,6 +70,8 @@ defmodule ExESDB.EmitterWorker do
     IO.puts("#{Themes.emitter_worker(self(), "  PID:       #{inspect(self())}")}")
     IO.puts("╚══════════════════════════════════════════════════════════════════════╝")
     IO.puts("")
+
+    # Leave the emitter group and cleanup
     :ok = :emitter_group.leave(store, selector, self())
     :ok
   end
@@ -90,15 +100,16 @@ defmodule ExESDB.EmitterWorker do
         %{subscriber: subscriber, store: store, selector: selector} = state
       ) do
     # Enhanced event processing logging
-    event_id = Map.get(event, :id, "unknown")
-    event_type = Map.get(event, :type, "unknown")
-    IO.puts("#{Themes.emitter_worker(self(), "⚡ BROADCASTING Event: #{event_id}(#{event_type}) -> Topic: #{topic}")}")
-    
-    case subscriber do
+    event_id = Map.get(event, :event_id, "unknown")
+    event_type = Map.get(event, :event_type, "unknown")
+
+    IO.puts(
+      "#{Themes.emitter_worker(self(), "⚡ BROADCASTING Event: #{event_id}(#{event_type}) -> Topic: #{topic}")}"
+    )
+
+  case subscriber do
       nil ->
-        pubsub = Options.pub_sub()
-        pubsub |> emit(topic, event)
-        
+        emit(nil, topic, event)
       pid ->
         send_or_kill_pool(pid, event, store, selector)
     end
@@ -112,15 +123,16 @@ defmodule ExESDB.EmitterWorker do
         %{subscriber: subscriber, store: store, selector: selector} = state
       ) do
     # Enhanced local forwarding logging
-    event_id = Map.get(event, :id, "unknown")
-    event_type = Map.get(event, :type, "unknown")
-    IO.puts("#{Themes.emitter_worker(self(), "🔄 FORWARDING Event: #{event_id}(#{event_type}) -> Local Topic: #{topic}")}")
-    
-    case subscriber do
+    event_id = Map.get(event, :event_id, "unknown")
+    event_type = Map.get(event, :event_type, "unknown")
+
+    IO.puts(
+      "#{Themes.emitter_worker(self(), "🔄 FORWARDING Event: #{event_id}(#{event_type}) -> Local Topic: #{topic}")}"
+    )
+
+  case subscriber do
       nil ->
-        pubsub = Options.pub_sub()
-        pubsub |> emit(topic, event)
-        
+        emit(nil, topic, event)
       pid ->
         send_or_kill_pool(pid, event, store, selector)
     end

@@ -22,10 +22,6 @@ defmodule ExESDB.EnVars do
   """
   def timeout, do: "EX_ESDB_TIMEOUT"
 
-  @doc """
-    Returns the name of the pub/sub. default: `ex_esdb_pub_sub`
-  """
-  def pub_sub, do: "EX_ESDB_PUB_SUB"
 
   @doc """
     Returns the idle writers timeout in milliseconds. default: `10_000`

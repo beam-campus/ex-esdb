@@ -20,7 +20,6 @@ config :ex_esdb, :ex_esdb,
   store_id: store_id(),
   timeout: timeout(),
   db_type: db_type(),
-  pub_sub: pub_sub(),
   store_description: store_description(),
   store_tags: store_tags()
 

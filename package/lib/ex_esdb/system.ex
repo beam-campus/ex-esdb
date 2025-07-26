@@ -34,7 +34,6 @@ defmodule ExESDB.System do
   alias ExESDBGater.LibClusterHelper, as: LibClusterHelper
 
   require Logger
-  require Phoenix.PubSub
 
   @impl true
   def init(opts) do
@@ -45,8 +44,10 @@ defmodule ExESDB.System do
 
     db_type = Options.db_type(otp_app)
 
-    # Core infrastructure - must start first
+    # Start PubSubSystem first
+    pubsub_opts = Keyword.put(opts, :name, :ex_esdb_gater_pubsub)
     children = [
+      {ExESDBGater.PubSubSystem, pubsub_opts},
       {ExESDB.CoreSystem, opts}
     ]
 
@@ -256,8 +257,8 @@ defmodule ExESDB.System do
 
   def start(opts) do
     case start_link(opts) do
-      {:ok, pid} -> pid
-      {:error, {:already_started, pid}} -> pid
+      {:ok, pid} -> {:ok, pid}
+      {:error, {:already_started, pid}} -> {:ok, pid}
       {:error, reason} -> raise "failed to start eventstores supervisor: #{inspect(reason)}"
     end
   end

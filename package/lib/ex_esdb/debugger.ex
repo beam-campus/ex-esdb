@@ -112,7 +112,7 @@ defmodule ExESDB.Debugger do
   @doc """
   List all ExESDB-related processes with formatted output.
   """
-  def processes(store_id \\ nil) do
+  def processes(_store_id \\ nil) do
     IO.puts("\n⚙️  ExESDB Processes")
     IO.puts("=" <> String.duplicate("=", 40))
     
@@ -205,7 +205,7 @@ defmodule ExESDB.Debugger do
   @doc """
   Show performance metrics.
   """
-  def performance(store_id \\ nil) do
+  def performance(_store_id \\ nil) do
     IO.puts("\n📈 Performance Metrics")
     IO.puts("=" <> String.duplicate("=", 40))
     

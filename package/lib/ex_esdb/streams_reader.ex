@@ -65,7 +65,7 @@ defmodule ExESDB.StreamsReader do
       )
       
       case result do
-        {:ok, event_stream} ->
+        {:ok, _event_stream} ->
           # For streams, we can't easily count without consuming, so just log success
           Logger.info("[STREAMS_READER] API: ✅ Successfully retrieved event stream")
           result

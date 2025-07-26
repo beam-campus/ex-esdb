@@ -6,7 +6,6 @@ defmodule ExESDB.StreamsWriterWorker do
   use GenServer
 
   alias ExESDB.Options, as: Options
-  alias ExESDB.PersistenceWorker, as: PersistenceWorker
   alias ExESDB.StreamsHelper, as: Helper
   alias ExESDB.StreamsWriter, as: StreamsWriter
   alias ExESDB.Themes, as: Themes

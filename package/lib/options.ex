@@ -11,7 +11,6 @@ defmodule ExESDB.Options do
   @store_id EnVars.store_id()
   @timeout EnVars.timeout()
   @db_type EnVars.db_type()
-  @pub_sub EnVars.pub_sub()
   @writer_idle_ms EnVars.writer_idle_ms()
   @reader_idle_ms EnVars.reader_idle_ms()
   @store_description EnVars.store_description()
@@ -181,25 +180,6 @@ defmodule ExESDB.Options do
     end
   end
 
-  def pub_sub(otp_app) when is_atom(otp_app) do
-    case sys_env(@pub_sub) do
-      nil -> app_env(otp_app, :pub_sub, :ex_esdb_pubsub)
-      pub_sub -> to_unique_atom(pub_sub)
-    end
-  end
-
-  def pub_sub do
-    context = get_context_or_discover()
-
-    if context != :ex_esdb do
-      pub_sub(context)
-    else
-      case sys_env(@pub_sub) do
-        nil -> app_env(:ex_esdb, :pub_sub, :ex_esdb_pubsub)
-        pub_sub -> to_unique_atom(pub_sub)
-      end
-    end
-  end
 
   def reader_idle_ms(otp_app) when is_atom(otp_app) do
     case sys_env(@reader_idle_ms) do

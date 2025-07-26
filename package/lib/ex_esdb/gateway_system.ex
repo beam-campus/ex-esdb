@@ -7,7 +7,7 @@ defmodule ExESDB.GatewaySystem do
 
   Components:
   - GatewayWorkers: Pool of GatewayWorkers via PartitionSupervisor
-  - PubSub: External communication (conditional)
+  # PubSub: External communication now handled externally
   """
   use Supervisor
 
@@ -25,7 +25,7 @@ defmodule ExESDB.GatewaySystem do
          child_spec: {ExESDB.GatewayWorker, opts},
          name: StoreNaming.partition_name(ExESDB.GatewayWorkers, store_id),
          partitions: gateway_pool_size},
-        add_pub_sub(opts)
+        # Assuming PubSub initialization occurs externally
       ]
       # Remove nil entries
       |> Enum.filter(& &1)
@@ -42,32 +42,7 @@ defmodule ExESDB.GatewaySystem do
     )
   end
 
-  defp add_pub_sub(opts) do
-    pub_sub = Keyword.get(opts, :pub_sub)
-
-    case pub_sub do
-      nil ->
-        add_pub_sub([pub_sub: :native] ++ opts)
-
-      :native ->
-        {ExESDB.PubSub, opts}
-
-      pub_sub ->
-        # Use PubSubManager to conditionally start Phoenix.PubSub
-        case BCUtils.PubSubManager.maybe_child_spec(pub_sub) do
-          nil ->
-            # PubSub already running, create a dummy child
-            %{
-              id: :dummy_pubsub,
-              start: {Task, :start_link, [fn -> :ok end]},
-              restart: :temporary
-            }
-
-          child_spec ->
-            child_spec
-        end
-    end
-  end
+  # PubSub management removed, assuming it's initialized outside of this module
 
   def start_link(opts) do
     store_id = StoreNaming.extract_store_id(opts)
