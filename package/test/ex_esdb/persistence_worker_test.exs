@@ -172,13 +172,16 @@ defmodule ExESDB.PersistenceWorkerTest do
       assert MapSet.member?(state.pending_stores, :test_store)
       
       # Mock khepri.fence and wait for periodic persistence
-      with_mock(:khepri, [fence: fn(_store_id) -> :ok end]) do
-        # Wait for the periodic timer to fire
-        Process.sleep(150)
-        
-        # Verify the fence was called
-        assert_called(:khepri.fence(:test_store))
-      end
+      :meck.new(:khepri, [:unstick])
+      :meck.expect(:khepri, :fence, fn(_store_id) -> :ok end)
+      
+      # Wait for the periodic timer to fire
+      Process.sleep(150)
+      
+      # Verify the fence was called
+      assert :meck.called(:khepri, :fence, [:test_store])
+      
+      :meck.unload(:khepri)
       
       # Verify pending stores are cleared
       state = :sys.get_state(pid)
@@ -198,13 +201,16 @@ defmodule ExESDB.PersistenceWorkerTest do
       Process.sleep(50)
       
       # Mock khepri.fence for final persistence
-      with_mock(:khepri, [fence: fn(_store_id) -> :ok end]) do
-        # Stop the worker
-        stop_supervised(pid)
-        
-        # Verify the fence was called during shutdown
-        assert_called(:khepri.fence(:test_store))
-      end
+      :meck.new(:khepri, [:unstick])
+      :meck.expect(:khepri, :fence, fn(_store_id) -> :ok end)
+      
+      # Stop the worker
+      stop_supervised(pid)
+      
+      # Verify the fence was called during shutdown
+      assert :meck.called(:khepri, :fence, [:test_store])
+      
+      :meck.unload(:khepri)
     end
     
     test "handles multiple pending stores on termination" do
@@ -219,14 +225,17 @@ defmodule ExESDB.PersistenceWorkerTest do
       Process.sleep(50)
       
       # Mock khepri.fence for final persistence
-      with_mock(:khepri, [fence: fn(_store_id) -> :ok end]) do
-        # Stop the worker
-        stop_supervised(pid)
-        
-        # Verify fence was called for both stores
-        assert_called(:khepri.fence(:test_store))
-        assert_called(:khepri.fence(:another_store))
-      end
+      :meck.new(:khepri, [:unstick])
+      :meck.expect(:khepri, :fence, fn(_store_id) -> :ok end)
+      
+      # Stop the worker
+      stop_supervised(pid)
+      
+      # Verify fence was called for both stores
+      assert :meck.called(:khepri, :fence, [:test_store])
+      assert :meck.called(:khepri, :fence, [:another_store])
+      
+      :meck.unload(:khepri)
     end
   end
   
@@ -239,13 +248,16 @@ defmodule ExESDB.PersistenceWorkerTest do
       PersistenceWorker.request_persistence(:test_store)
       
       # Mock khepri.fence to return an error
-      with_mock(:khepri, [fence: fn(_store_id) -> {:error, :timeout} end]) do
-        # Wait for periodic persistence
-        Process.sleep(150)
-        
-        # Verify the fence was called despite error
-        assert_called(:khepri.fence(:test_store))
-      end
+      :meck.new(:khepri, [:unstick])
+      :meck.expect(:khepri, :fence, fn(_store_id) -> {:error, :timeout} end)
+      
+      # Wait for periodic persistence
+      Process.sleep(150)
+      
+      # Verify the fence was called despite error
+      assert :meck.called(:khepri, :fence, [:test_store])
+      
+      :meck.unload(:khepri)
       
       # Verify the worker is still alive
       assert Process.alive?(pid)
@@ -259,13 +271,16 @@ defmodule ExESDB.PersistenceWorkerTest do
       PersistenceWorker.request_persistence(:test_store)
       
       # Mock khepri.fence to raise an exception
-      with_mock(:khepri, [fence: fn(_store_id) -> raise "test error" end]) do
-        # Wait for periodic persistence
-        Process.sleep(150)
-        
-        # Verify the fence was called
-        assert_called(:khepri.fence(:test_store))
-      end
+      :meck.new(:khepri, [:unstick])
+      :meck.expect(:khepri, :fence, fn(_store_id) -> raise "test error" end)
+      
+      # Wait for periodic persistence
+      Process.sleep(150)
+      
+      # Verify the fence was called
+      assert :meck.called(:khepri, :fence, [:test_store])
+      
+      :meck.unload(:khepri)
       
       # Verify the worker is still alive
       assert Process.alive?(pid)
@@ -349,9 +364,12 @@ defmodule ExESDB.PersistenceWorkerTest do
       Process.sleep(50)
       
       # Force persistence
-      with_mock(:khepri, [fence: fn(_store_id) -> :ok end]) do
-        PersistenceWorker.force_persistence(:test_store)
-      end
+      :meck.new(:khepri, [:unstick])
+      :meck.expect(:khepri, :fence, fn(_store_id) -> :ok end)
+      
+      PersistenceWorker.force_persistence(:test_store)
+      
+      :meck.unload(:khepri)
       
       final_state = :sys.get_state(pid)
       final_time = final_state.last_persistence_time

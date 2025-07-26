@@ -11,5 +11,4 @@ config :ex_esdb, :ex_esdb,
   data_dir: "tmp/ex_esdb_store",
   store_id: :ex_test_store,
   timeout: 1_000,
-  db_type: :single,
-  pub_sub: :ex_esdb_pub_sub
+  db_type: :single

@@ -32,8 +32,7 @@ config :ex_esdb, :ex_esdb,
   store_id: :reg_gh,
   timeout: 10_000,
   # Changed from :single to :cluster
-  db_type: :cluster,
-  pub_sub: :ex_esdb_pubsub
+  db_type: :cluster
 
 # Reduce Swarm logging noise - only show true errors
 config :swarm,
@@ -49,5 +48,3 @@ config :logger,
   handle_sasl_reports: false
 
 config :ex_esdb_gater, :logger, level: :debug
-
-config :ex_esdb_gater, :api, pub_sub: :ex_esdb_pubsub

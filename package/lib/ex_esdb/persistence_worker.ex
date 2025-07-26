@@ -19,9 +19,6 @@ defmodule ExESDB.PersistenceWorker do
 
   require Logger
 
-  # 5 seconds
-  @default_persistence_interval 5_000
-
   defstruct [
     :store_id,
     :persistence_interval,
@@ -206,7 +203,7 @@ defmodule ExESDB.PersistenceWorker do
     end
   end
 
-  defp flush_async(store_id) do
+  defp flush_async(_store_id) do
     # DISABLED: Flush operations disabled to prevent Khepri tree corruption
     # Previous timeout issues resolved by increased StreamsWriter timeout (30s)
     # See PATCH_RECORD.md Phase 8 for details

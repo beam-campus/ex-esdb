@@ -169,7 +169,7 @@ defmodule ExESDB.LeaderWorker do
   end
 
   @impl true
-  def terminate(reason, _state) do
+  def terminate(_reason, _state) do
     :ok
   end
 
@@ -180,7 +180,7 @@ defmodule ExESDB.LeaderWorker do
 
     # Extract store_id and calculate the store-specific name
     store_id = StoreNaming.extract_store_id(config)
-    expected_name = StoreNaming.genserver_name(__MODULE__, store_id)
+    _expected_name = StoreNaming.genserver_name(__MODULE__, store_id)
 
     # Log startup with process info
     IO.puts("#{Themes.leader_worker(self(), "is UP!")}")

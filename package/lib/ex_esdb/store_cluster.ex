@@ -447,6 +447,32 @@ defmodule ExESDB.StoreCluster do
   end
 
   @impl true
+  def handle_info({:nodeup, node}, state) do
+    IO.puts(
+      "#{Themes.store_cluster(self(), "🌐 Detected new node from #{node()}: #{inspect(node)}")}"
+    )
+
+    store = state[:store_id]
+    
+    if should_handle_nodeup?(store) do
+      handle_nodeup_with_join(store)
+    else
+      handle_nodeup_already_in_cluster()
+    end
+
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info({:nodedown, node}, state) do
+    IO.puts(Themes.store_cluster(self(), "🔴 Detected node down from #{node()}: #{inspect(node)}"))
+    # Trigger immediate membership and leadership checks after node down event
+    Process.send(self(), :check_members, [])
+    Process.send(self(), :check_leader, [])
+    {:noreply, state}
+  end
+
+  @impl true
   def handle_info({:DOWN, _ref, :process, pid, reason}, state) do
     state[:store_id]
     |> leave()
@@ -469,19 +495,7 @@ defmodule ExESDB.StoreCluster do
   end
 
   @impl true
-  def handle_info({:nodeup, node}, state) do
-    IO.puts(
-      "#{Themes.store_cluster(self(), "🌐 Detected new node from #{node()}: #{inspect(node)}")}"
-    )
-
-    store = state[:store_id]
-    
-    if should_handle_nodeup?(store) do
-      handle_nodeup_with_join(store)
-    else
-      handle_nodeup_already_in_cluster()
-    end
-
+  def handle_info(_, state) do
     {:noreply, state}
   end
 
@@ -544,20 +558,6 @@ defmodule ExESDB.StoreCluster do
     Process.send(self(), :check_leader, [])
   end
 
-  @impl true
-  def handle_info({:nodedown, node}, state) do
-    IO.puts(Themes.store_cluster(self(), "🔴 Detected node down from #{node()}: #{inspect(node)}"))
-    # Trigger immediate membership and leadership checks after node down event
-    Process.send(self(), :check_members, [])
-    Process.send(self(), :check_leader, [])
-    {:noreply, state}
-  end
-
-  @impl true
-  def handle_info(_, state) do
-    {:noreply, state}
-  end
-
   ############# PLUMBING #############
   @impl true
   def terminate(reason, state) do
@@ -573,7 +573,7 @@ defmodule ExESDB.StoreCluster do
 
   @impl true
   def init(config) do
-    store_id = StoreNaming.extract_store_id(config)
+    _store_id = StoreNaming.extract_store_id(config)
     timeout = config[:timeout] || 1000
     state = Keyword.put(config, :timeout, timeout)
     

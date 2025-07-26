@@ -88,7 +88,7 @@ defmodule ExESDB.Debugger do
       {"🔧 Advanced Tools", [
         {"trace(module, function, opts \\\\ [])", "Trace function calls"},
         {"benchmark(fun, opts \\\\ [])", "Benchmark a function"},
-        {"observer()", "Start Erlang observer GUI"},
+        {"top(opts \\\\ [])", "Show top processes by memory/CPU"},
       ]}
     ]
     
@@ -112,7 +112,7 @@ defmodule ExESDB.Debugger do
   @doc """
   List all ExESDB-related processes with formatted output.
   """
-  def processes(store_id \\ nil) do
+  def processes(_store_id \\ nil) do
     IO.puts("\n⚙️  ExESDB Processes")
     IO.puts("=" <> String.duplicate("=", 40))
     
@@ -205,7 +205,7 @@ defmodule ExESDB.Debugger do
   @doc """
   Show performance metrics.
   """
-  def performance(store_id \\ nil) do
+  def performance(_store_id \\ nil) do
     IO.puts("\n📈 Performance Metrics")
     IO.puts("=" <> String.duplicate("=", 40))
     
@@ -403,14 +403,6 @@ defmodule ExESDB.Debugger do
     IO.puts("  Total time: #{format_time(total_time)}")
     IO.puts("  Average time: #{format_time(avg_time)}")
     IO.puts("  Calls per second: #{Float.round(1_000_000 / avg_time, 2)}")
-  end
-  
-  @doc """
-  Start Erlang observer GUI.
-  """
-  def observer do
-    IO.puts("🔍 Starting Erlang Observer...")
-    :observer.start()
   end
   
   @doc """
