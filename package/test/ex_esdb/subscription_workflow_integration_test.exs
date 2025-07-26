@@ -106,8 +106,7 @@ defmodule ExESDB.SubscriptionWorkflowIntegrationTest do
       
       if pool_pid == nil do
         Logger.warning("EmitterPool did not start - skipping workflow test in single-node mode")
-        return
-      end
+      else
       
       assert Process.alive?(pool_pid), "EmitterPool should be alive"
       
@@ -131,8 +130,10 @@ defmodule ExESDB.SubscriptionWorkflowIntegrationTest do
         %NewEvent{
           event_id: event.event_id,
           event_type: event.event_type,
-          event_data: event.event_data,
-          event_metadata: %{}
+          data_content_type: 0,  # Pure Erlang/Elixir terms
+          metadata_content_type: 0,  # Pure Erlang/Elixir terms
+          data: :erlang.term_to_binary(event.event_data),
+          metadata: :erlang.term_to_binary(%{})
         }
       end)
       
@@ -166,6 +167,7 @@ defmodule ExESDB.SubscriptionWorkflowIntegrationTest do
         Logger.warning("No events received - this may indicate configuration issues in test environment")
         # Don't fail the test as this might be expected in certain test configurations
       end
+      end
     end
     
     test "subscription handles stream with existing events", context do
@@ -190,8 +192,10 @@ defmodule ExESDB.SubscriptionWorkflowIntegrationTest do
         %NewEvent{
           event_id: event.event_id,
           event_type: event.event_type,
-          event_data: event.event_data,
-          event_metadata: %{}
+          data_content_type: 0,  # Pure Erlang/Elixir terms
+          metadata_content_type: 0,  # Pure Erlang/Elixir terms
+          data: :erlang.term_to_binary(event.event_data),
+          metadata: :erlang.term_to_binary(%{})
         }
       end)
       
@@ -215,10 +219,8 @@ defmodule ExESDB.SubscriptionWorkflowIntegrationTest do
       
       if pool_pid == nil do
         Logger.warning("EmitterPool did not start - skipping existing events test")
-        return
-      end
-      
-      # Step 4: Add new events after subscription
+      else
+        # Step 4: Add new events after subscription
       Logger.info("Step 4: Adding new events after subscription")
       
       new_event = SubscriptionTestHelpers.create_test_event(stream_id, "AccountUpdated", %{account_id: 1, status: "active"})
@@ -227,8 +229,10 @@ defmodule ExESDB.SubscriptionWorkflowIntegrationTest do
         %NewEvent{
           event_id: new_event.event_id,
           event_type: new_event.event_type,
-          event_data: new_event.event_data,
-          event_metadata: %{}
+          data_content_type: 0,  # Pure Erlang/Elixir terms
+          metadata_content_type: 0,  # Pure Erlang/Elixir terms
+          data: :erlang.term_to_binary(new_event.event_data),
+          metadata: :erlang.term_to_binary(%{})
         }
       ])
       assert append_result_2 == :ok
@@ -246,6 +250,7 @@ defmodule ExESDB.SubscriptionWorkflowIntegrationTest do
       # The subscription system may or may not deliver historical events
       # depending on configuration, but it should handle the scenario gracefully
       Logger.info("✅ Successfully verified subscription with existing events")
+      end
     end
   end
   
@@ -372,8 +377,10 @@ defmodule ExESDB.SubscriptionWorkflowIntegrationTest do
         %NewEvent{
           event_id: event.event_id,
           event_type: event.event_type,
-          event_data: event.event_data,
-          event_metadata: %{}
+          data_content_type: 0,  # Pure Erlang/Elixir terms
+          metadata_content_type: 0,  # Pure Erlang/Elixir terms
+          data: :erlang.term_to_binary(event.event_data),
+          metadata: :erlang.term_to_binary(%{})
         }
       end)
       
@@ -425,8 +432,7 @@ defmodule ExESDB.SubscriptionWorkflowIntegrationTest do
       
       if pool_pid == nil do
         Logger.warning("EmitterPool did not start - skipping error recovery test")
-        return
-      end
+      else
       
       # Get workers
       workers = SubscriptionTestHelpers.get_emitter_workers(pool_pid)
@@ -445,8 +451,10 @@ defmodule ExESDB.SubscriptionWorkflowIntegrationTest do
           new_event = %NewEvent{
             event_id: test_event.event_id,
             event_type: test_event.event_type,
-            event_data: test_event.event_data,
-            event_metadata: %{}
+            data_content_type: 0,  # Pure Erlang/Elixir terms
+            metadata_content_type: 0,  # Pure Erlang/Elixir terms
+            data: :erlang.term_to_binary(test_event.event_data),
+            metadata: :erlang.term_to_binary(%{})
           }
           
           append_result = StreamsWriter.append_events(@test_store_id, stream_id, [new_event])
@@ -463,6 +471,7 @@ defmodule ExESDB.SubscriptionWorkflowIntegrationTest do
         {:timeout, _} ->
           Logger.warning("Worker restart timed out - supervisor may not be configured for restart")
           # Don't fail the test as this depends on supervisor configuration
+      end
       end
     end
     
@@ -490,8 +499,7 @@ defmodule ExESDB.SubscriptionWorkflowIntegrationTest do
       
       if pool_pid == nil do
         Logger.warning("EmitterPool did not start - skipping invalid events test")
-        return
-      end
+      else
       
       # Get worker and send invalid event format
       workers = SubscriptionTestHelpers.get_emitter_workers(pool_pid)
@@ -516,6 +524,7 @@ defmodule ExESDB.SubscriptionWorkflowIntegrationTest do
       assert Process.alive?(worker_pid), "Worker should handle valid events after invalid ones"
       
       Logger.info("✅ Successfully verified handling of invalid events")
+      end
     end
   end
   
@@ -546,8 +555,7 @@ defmodule ExESDB.SubscriptionWorkflowIntegrationTest do
       
       if pool_pid == nil do
         Logger.warning("EmitterPool did not start - skipping performance test")
-        return
-      end
+      else
       
       # Generate high volume of events
       event_count = 100
@@ -555,8 +563,10 @@ defmodule ExESDB.SubscriptionWorkflowIntegrationTest do
         %NewEvent{
           event_id: "perf-event-#{i}",
           event_type: "PerformanceTest",
-          event_data: %{sequence: i, timestamp: System.system_time(:microsecond)},
-          event_metadata: %{}
+          data_content_type: 0,  # Pure Erlang/Elixir terms
+          metadata_content_type: 0,  # Pure Erlang/Elixir terms
+          data: :erlang.term_to_binary(%{sequence: i, timestamp: System.system_time(:microsecond)}),
+          metadata: :erlang.term_to_binary(%{})
         }
       end)
       
@@ -594,6 +604,7 @@ defmodule ExESDB.SubscriptionWorkflowIntegrationTest do
       assert {:ok, _} = health_result
       
       Logger.info("✅ Successfully verified performance under high load")
+      end
     end
   end
 end

@@ -5,16 +5,16 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="ExDoc v0.38.2">
-    <meta name="project" content="ex_esdb v0.6.0">
+    <meta name="project" content="ex_esdb v0.6.1">
 
 
-    <title>ExESDB.ConsistencyChecker — ex_esdb v0.6.0</title>
+    <title>ExESDB.ConsistencyChecker — ex_esdb v0.6.1</title>
 
     <link rel="stylesheet" href="dist/html-elixir-KV3YOVJ3.css" />
 
       <link rel="canonical" href="https://hexdocs.pm/ex_esdb/ExESDB.ConsistencyChecker.html" />
 
-    <script defer src="dist/sidebar_items-87CD0C4F.js"></script>
+    <script defer src="dist/sidebar_items-22181972.js"></script>
     <script defer src="docs_config.js"></script>
     <script defer src="dist/html-DPJLHKSM.js"></script>
 
@@ -39,7 +39,7 @@
 ex_esdb
         </a>
         <div class="sidebar-projectVersion" translate="no">
-          v0.6.0
+          v0.6.1
         </div>
       </div>
     </div>
@@ -78,7 +78,7 @@ ex_esdb
   <div class="heading-with-actions top-heading">
     <h1>
       <span translate="no">ExESDB.ConsistencyChecker</span> 
-      <small class="app-vsn" translate="no">(ex_esdb v0.6.0)</small>
+      <small class="app-vsn" translate="no">(ex_esdb v0.6.1)</small>
 
     </h1>
 
@@ -410,15 +410,15 @@ This is a more intensive check that examines log indices and terms.</p>
 
       </div>
 
-<p>Performs a comprehensive consistency check across all cluster nodes for a given store.</p><h2 id="verify_cluster_consistency/1-returns" class="section-heading"><a href="#verify_cluster_consistency/1-returns" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Returns</span></h2><ul><li><code class="inline">{:ok, report}</code> - Detailed consistency report</li><li><code class="inline">{:error, reason}</code> - Error occurred during check</li></ul><h2 id="verify_cluster_consistency/1-example" class="section-heading"><a href="#verify_cluster_consistency/1-example" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Example</span></h2><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.ConsistencyChecker</span><span class="o">.</span><span class="n">verify_cluster_consistency</span><span class="p" data-group-id="5209933495-1">(</span><span class="ss">:my_store</span><span class="p" data-group-id="5209933495-1">)</span><span class="w">
-</span><span class="p" data-group-id="5209933495-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="5209933495-3">%{</span><span class="w">
+<p>Performs a comprehensive consistency check across all cluster nodes for a given store.</p><h2 id="verify_cluster_consistency/1-returns" class="section-heading"><a href="#verify_cluster_consistency/1-returns" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Returns</span></h2><ul><li><code class="inline">{:ok, report}</code> - Detailed consistency report</li><li><code class="inline">{:error, reason}</code> - Error occurred during check</li></ul><h2 id="verify_cluster_consistency/1-example" class="section-heading"><a href="#verify_cluster_consistency/1-example" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Example</span></h2><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.ConsistencyChecker</span><span class="o">.</span><span class="n">verify_cluster_consistency</span><span class="p" data-group-id="3410574380-1">(</span><span class="ss">:my_store</span><span class="p" data-group-id="3410574380-1">)</span><span class="w">
+</span><span class="p" data-group-id="3410574380-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3410574380-3">%{</span><span class="w">
   </span><span class="ss">status</span><span class="p">:</span><span class="w"> </span><span class="ss">:consistent</span><span class="p">,</span><span class="w">
   </span><span class="ss">nodes_checked</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w">
   </span><span class="ss">leader</span><span class="p">:</span><span class="w"> </span><span class="ss">:&quot;node1@host&quot;</span><span class="p">,</span><span class="w">
-  </span><span class="ss">members</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5209933495-4">[</span><span class="ss">:&quot;node1@host&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">:&quot;node2@host&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">:&quot;node3@host&quot;</span><span class="p" data-group-id="5209933495-4">]</span><span class="p">,</span><span class="w">
+  </span><span class="ss">members</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3410574380-4">[</span><span class="ss">:&quot;node1@host&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">:&quot;node2@host&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">:&quot;node3@host&quot;</span><span class="p" data-group-id="3410574380-4">]</span><span class="p">,</span><span class="w">
   </span><span class="ss">raft_status</span><span class="p">:</span><span class="w"> </span><span class="ss">:healthy</span><span class="p">,</span><span class="w">
-  </span><span class="ss">potential_issues</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5209933495-5">[</span><span class="p" data-group-id="5209933495-5">]</span><span class="w">
-</span><span class="p" data-group-id="5209933495-3">}</span><span class="p" data-group-id="5209933495-2">}</span></code></pre>
+  </span><span class="ss">potential_issues</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3410574380-5">[</span><span class="p" data-group-id="3410574380-5">]</span><span class="w">
+</span><span class="p" data-group-id="3410574380-3">}</span><span class="p" data-group-id="3410574380-2">}</span></code></pre>
   </section>
 </section>
 <section class="detail" id="verify_membership_consensus/1">
@@ -453,9 +453,9 @@ This is a more intensive check that examines log indices and terms.</p>
       <p>
 
           <span class="line">
-            <a href="https://hex.pm/packages/ex_esdb/0.6.0" class="footer-hex-package">Hex Package</a>
+            <a href="https://hex.pm/packages/ex_esdb/0.6.1" class="footer-hex-package">Hex Package</a>
 
-            <a href="https://preview.hex.pm/preview/ex_esdb/0.6.0">Hex Preview</a>
+            <a href="https://preview.hex.pm/preview/ex_esdb/0.6.1">Hex Preview</a>
 
           </span>
 

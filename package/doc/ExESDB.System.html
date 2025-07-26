@@ -5,16 +5,16 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="ExDoc v0.38.2">
-    <meta name="project" content="ex_esdb v0.6.0">
+    <meta name="project" content="ex_esdb v0.6.1">
 
 
-    <title>ExESDB.System — ex_esdb v0.6.0</title>
+    <title>ExESDB.System — ex_esdb v0.6.1</title>
 
     <link rel="stylesheet" href="dist/html-elixir-KV3YOVJ3.css" />
 
       <link rel="canonical" href="https://hexdocs.pm/ex_esdb/ExESDB.System.html" />
 
-    <script defer src="dist/sidebar_items-87CD0C4F.js"></script>
+    <script defer src="dist/sidebar_items-22181972.js"></script>
     <script defer src="docs_config.js"></script>
     <script defer src="dist/html-DPJLHKSM.js"></script>
 
@@ -39,7 +39,7 @@
 ex_esdb
         </a>
         <div class="sidebar-projectVersion" translate="no">
-          v0.6.0
+          v0.6.1
         </div>
       </div>
     </div>
@@ -78,7 +78,7 @@ ex_esdb
   <div class="heading-with-actions top-heading">
     <h1>
       <span translate="no">ExESDB.System</span> 
-      <small class="app-vsn" translate="no">(ex_esdb v0.6.0)</small>
+      <small class="app-vsn" translate="no">(ex_esdb v0.6.1)</small>
 
     </h1>
 
@@ -219,14 +219,14 @@ ex_esdb
   <section class="docstring">
 
 <p>Start ExESDB.System with automatic configuration discovery.</p><p>This function supports several modes:</p><ol><li>With explicit opts: <code class="inline">ExESDB.System.start_link(opts)</code> - uses provided configuration</li><li>With OTP app name: <code class="inline">ExESDB.System.start_link(:my_app)</code> - discovers config from specified app</li><li>With empty opts or no args: <code class="inline">ExESDB.System.start_link([])</code> or <code class="inline">ExESDB.System.start_link()</code> - discovers config from calling application</li></ol><h2 id="start_link/1-examples" class="section-heading"><a href="#start_link/1-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="c1"># Explicit configuration (current approach)</span><span class="w">
-</span><span class="n">opts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">ExESDB.Options</span><span class="o">.</span><span class="n">app_env</span><span class="p" data-group-id="5316568454-1">(</span><span class="ss">:my_app</span><span class="p" data-group-id="5316568454-1">)</span><span class="w">
-</span><span class="nc">ExESDB.System</span><span class="o">.</span><span class="n">start_link</span><span class="p" data-group-id="5316568454-2">(</span><span class="n">opts</span><span class="p" data-group-id="5316568454-2">)</span><span class="w">
+</span><span class="n">opts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">ExESDB.Options</span><span class="o">.</span><span class="n">app_env</span><span class="p" data-group-id="7821962429-1">(</span><span class="ss">:my_app</span><span class="p" data-group-id="7821962429-1">)</span><span class="w">
+</span><span class="nc">ExESDB.System</span><span class="o">.</span><span class="n">start_link</span><span class="p" data-group-id="7821962429-2">(</span><span class="n">opts</span><span class="p" data-group-id="7821962429-2">)</span><span class="w">
 
 </span><span class="c1"># Auto-discovery from specific app</span><span class="w">
-</span><span class="nc">ExESDB.System</span><span class="o">.</span><span class="n">start_link</span><span class="p" data-group-id="5316568454-3">(</span><span class="ss">:my_app</span><span class="p" data-group-id="5316568454-3">)</span><span class="w">
+</span><span class="nc">ExESDB.System</span><span class="o">.</span><span class="n">start_link</span><span class="p" data-group-id="7821962429-3">(</span><span class="ss">:my_app</span><span class="p" data-group-id="7821962429-3">)</span><span class="w">
 
 </span><span class="c1"># Auto-discovery from calling application</span><span class="w">
-</span><span class="nc">ExESDB.System</span><span class="o">.</span><span class="n">start_link</span><span class="p" data-group-id="5316568454-4">(</span><span class="p" data-group-id="5316568454-4">)</span></code></pre>
+</span><span class="nc">ExESDB.System</span><span class="o">.</span><span class="n">start_link</span><span class="p" data-group-id="7821962429-4">(</span><span class="p" data-group-id="7821962429-4">)</span></code></pre>
   </section>
 </section>
 <section class="detail" id="stop/1">
@@ -264,10 +264,10 @@ ex_esdb
 
   <section class="docstring">
 
-<p>Generate a store-specific name for this system supervisor.</p><p>This allows multiple ExESDB systems to run on the same node with different stores.</p><h2 id="system_name/1-examples" class="section-heading"><a href="#system_name/1-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.System</span><span class="o">.</span><span class="n">system_name</span><span class="p" data-group-id="3613093348-1">(</span><span class="s">&quot;my_store&quot;</span><span class="p" data-group-id="3613093348-1">)</span><span class="w">
+<p>Generate a store-specific name for this system supervisor.</p><p>This allows multiple ExESDB systems to run on the same node with different stores.</p><h2 id="system_name/1-examples" class="section-heading"><a href="#system_name/1-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.System</span><span class="o">.</span><span class="n">system_name</span><span class="p" data-group-id="5035442083-1">(</span><span class="s">&quot;my_store&quot;</span><span class="p" data-group-id="5035442083-1">)</span><span class="w">
 </span><span class="ss">:&quot;exesdb_system_my_store&quot;</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.System</span><span class="o">.</span><span class="n">system_name</span><span class="p" data-group-id="3613093348-2">(</span><span class="no">nil</span><span class="p" data-group-id="3613093348-2">)</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.System</span><span class="o">.</span><span class="n">system_name</span><span class="p" data-group-id="5035442083-2">(</span><span class="no">nil</span><span class="p" data-group-id="5035442083-2">)</span><span class="w">
 </span><span class="nc">ExESDB.System</span></code></pre>
   </section>
 </section>
@@ -279,9 +279,9 @@ ex_esdb
       <p>
 
           <span class="line">
-            <a href="https://hex.pm/packages/ex_esdb/0.6.0" class="footer-hex-package">Hex Package</a>
+            <a href="https://hex.pm/packages/ex_esdb/0.6.1" class="footer-hex-package">Hex Package</a>
 
-            <a href="https://preview.hex.pm/preview/ex_esdb/0.6.0">Hex Preview</a>
+            <a href="https://preview.hex.pm/preview/ex_esdb/0.6.1">Hex Preview</a>
 
           </span>
 
