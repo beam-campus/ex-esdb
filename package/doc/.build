@@ -5,8 +5,11 @@ ExESDB.ConsistencyChecker.html
 ExESDB.CoreSystem.html
 ExESDB.Debugger.html
 ExESDB.DebuggerSystem.html
+ExESDB.EmitterPoolLoggingWorker.html
 ExESDB.EmitterSystem.html
+ExESDB.EmitterSystemLoggingWorker.html
 ExESDB.EmitterWorker.html
+ExESDB.EmitterWorkerLoggingWorker.html
 ExESDB.Emitters.html
 ExESDB.EnVars.html
 ExESDB.EventProjector.html
@@ -24,6 +27,8 @@ ExESDB.LeaderTracker.html
 ExESDB.LeaderWorker.html
 ExESDB.LoggerFilters.html
 ExESDB.LoggerWorker.html
+ExESDB.LoggingPublisher.html
+ExESDB.LoggingSystem.html
 ExESDB.Metrics.html
 ExESDB.Monitoring.HealthChecker.html
 ExESDB.MonitoringSystem.html
@@ -81,8 +86,8 @@ dist/lato-latin-700-normal-2XVSBPG4.woff2
 dist/lato-latin-ext-400-normal-N27NCBWW.woff2
 dist/lato-latin-ext-700-normal-Q2L5DVMW.woff2
 dist/remixicon-QPNJX265.woff2
-dist/search_data-61350D34.js
-dist/sidebar_items-3C9EC06C.js
+dist/search_data-C6D348ED.js
+dist/sidebar_items-099CC3AB.js
 failure-handling.html
 getting-started.html
 implementation-guidelines.html

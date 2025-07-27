@@ -5,16 +5,16 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="ExDoc v0.38.2">
-    <meta name="project" content="ex_esdb v0.7.0">
+    <meta name="project" content="ex_esdb v0.7.1">
 
 
-    <title>ExESDB.Events — ex_esdb v0.7.0</title>
+    <title>ExESDB.Events — ex_esdb v0.7.1</title>
 
     <link rel="stylesheet" href="dist/html-elixir-KV3YOVJ3.css" />
 
       <link rel="canonical" href="https://hexdocs.pm/ex_esdb/ExESDB.Events.html" />
 
-    <script defer src="dist/sidebar_items-3C9EC06C.js"></script>
+    <script defer src="dist/sidebar_items-099CC3AB.js"></script>
     <script defer src="docs_config.js"></script>
     <script defer src="dist/html-DPJLHKSM.js"></script>
 
@@ -39,7 +39,7 @@
 ex_esdb
         </a>
         <div class="sidebar-projectVersion" translate="no">
-          v0.7.0
+          v0.7.1
         </div>
       </div>
     </div>
@@ -78,7 +78,7 @@ ex_esdb
   <div class="heading-with-actions top-heading">
     <h1>
       <span translate="no">ExESDB.Events</span> 
-      <small class="app-vsn" translate="no">(ex_esdb v0.7.0)</small>
+      <small class="app-vsn" translate="no">(ex_esdb v0.7.1)</small>
 
     </h1>
 
@@ -91,14 +91,14 @@ for building event payloads. Each module is responsible for publishing its
 own events using Phoenix.PubSub directly.</p><h2 id="module-event-categories" class="section-heading"><a href="#module-event-categories" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Event Categories</span></h2><ul><li><code class="inline">:system</code> - System lifecycle and initialization events</li><li><code class="inline">:cluster</code> - Cluster membership and coordination events</li><li><code class="inline">:leadership</code> - Leadership changes and responsibilities</li><li><code class="inline">:persistence</code> - Data persistence and storage events</li><li><code class="inline">:gateway</code> - External interface and API events</li><li><code class="inline">:coordination</code> - General coordination events</li><li><code class="inline">:subscriptions</code> - Subscription management events</li></ul><h2 id="module-usage" class="section-heading"><a href="#module-usage" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Usage</span></h2><pre><code class="makeup elixir" translate="no"><span class="c1"># Each module publishes its own events:</span><span class="w">
 
 </span><span class="c1"># In PersistenceWorker:</span><span class="w">
-</span><span class="n">event</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Events</span><span class="o">.</span><span class="n">build_event</span><span class="p" data-group-id="3038406639-1">(</span><span class="ss">:events_persisted</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3038406639-2">%{</span><span class="ss">stream_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;orders&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">event_count</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p" data-group-id="3038406639-2">}</span><span class="p" data-group-id="3038406639-1">)</span><span class="w">
-</span><span class="nc">Phoenix.PubSub</span><span class="o">.</span><span class="n">broadcast</span><span class="p" data-group-id="3038406639-3">(</span><span class="nc">ExESDB.PubSub</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;exesdb:control:store_id:persistence&quot;</span><span class="p">,</span><span class="w"> 
-  </span><span class="p" data-group-id="3038406639-4">{</span><span class="ss">:persistence_event</span><span class="p">,</span><span class="w"> </span><span class="n">event</span><span class="p" data-group-id="3038406639-4">}</span><span class="p" data-group-id="3038406639-3">)</span><span class="w">
+</span><span class="n">event</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Events</span><span class="o">.</span><span class="n">build_event</span><span class="p" data-group-id="7827263881-1">(</span><span class="ss">:events_persisted</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="7827263881-2">%{</span><span class="ss">stream_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;orders&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">event_count</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p" data-group-id="7827263881-2">}</span><span class="p" data-group-id="7827263881-1">)</span><span class="w">
+</span><span class="nc">Phoenix.PubSub</span><span class="o">.</span><span class="n">broadcast</span><span class="p" data-group-id="7827263881-3">(</span><span class="nc">ExESDB.PubSub</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;exesdb:control:store_id:persistence&quot;</span><span class="p">,</span><span class="w"> 
+  </span><span class="p" data-group-id="7827263881-4">{</span><span class="ss">:persistence_event</span><span class="p">,</span><span class="w"> </span><span class="n">event</span><span class="p" data-group-id="7827263881-4">}</span><span class="p" data-group-id="7827263881-3">)</span><span class="w">
 
 </span><span class="c1"># In StoreCluster:</span><span class="w">
-</span><span class="n">event</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Events</span><span class="o">.</span><span class="n">build_event</span><span class="p" data-group-id="3038406639-5">(</span><span class="ss">:cluster_joined</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3038406639-6">%{</span><span class="ss">via_node</span><span class="p">:</span><span class="w"> </span><span class="n">target_node</span><span class="p" data-group-id="3038406639-6">}</span><span class="p" data-group-id="3038406639-5">)</span><span class="w">
-</span><span class="nc">Phoenix.PubSub</span><span class="o">.</span><span class="n">broadcast</span><span class="p" data-group-id="3038406639-7">(</span><span class="nc">ExESDB.PubSub</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;exesdb:control:store_id:cluster&quot;</span><span class="p">,</span><span class="w"> 
-  </span><span class="p" data-group-id="3038406639-8">{</span><span class="ss">:cluster_event</span><span class="p">,</span><span class="w"> </span><span class="n">event</span><span class="p" data-group-id="3038406639-8">}</span><span class="p" data-group-id="3038406639-7">)</span></code></pre>
+</span><span class="n">event</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Events</span><span class="o">.</span><span class="n">build_event</span><span class="p" data-group-id="7827263881-5">(</span><span class="ss">:cluster_joined</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="7827263881-6">%{</span><span class="ss">via_node</span><span class="p">:</span><span class="w"> </span><span class="n">target_node</span><span class="p" data-group-id="7827263881-6">}</span><span class="p" data-group-id="7827263881-5">)</span><span class="w">
+</span><span class="nc">Phoenix.PubSub</span><span class="o">.</span><span class="n">broadcast</span><span class="p" data-group-id="7827263881-7">(</span><span class="nc">ExESDB.PubSub</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;exesdb:control:store_id:cluster&quot;</span><span class="p">,</span><span class="w"> 
+  </span><span class="p" data-group-id="7827263881-8">{</span><span class="ss">:cluster_event</span><span class="p">,</span><span class="w"> </span><span class="n">event</span><span class="p" data-group-id="7827263881-8">}</span><span class="p" data-group-id="7827263881-7">)</span></code></pre>
     </section>
 
 </div>
@@ -295,8 +295,8 @@ own events using Phoenix.PubSub directly.</p><h2 id="module-event-categories" cl
 
   <section class="docstring">
 
-<p>Builds a standard event map with common fields.</p><h2 id="build_event/3-parameters" class="section-heading"><a href="#build_event/3-parameters" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Parameters</span></h2><ul><li><code class="inline">event_type</code> - The event type (atom)</li><li><code class="inline">data</code> - Event-specific data (map)</li><li><code class="inline">opts</code> - Optional fields like <code class="inline">:store_id</code> (keyword list)</li></ul><h2 id="build_event/3-examples" class="section-heading"><a href="#build_event/3-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="nc">Events</span><span class="o">.</span><span class="n">build_event</span><span class="p" data-group-id="1330345705-1">(</span><span class="ss">:cluster_joined</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1330345705-2">%{</span><span class="ss">via_node</span><span class="p">:</span><span class="w"> </span><span class="n">node1</span><span class="p" data-group-id="1330345705-2">}</span><span class="p" data-group-id="1330345705-1">)</span><span class="w">
-</span><span class="nc">Events</span><span class="o">.</span><span class="n">build_event</span><span class="p" data-group-id="1330345705-3">(</span><span class="ss">:events_persisted</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1330345705-4">%{</span><span class="ss">stream_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;orders&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">count</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p" data-group-id="1330345705-4">}</span><span class="p">,</span><span class="w"> </span><span class="ss">store_id</span><span class="p">:</span><span class="w"> </span><span class="ss">:my_store</span><span class="p" data-group-id="1330345705-3">)</span></code></pre>
+<p>Builds a standard event map with common fields.</p><h2 id="build_event/3-parameters" class="section-heading"><a href="#build_event/3-parameters" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Parameters</span></h2><ul><li><code class="inline">event_type</code> - The event type (atom)</li><li><code class="inline">data</code> - Event-specific data (map)</li><li><code class="inline">opts</code> - Optional fields like <code class="inline">:store_id</code> (keyword list)</li></ul><h2 id="build_event/3-examples" class="section-heading"><a href="#build_event/3-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="nc">Events</span><span class="o">.</span><span class="n">build_event</span><span class="p" data-group-id="9438606527-1">(</span><span class="ss">:cluster_joined</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9438606527-2">%{</span><span class="ss">via_node</span><span class="p">:</span><span class="w"> </span><span class="n">node1</span><span class="p" data-group-id="9438606527-2">}</span><span class="p" data-group-id="9438606527-1">)</span><span class="w">
+</span><span class="nc">Events</span><span class="o">.</span><span class="n">build_event</span><span class="p" data-group-id="9438606527-3">(</span><span class="ss">:events_persisted</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="9438606527-4">%{</span><span class="ss">stream_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;orders&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">count</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p" data-group-id="9438606527-4">}</span><span class="p">,</span><span class="w"> </span><span class="ss">store_id</span><span class="p">:</span><span class="w"> </span><span class="ss">:my_store</span><span class="p" data-group-id="9438606527-3">)</span></code></pre>
   </section>
 </section>
 <section class="detail" id="build_payload/4">
@@ -318,7 +318,7 @@ own events using Phoenix.PubSub directly.</p><h2 id="module-event-categories" cl
 
   <section class="docstring">
 
-<p>Helper to build event payload with standardized event wrapper.</p><h2 id="build_payload/4-examples" class="section-heading"><a href="#build_payload/4-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="nc">Events</span><span class="o">.</span><span class="n">build_payload</span><span class="p" data-group-id="3853968597-1">(</span><span class="ss">:cluster_event</span><span class="p">,</span><span class="w"> </span><span class="ss">:cluster_joined</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3853968597-2">%{</span><span class="ss">via_node</span><span class="p">:</span><span class="w"> </span><span class="n">node1</span><span class="p" data-group-id="3853968597-2">}</span><span class="p" data-group-id="3853968597-1">)</span><span class="w">
+<p>Helper to build event payload with standardized event wrapper.</p><h2 id="build_payload/4-examples" class="section-heading"><a href="#build_payload/4-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="nc">Events</span><span class="o">.</span><span class="n">build_payload</span><span class="p" data-group-id="5906741363-1">(</span><span class="ss">:cluster_event</span><span class="p">,</span><span class="w"> </span><span class="ss">:cluster_joined</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="5906741363-2">%{</span><span class="ss">via_node</span><span class="p">:</span><span class="w"> </span><span class="n">node1</span><span class="p" data-group-id="5906741363-2">}</span><span class="p" data-group-id="5906741363-1">)</span><span class="w">
 </span><span class="c1"># =&gt; {:cluster_event, %{event_type: :cluster_joined, ...}}</span></code></pre>
   </section>
 </section>
@@ -337,7 +337,7 @@ own events using Phoenix.PubSub directly.</p><h2 id="module-event-categories" cl
 
   <section class="docstring">
 
-<p>Builds a topic string for a given store and category.</p><h2 id="build_topic/2-examples" class="section-heading"><a href="#build_topic/2-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="nc">Events</span><span class="o">.</span><span class="n">build_topic</span><span class="p" data-group-id="0128675154-1">(</span><span class="ss">:my_store</span><span class="p">,</span><span class="w"> </span><span class="ss">:cluster</span><span class="p" data-group-id="0128675154-1">)</span><span class="w">
+<p>Builds a topic string for a given store and category.</p><h2 id="build_topic/2-examples" class="section-heading"><a href="#build_topic/2-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="nc">Events</span><span class="o">.</span><span class="n">build_topic</span><span class="p" data-group-id="2265725417-1">(</span><span class="ss">:my_store</span><span class="p">,</span><span class="w"> </span><span class="ss">:cluster</span><span class="p" data-group-id="2265725417-1">)</span><span class="w">
 </span><span class="c1"># =&gt; &quot;exesdb:control:my_store:cluster&quot;</span></code></pre>
   </section>
 </section>
@@ -511,9 +511,9 @@ own events using Phoenix.PubSub directly.</p><h2 id="module-event-categories" cl
       <p>
 
           <span class="line">
-            <a href="https://hex.pm/packages/ex_esdb/0.7.0" class="footer-hex-package">Hex Package</a>
+            <a href="https://hex.pm/packages/ex_esdb/0.7.1" class="footer-hex-package">Hex Package</a>
 
-            <a href="https://preview.hex.pm/preview/ex_esdb/0.7.0">Hex Preview</a>
+            <a href="https://preview.hex.pm/preview/ex_esdb/0.7.1">Hex Preview</a>
 
           </span>
 

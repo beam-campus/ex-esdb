@@ -7,8 +7,7 @@ defmodule ExESDB.EmitterWorker do
   use GenServer
 
   alias Phoenix.PubSub, as: PubSub
-
-  require ExESDB.Themes, as: Themes
+  alias ExESDB.LoggingPublisher
 
   require Logger
 
@@ -42,18 +41,17 @@ defmodule ExESDB.EmitterWorker do
     # Subscribe to health events for subscriptions related to this emitter
     subscribe_to_health_events(store, sub_topic)
 
-    # Enhanced prominent multi-line activation message
-    IO.puts("")
-    IO.puts("┌──────────────────────────────────────────────────────────────────────┐")
-    IO.puts("#{Themes.emitter_worker_success_msg(self(), "  ★ EMITTER WORKER ACTIVATION ★               ")}")
-    IO.puts("├──────────────────────────────────────────────────────────────────────┤")
-    IO.puts("#{Themes.emitter_worker_success_msg(self(), "  Topic:      #{inspect(topic)}")}")
-    IO.puts("#{Themes.emitter_worker_success_msg(self(), "  Store:      #{store}")}")
-    IO.puts("#{Themes.emitter_worker_success_msg(self(), "  Scheduler:  #{scheduler_id}")}")
-    IO.puts("#{Themes.emitter_worker_success_msg(self(), "  PID:        #{inspect(self())}")}")
-    IO.puts("#{Themes.emitter_worker_success_msg(self(), "  Subscriber: #{inspect(subscriber)}")}")
-    IO.puts("└──────────────────────────────────────────────────────────────────────┘")
-    IO.puts("")
+    # Publish startup event instead of direct terminal output
+    LoggingPublisher.startup(
+      :emitter_worker,
+      store,
+      "EMITTER WORKER ACTIVATION",
+      %{
+        topic: topic,
+        subscriber: subscriber,
+        scheduler_id: scheduler_id
+      }
+    )
 
     {:ok, %{
       subscriber: subscriber, 
@@ -69,18 +67,17 @@ defmodule ExESDB.EmitterWorker do
     # Mark process as inactive to prevent further broadcasts
     Process.put(:emitter_active, false)
 
-    # Enhanced prominent multi-line termination message
-    IO.puts("")
-    IO.puts("╔══════════════════════════════════════════════════════════════════════╗")
-    IO.puts("#{Themes.emitter_worker_failure_msg(self(), "  💀 EMITTER WORKER TERMINATION 💀              ")}")
-    IO.puts("╠══════════════════════════════════════════════════════════════════════╣")
-    IO.puts("#{Themes.emitter_worker_failure_msg(self(), "  Reason:     #{inspect(reason)}")}")
-    IO.puts("#{Themes.emitter_worker_failure_msg(self(), "  Store:      #{store}")}")
-    IO.puts("#{Themes.emitter_worker_failure_msg(self(), "  Selector:   #{selector}")}")
-    IO.puts("#{Themes.emitter_worker_failure_msg(self(), "  Subscriber: #{inspect(subscriber)}")}")
-    IO.puts("#{Themes.emitter_worker_failure_msg(self(), "  PID:        #{inspect(self())}")}")
-    IO.puts("╚══════════════════════════════════════════════════════════════════════╝")
-    IO.puts("")
+    # Publish shutdown event instead of direct terminal output
+    LoggingPublisher.shutdown(
+      :emitter_worker,
+      store,
+      "EMITTER WORKER TERMINATION",
+      %{
+        reason: reason,
+        selector: selector,
+        subscriber: subscriber
+      }
+    )
 
     # Leave the emitter group and cleanup
     :ok = :emitter_group.leave(store, selector, self())
@@ -110,12 +107,15 @@ defmodule ExESDB.EmitterWorker do
         {:broadcast, topic, event},
         %{subscriber: subscriber, store: store, selector: selector} = state
       ) do
-    # Enhanced event processing logging
+    # Publish action event instead of direct terminal output
     event_id = Map.get(event, :event_id, "unknown")
     event_type = Map.get(event, :event_type, "unknown")
 
-    IO.puts(
-      "#{Themes.emitter_worker_action_msg(self(), "⚡ BROADCASTING Event: #{event_id}(#{event_type}) - Topic: #{topic}")}"
+    LoggingPublisher.action(
+      :emitter_worker,
+      store,
+      "⚡ BROADCASTING Event: #{event_id}(#{event_type}) - Topic: #{topic}",
+      %{event_id: event_id, event_type: event_type, topic: topic}
     )
 
   case subscriber do
@@ -133,12 +133,15 @@ defmodule ExESDB.EmitterWorker do
         {:forward_to_local, topic, event},
         %{subscriber: subscriber, store: store, selector: selector} = state
       ) do
-    # Enhanced local forwarding logging
+    # Publish action event instead of direct terminal output
     event_id = Map.get(event, :event_id, "unknown")
     event_type = Map.get(event, :event_type, "unknown")
 
-    IO.puts(
-      "#{Themes.emitter_worker_action_msg(self(), "🔄 FORWARDING Event: #{event_id}(#{event_type}) - Local Topic: #{topic}")}"
+    LoggingPublisher.action(
+      :emitter_worker,
+      store,
+      "🔄 FORWARDING Event: #{event_id}(#{event_type}) - Local Topic: #{topic}",
+      %{event_id: event_id, event_type: event_type, topic: topic}
     )
 
   case subscriber do
@@ -168,8 +171,11 @@ defmodule ExESDB.EmitterWorker do
       metadata: metadata
     } = health_event
     
-    IO.puts(
-      "#{Themes.emitter_worker_health_msg(self(), "📡 HEALTH EVENT: #{subscription_name} - #{event_type} (#{inspect(metadata)})")}"
+    LoggingPublisher.health(
+      :emitter_worker,
+      state.store,
+      "📡 HEALTH EVENT: #{subscription_name} - #{event_type}",
+      %{subscription_name: subscription_name, event_type: event_type, metadata: metadata}
     )
     
     updated_state = process_health_event(state, health_event)
@@ -185,8 +191,11 @@ defmodule ExESDB.EmitterWorker do
     unhealthy_count = Map.get(summary_data, :unhealthy_subscriptions, 0)
     total_count = healthy_count + unhealthy_count
     
-    IO.puts(
-      "#{Themes.emitter_worker_health_msg(self(), "📈 HEALTH SUMMARY: Store #{store} - #{healthy_count}/#{total_count} healthy subscriptions")}"
+    LoggingPublisher.health(
+      :emitter_worker,
+      state.store,
+      "📈 HEALTH SUMMARY: Store #{store} - #{healthy_count}/#{total_count} healthy subscriptions",
+      %{healthy_count: healthy_count, unhealthy_count: unhealthy_count, total_count: total_count}
     )
     
     {:noreply, state}
@@ -201,8 +210,11 @@ defmodule ExESDB.EmitterWorker do
     store_id = Map.get(metrics_event, :store_id, "unknown")
     timestamp = Map.get(metrics_event, :timestamp, "unknown")
     
-    IO.puts(
-      "#{Themes.emitter_worker_action_msg(self(), "📈 METRICS EVENT: #{store_id} -> #{metric_name}=#{metric_value} @#{timestamp}")}"
+    LoggingPublisher.action(
+      :emitter_worker,
+      state.store,
+      "📈 METRICS EVENT: #{store_id} -> #{metric_name}=#{metric_value} @#{timestamp}",
+      %{metric_name: metric_name, metric_value: metric_value, store_id: store_id, timestamp: timestamp}
     )
     
     {:noreply, state}
@@ -217,8 +229,11 @@ defmodule ExESDB.EmitterWorker do
     total_events = Map.get(summary_data, :total_events, 0)
     active_subscriptions = Map.get(summary_data, :active_subscriptions, 0)
     
-    IO.puts(
-      "#{Themes.emitter_worker_action_msg(self(), "📉 METRICS SUMMARY: Store #{store} - #{events_per_sec} eps, #{total_events} total, #{active_subscriptions} active subs")}"
+    LoggingPublisher.action(
+      :emitter_worker,
+      state.store,
+      "📉 METRICS SUMMARY: Store #{store} - #{events_per_sec} eps, #{total_events} total, #{active_subscriptions} active subs",
+      %{events_per_sec: events_per_sec, total_events: total_events, active_subscriptions: active_subscriptions}
     )
     
     {:noreply, state}
@@ -256,12 +271,18 @@ defmodule ExESDB.EmitterWorker do
     metrics_summary_topic = "metrics_summary:#{store}"
     :ok = Phoenix.PubSub.subscribe(:ex_esdb_system, metrics_summary_topic)
     
-    IO.puts(
-      "#{Themes.emitter_worker_success_msg(self(), "🩺 SUBSCRIBED to health events for store: #{store}")}"
+    LoggingPublisher.action(
+      :emitter_worker,
+      store,
+      "🩺 SUBSCRIBED to health events for store: #{store}",
+      %{health_topics: [store_health_topic, health_summary_topic]}
     )
     
-    IO.puts(
-      "#{Themes.emitter_worker_success_msg(self(), "📈 SUBSCRIBED to metrics events for store: #{store}")}"
+    LoggingPublisher.action(
+      :emitter_worker,
+      store,
+      "📈 SUBSCRIBED to metrics events for store: #{store}",
+      %{metrics_topics: [store_metrics_topic, metrics_summary_topic]}
     )
   end
   
@@ -278,7 +299,7 @@ defmodule ExESDB.EmitterWorker do
     
     # Log significant health changes that affect emission
     if state.subscription_healthy != subscription_healthy do
-      log_health_impact(subscription_name, event_type, subscription_healthy)
+      log_health_impact(state.store, subscription_name, event_type, subscription_healthy)
       
       # Potentially pause/resume emission based on health
       update_emission_state(subscription_healthy)
@@ -303,10 +324,13 @@ defmodule ExESDB.EmitterWorker do
     health_status in [:healthy, :unknown]
   end
   
-  defp log_health_impact(subscription_name, event_type, healthy) do
+  defp log_health_impact(store, subscription_name, event_type, healthy) do
     status_msg = if healthy, do: "HEALTHY", else: "UNHEALTHY"
-    IO.puts(
-      "#{Themes.emitter_worker_health_msg(self(), "🏥 HEALTH IMPACT: #{subscription_name} is #{status_msg} (#{event_type})")}"
+    LoggingPublisher.health(
+      :emitter_worker,
+      store,
+      "🏥 HEALTH IMPACT: #{subscription_name} is #{status_msg} (#{event_type})",
+      %{subscription_name: subscription_name, event_type: event_type, healthy: healthy}
     )
   end
   
@@ -320,9 +344,9 @@ defmodule ExESDB.EmitterWorker do
     Process.put(:emitter_active, healthy)
     
     if healthy do
-      Logger.debug("#{Themes.emitter_worker_success_msg(self(), "Emission RESUMED due to healthy status")}")
+      Logger.debug("Emission RESUMED due to healthy status")
     else
-      Logger.warning("#{Themes.emitter_worker_failure_msg(self(), "Emission PAUSED due to unhealthy status")}")
+      Logger.warning("Emission PAUSED due to unhealthy status")
     end
   end
 end

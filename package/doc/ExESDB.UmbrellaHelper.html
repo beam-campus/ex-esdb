@@ -5,16 +5,16 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="ExDoc v0.38.2">
-    <meta name="project" content="ex_esdb v0.7.0">
+    <meta name="project" content="ex_esdb v0.7.1">
 
 
-    <title>ExESDB.UmbrellaHelper — ex_esdb v0.7.0</title>
+    <title>ExESDB.UmbrellaHelper — ex_esdb v0.7.1</title>
 
     <link rel="stylesheet" href="dist/html-elixir-KV3YOVJ3.css" />
 
       <link rel="canonical" href="https://hexdocs.pm/ex_esdb/ExESDB.UmbrellaHelper.html" />
 
-    <script defer src="dist/sidebar_items-3C9EC06C.js"></script>
+    <script defer src="dist/sidebar_items-099CC3AB.js"></script>
     <script defer src="docs_config.js"></script>
     <script defer src="dist/html-DPJLHKSM.js"></script>
 
@@ -39,7 +39,7 @@
 ex_esdb
         </a>
         <div class="sidebar-projectVersion" translate="no">
-          v0.7.0
+          v0.7.1
         </div>
       </div>
     </div>
@@ -78,7 +78,7 @@ ex_esdb
   <div class="heading-with-actions top-heading">
     <h1>
       <span translate="no">ExESDB.UmbrellaHelper</span> 
-      <small class="app-vsn" translate="no">(ex_esdb v0.7.0)</small>
+      <small class="app-vsn" translate="no">(ex_esdb v0.7.1)</small>
 
     </h1>
 
@@ -164,14 +164,14 @@ when used in umbrella applications.</p>
 
 <p>Start ExESDB with configuration from a specific OTP app.</p><p>This function configures ExESDB to read its configuration from the specified
 OTP app instead of the global :ex_esdb application.</p><h2 id="child_spec/1-parameters" class="section-heading"><a href="#child_spec/1-parameters" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Parameters</span></h2><ul><li><code class="inline">otp_app</code> - The OTP application name to read configuration from</li></ul><h2 id="child_spec/1-examples" class="section-heading"><a href="#child_spec/1-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="c1"># In your reckon app&#39;s application.ex:</span><span class="w">
-</span><span class="kd">def</span><span class="w"> </span><span class="nf">start</span><span class="p" data-group-id="0028235441-1">(</span><span class="c">_type</span><span class="p">,</span><span class="w"> </span><span class="c">_args</span><span class="p" data-group-id="0028235441-1">)</span><span class="w"> </span><span class="k" data-group-id="0028235441-2">do</span><span class="w">
-  </span><span class="n">children</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p" data-group-id="0028235441-3">[</span><span class="w">
+</span><span class="kd">def</span><span class="w"> </span><span class="nf">start</span><span class="p" data-group-id="0557587022-1">(</span><span class="c">_type</span><span class="p">,</span><span class="w"> </span><span class="c">_args</span><span class="p" data-group-id="0557587022-1">)</span><span class="w"> </span><span class="k" data-group-id="0557587022-2">do</span><span class="w">
+  </span><span class="n">children</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p" data-group-id="0557587022-3">[</span><span class="w">
     </span><span class="c1"># Other children...</span><span class="w">
-    </span><span class="nc">ExESDB.UmbrellaHelper</span><span class="o">.</span><span class="n">child_spec</span><span class="p" data-group-id="0028235441-4">(</span><span class="ss">:reckon_accounts</span><span class="p" data-group-id="0028235441-4">)</span><span class="w">
-  </span><span class="p" data-group-id="0028235441-3">]</span><span class="w">
+    </span><span class="nc">ExESDB.UmbrellaHelper</span><span class="o">.</span><span class="n">child_spec</span><span class="p" data-group-id="0557587022-4">(</span><span class="ss">:reckon_accounts</span><span class="p" data-group-id="0557587022-4">)</span><span class="w">
+  </span><span class="p" data-group-id="0557587022-3">]</span><span class="w">
 
-  </span><span class="nc">Supervisor</span><span class="o">.</span><span class="n">start_link</span><span class="p" data-group-id="0028235441-5">(</span><span class="n">children</span><span class="p">,</span><span class="w"> </span><span class="ss">strategy</span><span class="p">:</span><span class="w"> </span><span class="ss">:one_for_one</span><span class="p" data-group-id="0028235441-5">)</span><span class="w">
-</span><span class="k" data-group-id="0028235441-2">end</span></code></pre>
+  </span><span class="nc">Supervisor</span><span class="o">.</span><span class="n">start_link</span><span class="p" data-group-id="0557587022-5">(</span><span class="n">children</span><span class="p">,</span><span class="w"> </span><span class="ss">strategy</span><span class="p">:</span><span class="w"> </span><span class="ss">:one_for_one</span><span class="p" data-group-id="0557587022-5">)</span><span class="w">
+</span><span class="k" data-group-id="0557587022-2">end</span></code></pre>
   </section>
 </section>
 <section class="detail" id="configure/1">
@@ -220,9 +220,9 @@ with the specified OTP app configuration.</p>
       <p>
 
           <span class="line">
-            <a href="https://hex.pm/packages/ex_esdb/0.7.0" class="footer-hex-package">Hex Package</a>
+            <a href="https://hex.pm/packages/ex_esdb/0.7.1" class="footer-hex-package">Hex Package</a>
 
-            <a href="https://preview.hex.pm/preview/ex_esdb/0.7.0">Hex Preview</a>
+            <a href="https://preview.hex.pm/preview/ex_esdb/0.7.1">Hex Preview</a>
 
           </span>
 
