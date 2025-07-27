@@ -46,6 +46,7 @@ defmodule ExESDB.System do
 
     # Start PubSubSystem first
     pubsub_opts = Keyword.put(opts, :name, :ex_esdb_gater_pubsub)
+
     children = [
       {ExESDBGater.PubSubSystem, pubsub_opts},
       {ExESDB.CoreSystem, opts}
@@ -114,7 +115,6 @@ defmodule ExESDB.System do
   end
 
   def stop(_reason \\ :normal) do
-    Process.sleep(2_000)
     Application.stop(:ex_esdb)
   end
 
@@ -194,9 +194,9 @@ defmodule ExESDB.System do
   defp discover_calling_app do
     # Try multiple strategies to discover the calling application
     try_mix_project() ||
-    try_application_controller() ||
-    try_loaded_applications() ||
-    System.get_env("OTP_APP") |> maybe_atom()
+      try_application_controller() ||
+      try_loaded_applications() ||
+      System.get_env("OTP_APP") |> maybe_atom()
   end
 
   defp try_mix_project do
@@ -214,9 +214,10 @@ defmodule ExESDB.System do
     |> Enum.find(fn {app, _desc, _vsn} ->
       # Look for user applications (not system ones)
       app_str = Atom.to_string(app)
+
       not String.starts_with?(app_str, "kernel") and
-      not String.starts_with?(app_str, "stdlib") and
-      app not in [:logger, :runtime_tools, :crypto, :compiler, :elixir, :mix]
+        not String.starts_with?(app_str, "stdlib") and
+        app not in [:logger, :runtime_tools, :crypto, :compiler, :elixir, :mix]
     end)
     |> case do
       {app, _, _} -> app
@@ -225,6 +226,7 @@ defmodule ExESDB.System do
   end
 
   defp maybe_atom(nil), do: nil
+
   defp maybe_atom(str) when is_binary(str) do
     try do
       String.to_existing_atom(str)
@@ -239,12 +241,14 @@ defmodule ExESDB.System do
       # Get all running applications and find the one that started most recently
       # that isn't a system application
       :application.which_applications()
-      |> Enum.reverse()  # Most recent first
+      # Most recent first
+      |> Enum.reverse()
       |> Enum.find(fn {app, _desc, _vsn} ->
         app_str = Atom.to_string(app)
+
         not String.starts_with?(app_str, "kernel") and
-        not String.starts_with?(app_str, "stdlib") and
-        app not in [:logger, :runtime_tools, :crypto, :compiler, :elixir, :mix, :ex_esdb]
+          not String.starts_with?(app_str, "stdlib") and
+          app not in [:logger, :runtime_tools, :crypto, :compiler, :elixir, :mix, :ex_esdb]
       end)
       |> case do
         {app, _, _} -> app
@@ -273,7 +277,7 @@ defmodule ExESDB.System do
       type: :supervisor
     }
   end
-  
+
   def child_spec(otp_app) when is_atom(otp_app) do
     opts = Options.app_env(otp_app)
     enhanced_opts = Keyword.put(opts, :otp_app, otp_app)
