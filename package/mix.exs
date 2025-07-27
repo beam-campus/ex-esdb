@@ -4,7 +4,7 @@ defmodule ExESDB.MixProject do
 
   @app_name :ex_esdb
   @elixir_version "~> 1.17"
-  @version "0.6.1"
+  @version "0.7.0"
   @source_url "https://github.com/beam-campus/ex-esdb"
   #  @homepage_url "https://github.com/beam-campus/ex-esdb"
   @docs_url "https://hexdocs.pm/ex_esdb"
@@ -99,7 +99,7 @@ defmodule ExESDB.MixProject do
       {:phoenix_pubsub, "~> 2.1"},
       {:khepri, "~> 0.17"},
       {:jason, "~> 1.4", optional: true},
-      {:ex_esdb_gater, "~> 0.2.1"},
+      {:ex_esdb_gater, "~> 0.3.0"},
 
       # Debugging and development tools
       {:recon, "~> 2.5"},
@@ -170,6 +170,10 @@ defmodule ExESDB.MixProject do
         "guides/debugging.md": [
           filename: "debugging",
           title: "Debugging and Troubleshooting"
+        ],
+        "guides/pubsub_architecture.md": [
+          filename: "pubsub-architecture",
+          title: "PubSub Architecture and Event-Driven Design"
         ],
         "../README.md": [
           filename: "readme",

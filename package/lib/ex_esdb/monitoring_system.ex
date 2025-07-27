@@ -12,10 +12,11 @@ defmodule ExESDB.MonitoringSystem do
   end
   
   @impl true
-  def init(_opts) do
+  def init(opts) do
     children = [
       {ExESDB.Monitoring.HealthChecker, []},
-      {ExESDB.Monitoring.PerformanceTracker, []}
+      {ExESDB.Monitoring.PerformanceTracker, []},
+      {ExESDB.SubscriptionHealthTracker, opts}
     ]
     
     Supervisor.init(children, strategy: :one_for_one)
