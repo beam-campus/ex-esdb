@@ -34,7 +34,7 @@ defmodule ExESDB.EmitterSystem do
     # Enhanced prominent system startup message
     IO.puts("")
     IO.puts("═════════════════════════════════════════════════════════════")
-    IO.puts(Themes.emitter_system(self(), "🔥 SYSTEM ACTIVATION 🔥"))
+    IO.puts(Themes.emitter_system_success_msg(self(), "🔥 SYSTEM ACTIVATION 🔥"))
     IO.puts("═══════════════════════════════════════════════════════════════")
     IO.puts("  Store: #{store_id} ")
     IO.puts("  Components: #{length(children)} ")

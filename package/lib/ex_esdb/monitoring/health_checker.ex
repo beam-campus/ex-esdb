@@ -41,7 +41,8 @@ defmodule ExESDB.Monitoring.HealthChecker do
       {"System Processes", fn -> check_processes(store_id) end},
       {"Configuration", fn -> check_configuration(store_id) end},
       {"Resource Usage", fn -> check_resources() end},
-      {"Supervision Tree", fn -> check_supervision(store_id) end}
+      {"Supervision Tree", fn -> check_supervision(store_id) end},
+      {"Subscription Health", fn -> check_subscription_health(store_id) end}
     ]
     
     results = perform_checks(checks)
@@ -148,6 +149,33 @@ defmodule ExESDB.Monitoring.HealthChecker do
         rescue
           _ -> {:error, "Unable to inspect supervision tree"}
         end
+    end
+  end
+  
+  defp check_subscription_health(store_id) do
+    try do
+      case ExESDB.SubscriptionHealthTracker.get_store_health_summary(store_id) do
+        {:ok, summary} ->
+          total = summary.total_subscriptions
+          failed = summary.failed
+          degraded = summary.degraded
+          
+          cond do
+            total == 0 ->
+              :ok  # No subscriptions is not an error
+            failed > 0 ->
+              {:error, "#{failed}/#{total} subscriptions failed"}
+            degraded > 0 ->
+              {:warning, "#{degraded}/#{total} subscriptions degraded"}
+            true ->
+              :ok
+          end
+        {:error, reason} ->
+          {:warning, "Unable to check subscription health: #{inspect(reason)}"}
+      end
+    rescue
+      error ->
+        {:warning, "Subscription health check failed: #{inspect(error)}"}
     end
   end
 end

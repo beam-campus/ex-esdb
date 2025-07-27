@@ -186,4 +186,54 @@ defmodule ExESDB.Themes do
   def snapshots_writer_worker(pid, msg),
     do:
       "[#{CF.blue_on_yellow()}#{inspect(pid)}#{CF.reset()}]#{app_prefix()}[SnapshotsWriterWorker] #{msg}"
+
+  ################ HEALTH MONITORING ################
+  def subscription_health_tracker(pid, msg),
+    do:
+      "[#{CF.green_on_black()}#{inspect(pid)}#{CF.reset()}]#{app_prefix()}[SubscriptionHealthTracker] #{msg}"
+
+  ################ ENHANCED COLOR-CODED MESSAGES ################
+  # Success messages (service UP) - white on green/blue for PID
+  def emitter_system_success_msg(pid, msg),
+    do:
+      "[#{CF.white_on_green()}#{inspect(pid)}#{CF.reset()}]#{app_prefix()} [#{CF.yellow_on_black()}EMITTER SYSTEM#{CF.reset()}] #{CF.white_on_black()}#{msg}#{CF.reset()}"
+
+  def emitter_pool_success_msg(pid, msg),
+    do:
+      "[#{CF.white_on_green()}#{inspect(pid)}#{CF.reset()}]#{app_prefix()} [#{CF.yellow_on_black()}EMITTER POOL#{CF.reset()}] #{CF.white_on_black()}#{msg}#{CF.reset()}"
+
+  def emitter_worker_success_msg(pid, msg),
+    do:
+      "[#{CF.white_on_blue()}#{inspect(pid)}#{CF.reset()}]#{app_prefix()} [#{CF.yellow_on_black()}EMITTER#{CF.reset()}] #{CF.white_on_black()}#{msg}#{CF.reset()}"
+
+  # Failure messages - white on red for PID
+  def emitter_system_failure_msg(pid, msg),
+    do:
+      "[#{CF.white_on_red()}#{inspect(pid)}#{CF.reset()}]#{app_prefix()} [#{CF.yellow_on_black()}EMITTER SYSTEM#{CF.reset()}] #{CF.white_on_black()}#{msg}#{CF.reset()}"
+
+  def emitter_pool_failure_msg(pid, msg),
+    do:
+      "[#{CF.white_on_red()}#{inspect(pid)}#{CF.reset()}]#{app_prefix()} [#{CF.yellow_on_black()}EMITTER POOL#{CF.reset()}] #{CF.white_on_black()}#{msg}#{CF.reset()}"
+
+  def emitter_worker_failure_msg(pid, msg),
+    do:
+      "[#{CF.white_on_red()}#{inspect(pid)}#{CF.reset()}]#{app_prefix()} [#{CF.yellow_on_black()}EMITTER#{CF.reset()}] #{CF.white_on_black()}#{msg}#{CF.reset()}"
+
+  # Action messages (dynamic worker creation) - white on amber/yellow for PID
+  def emitter_system_action_msg(pid, msg),
+    do:
+      "[#{CF.white_on_amber()}#{inspect(pid)}#{CF.reset()}]#{app_prefix()} [#{CF.yellow_on_black()}EMITTER SYSTEM#{CF.reset()}] #{CF.white_on_black()}#{msg}#{CF.reset()}"
+
+  def emitter_pool_action_msg(pid, msg),
+    do:
+      "[#{CF.white_on_amber()}#{inspect(pid)}#{CF.reset()}]#{app_prefix()} [#{CF.yellow_on_black()}EMITTER POOL#{CF.reset()}] #{CF.white_on_black()}#{msg}#{CF.reset()}"
+
+  def emitter_worker_action_msg(pid, msg),
+    do:
+      "[#{CF.white_on_amber()}#{inspect(pid)}#{CF.reset()}]#{app_prefix()} [#{CF.yellow_on_black()}EMITTER#{CF.reset()}] #{CF.white_on_black()}#{msg}#{CF.reset()}"
+
+  # Health impact messages - white on cyan for PID
+  def emitter_worker_health_msg(pid, msg),
+    do:
+      "[#{CF.white_on_cyan()}#{inspect(pid)}#{CF.reset()}]#{app_prefix()} [#{CF.yellow_on_black()}EMITTER#{CF.reset()}] #{CF.white_on_black()}#{msg}#{CF.reset()}"
 end

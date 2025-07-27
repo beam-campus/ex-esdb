@@ -22,7 +22,9 @@ defmodule ExESDB.NotificationSystem do
       # LeaderSystem handles leadership responsibilities
       {ExESDB.LeaderSystem, opts},
       # EmitterSystem handles event distribution
-      {ExESDB.EmitterSystem, opts}
+      {ExESDB.EmitterSystem, opts},
+      # SubscriptionHealthMonitor handles subscription health monitoring
+      {ExESDB.SubscriptionHealthMonitor, opts}
     ]
 
     IO.puts("#{Themes.notification_system(self(), "is UP")}")

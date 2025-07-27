@@ -1,5 +1,96 @@
 # Changelog
 
+## version 0.7.0 (2025.07.27)
+
+### Enhanced PubSub Architecture: Foundation for Event-Driven Architecture
+
+#### Multi-Channel PubSub System
+
+- **Dedicated PubSub Instances**: Implemented three specialized Phoenix.PubSub instances for improved separation of concerns
+  - **`:ex_esdb_events`**: Primary channel for business event distribution and streaming
+  - **`:ex_esdb_system`**: Internal system operations, coordination messages, and metrics
+  - **`:ex_esdb_health`**: Dedicated health monitoring and service availability communications
+- **Architectural Foundation**: Established infrastructure for transitioning to fully Event-Driven Architecture (EDA)
+- **Channel Isolation**: Prevents cross-contamination of different message types and improves system reliability
+
+#### Color-Coded EmitterWorker Observability
+
+- **Visual Message Classification**: Implemented comprehensive color-coded logging system for immediate issue identification
+  - **🟢 Success Messages (White on Green/Blue)**: Service activation, health subscriptions, successful operations
+  - **🔴 Failure Messages (White on Red)**: Termination events, errors, unhealthy states
+  - **🟡 Action Messages (White on Amber)**: Broadcasting, forwarding, dynamic worker creation, metrics
+  - **🔵 Health Messages (White on Cyan)**: Health event processing, status changes
+- **Enhanced PID Backgrounds**: Color-coded process identifiers based on message type for rapid visual debugging
+- **BCUtils.ColorFuncs Integration**: Leveraged existing color functions for consistent theming across the system
+
+#### Comprehensive Health and Metrics Monitoring
+
+- **Health Event Logging**: Real-time visibility into subscription health status and service availability
+  - Health event subscription tracking: `🩺 SUBSCRIBED to health events`
+  - Individual health events: `📡 HEALTH EVENT: subscription_name -> event_type`
+  - Health summaries: `📈 HEALTH SUMMARY: Store my_store - 5/7 healthy subscriptions`
+  - Health impact tracking: `🏥 HEALTH IMPACT: subscription_name is HEALTHY`
+- **Metrics Event Logging**: Performance and operational metrics collection
+  - Metrics subscription tracking: `📈 SUBSCRIBED to metrics events`
+  - Individual metrics: `📈 METRICS EVENT: store -> events_per_second=1250`
+  - Metrics summaries: `📉 METRICS SUMMARY: 1250 eps, 50000 total, 12 active subs`
+- **Health-Aware Emission Control**: EmitterWorkers can pause/resume emission based on subscription health status
+
+#### Enhanced EmitterWorker Lifecycle Management
+
+- **Detailed Activation Messages**: Comprehensive worker startup information including subscriber details
+- **Enhanced Termination Messages**: Added subscriber information to termination logs for better debugging
+- **Lifecycle Visibility**: Complete tracking of worker lifecycle events with structured, color-coded output
+- **Subscriber Information**: Full visibility into which subscribers are affected by worker state changes
+
+#### SubscriptionHealthTracker Integration
+
+- **Dedicated Health PubSub**: Migrated from `:ex_esdb_system` to dedicated `:ex_esdb_health` PubSub instance
+- **Health Event Broadcasting**: Comprehensive health event distribution to interested subscribers
+- **Health Summary Distribution**: Periodic health summaries broadcast to monitoring systems
+- **Improved Separation**: Clean separation between health monitoring and system operations
+
+#### Technical Implementation
+
+- **Multi-PubSub Architecture**: Three specialized PubSub instances for different communication types
+- **Enhanced Themes System**: Extended `ExESDB.Themes` with color-coded message functions
+  - `emitter_worker_success_msg/2`, `emitter_worker_failure_msg/2`
+  - `emitter_worker_action_msg/2`, `emitter_worker_health_msg/2`
+  - Similar functions for `emitter_system` and `emitter_pool` components
+- **Health-Aware Processing**: EmitterWorkers subscribe to both health and metrics events
+- **Structured Logging**: Consistent, parseable log format with rich visual indicators
+
+#### Event-Driven Architecture Benefits
+
+- **Separation of Concerns**: Dedicated channels prevent message type cross-contamination
+- **Enhanced Observability**: Real-time visibility into system health, performance, and operations
+- **Improved Reliability**: Health-aware emission and circuit breaker integration
+- **Better Performance**: Asynchronous messaging and efficient broadcasting
+- **Operational Excellence**: Comprehensive monitoring and debugging capabilities
+
+#### Documentation and Guidelines
+
+- **New Architecture Guide**: Comprehensive `guides/pubsub_architecture.md` documentation
+- **Implementation Details**: Complete technical implementation and configuration guidance
+- **Migration Path**: Roadmap for evolving to fully Event-Driven Architecture
+- **Best Practices**: Topic naming conventions, message structure, and performance considerations
+- **Monitoring Guidelines**: Health dashboard, performance metrics, and debugging tools
+
+#### Migration Foundation
+
+- **Phase 1 Complete**: Internal events, health/metrics distribution, enhanced observability
+- **Phase 2 Prepared**: Foundation for business domain events and event sourcing patterns
+- **Phase 3 Ready**: Infrastructure for external system integration and event streaming
+
+#### Benefits
+
+- **Unprecedented Observability**: Color-coded logging and comprehensive event tracking
+- **Enhanced Reliability**: Health-aware systems with graceful degradation
+- **Improved Performance**: Efficient message routing and asynchronous processing
+- **Better Developer Experience**: Visual debugging aids and structured logging
+- **Operational Excellence**: Comprehensive monitoring and troubleshooting capabilities
+- **Future-Ready Architecture**: Solid foundation for full Event-Driven Architecture evolution
+
 ## version 0.4.9 (2025.07.19)
 
 ### Comprehensive Debugging and Monitoring System

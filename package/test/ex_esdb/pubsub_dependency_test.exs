@@ -3,12 +3,23 @@ defmodule ExESDB.PubSubDependencyTest do
 
   alias Phoenix.PubSub
 
-  @pubsub_instances [:ex_esdb_events, :ex_esdb_system, :ex_esdb_logging]
+  @pubsub_instances [
+    :ex_esdb_events,      # Core event data
+    :ex_esdb_system,      # General system events
+    :ex_esdb_logging,     # Log aggregation
+    :ex_esdb_health,      # Health monitoring
+    :ex_esdb_metrics,     # Performance metrics
+    :ex_esdb_security,    # Security events
+    :ex_esdb_audit,       # Audit trail
+    :ex_esdb_alerts,      # Critical alerts
+    :ex_esdb_diagnostics, # Deep diagnostic information
+    :ex_esdb_lifecycle    # Process lifecycle events
+  ]
 
   describe "System startup with integrated PubSub" do
     test "automatically starts PubSub instances" do
       # Start ExESDB.System which should start PubSub internally
-      system_pid = ExESDB.System.start([store_id: :pubsub_dep_test_1])
+      {:ok, system_pid} = ExESDB.System.start([store_id: :pubsub_dep_test_1])
       assert is_pid(system_pid)
       assert Process.alive?(system_pid)
 
@@ -25,7 +36,7 @@ defmodule ExESDB.PubSubDependencyTest do
 
     test "PubSub instances are functional after system start" do
       # Start the system
-      system_pid = ExESDB.System.start([store_id: :pubsub_dep_test_2])
+      {:ok, system_pid} = ExESDB.System.start([store_id: :pubsub_dep_test_2])
       assert is_pid(system_pid)
 
       # Test PubSub functionality
@@ -50,7 +61,7 @@ defmodule ExESDB.PubSubDependencyTest do
 
     test "PubSub instances persist through system restarts" do
       # Start first system instance
-      system_pid1 = ExESDB.System.start([store_id: :pubsub_dep_test_3])
+      {:ok, system_pid1} = ExESDB.System.start([store_id: :pubsub_dep_test_3])
       assert is_pid(system_pid1)
 
       # Get initial PubSub PIDs
@@ -58,7 +69,7 @@ defmodule ExESDB.PubSubDependencyTest do
 
       # Stop first system and start a new one
       Supervisor.stop(system_pid1)
-      system_pid2 = ExESDB.System.start([store_id: :pubsub_dep_test_3])
+      {:ok, system_pid2} = ExESDB.System.start([store_id: :pubsub_dep_test_3])
       assert is_pid(system_pid2)
 
       # Get new PubSub PIDs
@@ -79,7 +90,7 @@ defmodule ExESDB.PubSubDependencyTest do
     end
 
     test "system handles concurrent PubSub operations" do
-      system_pid = ExESDB.System.start([store_id: :pubsub_dep_test_4])
+      {:ok, system_pid} = ExESDB.System.start([store_id: :pubsub_dep_test_4])
       assert is_pid(system_pid)
 
       # Start multiple concurrent subscriptions and broadcasts
