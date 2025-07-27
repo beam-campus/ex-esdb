@@ -5,16 +5,16 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="ExDoc v0.38.2">
-    <meta name="project" content="ex_esdb v0.7.0">
+    <meta name="project" content="ex_esdb v0.7.1">
 
 
-    <title>API Reference — ex_esdb v0.7.0</title>
+    <title>API Reference — ex_esdb v0.7.1</title>
 
     <link rel="stylesheet" href="dist/html-elixir-KV3YOVJ3.css" />
 
       <link rel="canonical" href="https://hexdocs.pm/ex_esdb/api-reference.html" />
 
-    <script defer src="dist/sidebar_items-3C9EC06C.js"></script>
+    <script defer src="dist/sidebar_items-099CC3AB.js"></script>
     <script defer src="docs_config.js"></script>
     <script defer src="dist/html-DPJLHKSM.js"></script>
 
@@ -39,7 +39,7 @@
 ex_esdb
         </a>
         <div class="sidebar-projectVersion" translate="no">
-          v0.7.0
+          v0.7.1
         </div>
       </div>
     </div>
@@ -76,7 +76,7 @@ ex_esdb
 
 <div id="top-content">
   <div class="heading-with-actions top-heading">
-    <h1>API Reference <small class="app-vsn">ex_esdb v#0.7.0</small></h1>
+    <h1>API Reference <small class="app-vsn">ex_esdb v#0.7.1</small></h1>
 
   </div>
 
@@ -152,11 +152,29 @@ ex_esdb
 </div>
 <div class="summary-row">
   <div class="summary-signature">
+    <a href="ExESDB.EmitterPoolLoggingWorker.html" translate="no">ExESDB.EmitterPoolLoggingWorker</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Logging worker responsible for handling EmitterPool logging events.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
     <a href="ExESDB.EmitterSystem.html" translate="no">ExESDB.EmitterSystem</a>
 
   </div>
 
     <div class="summary-synopsis"><p>Supervisor for event emission components.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExESDB.EmitterSystemLoggingWorker.html" translate="no">ExESDB.EmitterSystemLoggingWorker</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Logging worker responsible for handling EmitterSystem logging events.</p></div>
 
 </div>
 <div class="summary-row">
@@ -168,6 +186,15 @@ ex_esdb
     <div class="summary-synopsis"><p>  As part of the ExESDB.System, 
   the EmitterWorker is responsible for managing the communication 
   between the Event Store and the PubSub mechanism.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExESDB.EmitterWorkerLoggingWorker.html" translate="no">ExESDB.EmitterWorkerLoggingWorker</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Logging worker responsible for handling EmitterWorker logging events.</p></div>
 
 </div>
 <div class="summary-row">
@@ -324,6 +351,24 @@ ex_esdb
   </div>
 
     <div class="summary-synopsis"><p>LoggerWorker subscribes to events for a specific subsystem and logs events for monitoring and debugging.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExESDB.LoggingPublisher.html" translate="no">ExESDB.LoggingPublisher</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Helper module for publishing structured logging events to the :ex_esdb_logging PubSub topic.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExESDB.LoggingSystem.html" translate="no">ExESDB.LoggingSystem</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>LoggingSystem supervisor that manages individual logging workers for different ExESDB components.</p></div>
 
 </div>
 <div class="summary-row">
@@ -730,9 +775,9 @@ ex_esdb
       <p>
 
           <span class="line">
-            <a href="https://hex.pm/packages/ex_esdb/0.7.0" class="footer-hex-package">Hex Package</a>
+            <a href="https://hex.pm/packages/ex_esdb/0.7.1" class="footer-hex-package">Hex Package</a>
 
-            <a href="https://preview.hex.pm/preview/ex_esdb/0.7.0">Hex Preview</a>
+            <a href="https://preview.hex.pm/preview/ex_esdb/0.7.1">Hex Preview</a>
 
           </span>
 

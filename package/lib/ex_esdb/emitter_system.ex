@@ -11,7 +11,7 @@ defmodule ExESDB.EmitterSystem do
   use Supervisor
 
   alias ExESDB.StoreNaming
-  alias ExESDB.Themes, as: Themes
+  alias ExESDB.LoggingPublisher
 
   @impl true
   def init(opts) do
@@ -31,16 +31,17 @@ defmodule ExESDB.EmitterSystem do
         max_seconds: 60
       )
 
-    # Enhanced prominent system startup message
-    IO.puts("")
-    IO.puts("═════════════════════════════════════════════════════════════")
-    IO.puts(Themes.emitter_system_success_msg(self(), "🔥 SYSTEM ACTIVATION 🔥"))
-    IO.puts("═══════════════════════════════════════════════════════════════")
-    IO.puts("  Store: #{store_id} ")
-    IO.puts("  Components: #{length(children)} ")
-    IO.puts("  Max Restarts: 10/60s")
-    IO.puts("═══════════════════════════════════════════════════════════════")
-    IO.puts("")
+    # Publish startup event instead of direct terminal output
+    LoggingPublisher.startup(
+      :emitter_system,
+      store_id,
+      "EMITTER SYSTEM ACTIVATION",
+      %{
+        store: store_id,
+        components: length(children),
+        max_restarts: "10/60s"
+      }
+    )
 
     res
   end

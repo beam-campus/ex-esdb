@@ -252,28 +252,22 @@ defmodule ExESDB.SubscriptionHealthMonitor do
   
   defp get_running_emitter_pools(store_id) do
     try do
-      # Get all processes registered under the EmitterPools partition supervisor
-      partition_name = StoreNaming.partition_name(ExESDB.EmitterPools, store_id)
+      # Get all registered processes and filter for EmitterPool names
+      # EmitterPool names follow the pattern: ":store_id:sub_topic_emitter_pool"
+      store_prefix = "#{store_id}:"
       
-      case Process.whereis(partition_name) do
-        nil -> []
-        partition_pid ->
-          # Get all dynamic supervisors under the partition supervisor
-          PartitionSupervisor.which_children(partition_pid)
-          |> Enum.flat_map(fn {_partition, supervisor_pid} ->
-            if supervisor_pid != :undefined and Process.alive?(supervisor_pid) do
-              try do
-                DynamicSupervisor.which_children(supervisor_pid)
-                |> Enum.map(fn {_id, pool_pid, _type, _modules} -> pool_pid end)
-                |> Enum.filter(&Process.alive?/1)
-              rescue
-                _ -> []
-              end
-            else
-              []
-            end
-          end)
-      end
+      Process.registered()
+      |> Enum.filter(fn name ->
+        name_str = Atom.to_string(name)
+        String.starts_with?(name_str, store_prefix) and String.ends_with?(name_str, "_emitter_pool")
+      end)
+      |> Enum.map(fn name ->
+        case Process.whereis(name) do
+          nil -> nil
+          pid -> if Process.alive?(pid), do: pid, else: nil
+        end
+      end)
+      |> Enum.filter(&(&1 != nil))
     rescue
       error ->
         Logger.error("Error getting running emitter pools: #{inspect(error)}")

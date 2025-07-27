@@ -5,16 +5,16 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="ExDoc v0.38.2">
-    <meta name="project" content="ex_esdb v0.7.0">
+    <meta name="project" content="ex_esdb v0.7.1">
 
 
-    <title>ExESDB.StoreNaming — ex_esdb v0.7.0</title>
+    <title>ExESDB.StoreNaming — ex_esdb v0.7.1</title>
 
     <link rel="stylesheet" href="dist/html-elixir-KV3YOVJ3.css" />
 
       <link rel="canonical" href="https://hexdocs.pm/ex_esdb/ExESDB.StoreNaming.html" />
 
-    <script defer src="dist/sidebar_items-3C9EC06C.js"></script>
+    <script defer src="dist/sidebar_items-099CC3AB.js"></script>
     <script defer src="docs_config.js"></script>
     <script defer src="dist/html-DPJLHKSM.js"></script>
 
@@ -39,7 +39,7 @@
 ex_esdb
         </a>
         <div class="sidebar-projectVersion" translate="no">
-          v0.7.0
+          v0.7.1
         </div>
       </div>
     </div>
@@ -78,7 +78,7 @@ ex_esdb
   <div class="heading-with-actions top-heading">
     <h1>
       <span translate="no">ExESDB.StoreNaming</span> 
-      <small class="app-vsn" translate="no">(ex_esdb v0.7.0)</small>
+      <small class="app-vsn" translate="no">(ex_esdb v0.7.1)</small>
 
     </h1>
 
@@ -87,7 +87,7 @@ ex_esdb
 
     <section id="moduledoc">
 <p>Helper module for creating store-specific GenServer names.</p><p>This module provides utilities for generating store-specific names for GenServers,
-allowing multiple ExESDB instances to run on the same node with different stores.</p><h2 id="module-usage" class="section-heading"><a href="#module-usage" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Usage</span></h2><p>Instead of using <code class="inline">name: __MODULE__</code> in GenServer registration, use:</p><pre><code class="makeup elixir" translate="no"><span class="ss">name</span><span class="p">:</span><span class="w"> </span><span class="nc">ExESDB.StoreNaming</span><span class="o">.</span><span class="n">genserver_name</span><span class="p" data-group-id="2870067597-1">(</span><span class="bp">__MODULE__</span><span class="p">,</span><span class="w"> </span><span class="n">store_id</span><span class="p" data-group-id="2870067597-1">)</span></code></pre><p>This will create store-specific names like <code class="inline">:&quot;ex_esdb_store_my_store&quot;</code> when
+allowing multiple ExESDB instances to run on the same node with different stores.</p><h2 id="module-usage" class="section-heading"><a href="#module-usage" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Usage</span></h2><p>Instead of using <code class="inline">name: __MODULE__</code> in GenServer registration, use:</p><pre><code class="makeup elixir" translate="no"><span class="ss">name</span><span class="p">:</span><span class="w"> </span><span class="nc">ExESDB.StoreNaming</span><span class="o">.</span><span class="n">genserver_name</span><span class="p" data-group-id="5484096284-1">(</span><span class="bp">__MODULE__</span><span class="p">,</span><span class="w"> </span><span class="n">store_id</span><span class="p" data-group-id="5484096284-1">)</span></code></pre><p>This will create store-specific names like <code class="inline">:&quot;ex_esdb_store_my_store&quot;</code> when
 a store_id is provided, or fall back to the module name for backward compatibility.</p><h2 id="module-valid-process-names" class="section-heading"><a href="#module-valid-process-names" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Valid Process Names</span></h2><p>This module ensures that all generated names are valid for use with GenServers,
 Supervisors, and other OTP processes. The generated names are simple atoms that
 can be registered locally, which is compatible with Elixir's process naming
@@ -177,10 +177,10 @@ requirements.</p>
   <section class="docstring">
 
 <p>Generate a store-specific child spec id.</p><p>This function creates unique child spec IDs based on the module and store_id,
-allowing multiple instances of the same supervisor child to run with different stores.</p><h2 id="child_spec_id/2-parameters" class="section-heading"><a href="#child_spec_id/2-parameters" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Parameters</span></h2><ul><li><code class="inline">module</code> - The GenServer module (typically <code class="inline">__MODULE__</code>)</li><li><code class="inline">store_id</code> - The store identifier (string or atom)</li></ul><h2 id="child_spec_id/2-examples" class="section-heading"><a href="#child_spec_id/2-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.StoreNaming</span><span class="o">.</span><span class="n">child_spec_id</span><span class="p" data-group-id="7997779223-1">(</span><span class="nc">ExESDB.Store</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;my_store&quot;</span><span class="p" data-group-id="7997779223-1">)</span><span class="w">
+allowing multiple instances of the same supervisor child to run with different stores.</p><h2 id="child_spec_id/2-parameters" class="section-heading"><a href="#child_spec_id/2-parameters" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Parameters</span></h2><ul><li><code class="inline">module</code> - The GenServer module (typically <code class="inline">__MODULE__</code>)</li><li><code class="inline">store_id</code> - The store identifier (string or atom)</li></ul><h2 id="child_spec_id/2-examples" class="section-heading"><a href="#child_spec_id/2-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.StoreNaming</span><span class="o">.</span><span class="n">child_spec_id</span><span class="p" data-group-id="3560959329-1">(</span><span class="nc">ExESDB.Store</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;my_store&quot;</span><span class="p" data-group-id="3560959329-1">)</span><span class="w">
 </span><span class="ss">:&quot;ex_esdb_store_my_store&quot;</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.StoreNaming</span><span class="o">.</span><span class="n">child_spec_id</span><span class="p" data-group-id="7997779223-2">(</span><span class="nc">ExESDB.Store</span><span class="p">,</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="7997779223-2">)</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.StoreNaming</span><span class="o">.</span><span class="n">child_spec_id</span><span class="p" data-group-id="3560959329-2">(</span><span class="nc">ExESDB.Store</span><span class="p">,</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="3560959329-2">)</span><span class="w">
 </span><span class="nc">ExESDB.Store</span></code></pre>
   </section>
 </section>
@@ -200,10 +200,10 @@ allowing multiple instances of the same supervisor child to run with different s
   <section class="docstring">
 
 <p>Extract store_id from options.</p><p>This is a convenience function to extract the store_id from the standard
-options keyword list passed to GenServers.</p><h2 id="extract_store_id/1-examples" class="section-heading"><a href="#extract_store_id/1-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.StoreNaming</span><span class="o">.</span><span class="n">extract_store_id</span><span class="p" data-group-id="0395404255-1">(</span><span class="p" data-group-id="0395404255-2">[</span><span class="ss">store_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;my_store&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">timeout</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span><span class="p" data-group-id="0395404255-2">]</span><span class="p" data-group-id="0395404255-1">)</span><span class="w">
+options keyword list passed to GenServers.</p><h2 id="extract_store_id/1-examples" class="section-heading"><a href="#extract_store_id/1-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.StoreNaming</span><span class="o">.</span><span class="n">extract_store_id</span><span class="p" data-group-id="9111011026-1">(</span><span class="p" data-group-id="9111011026-2">[</span><span class="ss">store_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;my_store&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">timeout</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span><span class="p" data-group-id="9111011026-2">]</span><span class="p" data-group-id="9111011026-1">)</span><span class="w">
 </span><span class="s">&quot;my_store&quot;</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.StoreNaming</span><span class="o">.</span><span class="n">extract_store_id</span><span class="p" data-group-id="0395404255-3">(</span><span class="p" data-group-id="0395404255-4">[</span><span class="ss">timeout</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span><span class="p" data-group-id="0395404255-4">]</span><span class="p" data-group-id="0395404255-3">)</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.StoreNaming</span><span class="o">.</span><span class="n">extract_store_id</span><span class="p" data-group-id="9111011026-3">(</span><span class="p" data-group-id="9111011026-4">[</span><span class="ss">timeout</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span><span class="p" data-group-id="9111011026-4">]</span><span class="p" data-group-id="9111011026-3">)</span><span class="w">
 </span><span class="no">nil</span></code></pre>
   </section>
 </section>
@@ -226,13 +226,13 @@ options keyword list passed to GenServers.</p><h2 id="extract_store_id/1-example
 allowing multiple instances of the same GenServer to run with different stores.</p><p>The function returns a valid process name that can be used for GenServers,
 Supervisors, and other OTP processes. When a store_id is provided, it creates
 a unique atom by combining the module name with the store_id. When no store_id
-is provided, it falls back to the module name for backward compatibility.</p><h2 id="genserver_name/2-parameters" class="section-heading"><a href="#genserver_name/2-parameters" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Parameters</span></h2><ul><li><code class="inline">module</code> - The GenServer module (typically <code class="inline">__MODULE__</code>)</li><li><code class="inline">store_id</code> - The store identifier (string or atom)</li></ul><h2 id="genserver_name/2-examples" class="section-heading"><a href="#genserver_name/2-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.StoreNaming</span><span class="o">.</span><span class="n">genserver_name</span><span class="p" data-group-id="0650821241-1">(</span><span class="nc">ExESDB.Store</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;my_store&quot;</span><span class="p" data-group-id="0650821241-1">)</span><span class="w">
+is provided, it falls back to the module name for backward compatibility.</p><h2 id="genserver_name/2-parameters" class="section-heading"><a href="#genserver_name/2-parameters" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Parameters</span></h2><ul><li><code class="inline">module</code> - The GenServer module (typically <code class="inline">__MODULE__</code>)</li><li><code class="inline">store_id</code> - The store identifier (string or atom)</li></ul><h2 id="genserver_name/2-examples" class="section-heading"><a href="#genserver_name/2-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.StoreNaming</span><span class="o">.</span><span class="n">genserver_name</span><span class="p" data-group-id="0177797044-1">(</span><span class="nc">ExESDB.Store</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;my_store&quot;</span><span class="p" data-group-id="0177797044-1">)</span><span class="w">
 </span><span class="ss">:&quot;ex_esdb_store_my_store&quot;</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.StoreNaming</span><span class="o">.</span><span class="n">genserver_name</span><span class="p" data-group-id="0650821241-2">(</span><span class="nc">ExESDB.Store</span><span class="p">,</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="0650821241-2">)</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.StoreNaming</span><span class="o">.</span><span class="n">genserver_name</span><span class="p" data-group-id="0177797044-2">(</span><span class="nc">ExESDB.Store</span><span class="p">,</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="0177797044-2">)</span><span class="w">
 </span><span class="nc">ExESDB.Store</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.StoreNaming</span><span class="o">.</span><span class="n">genserver_name</span><span class="p" data-group-id="0650821241-3">(</span><span class="nc">ExESDB.LeaderWorker</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;cluster_store&quot;</span><span class="p" data-group-id="0650821241-3">)</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.StoreNaming</span><span class="o">.</span><span class="n">genserver_name</span><span class="p" data-group-id="0177797044-3">(</span><span class="nc">ExESDB.LeaderWorker</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;cluster_store&quot;</span><span class="p" data-group-id="0177797044-3">)</span><span class="w">
 </span><span class="ss">:&quot;ex_esdb_leader_worker_cluster_store&quot;</span></code></pre>
   </section>
 </section>
@@ -252,10 +252,10 @@ is provided, it falls back to the module name for backward compatibility.</p><h2
   <section class="docstring">
 
 <p>Generate a store-specific name for partition supervisors like StreamsWriters, etc.</p><p>This function creates unique names for global resources that would otherwise conflict
-between multiple ExESDB instances.</p><h2 id="partition_name/2-parameters" class="section-heading"><a href="#partition_name/2-parameters" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Parameters</span></h2><ul><li><code class="inline">base_name</code> - The base name atom (e.g., ExESDB.StreamsWriters)</li><li><code class="inline">store_id</code> - The store identifier (string or atom)</li></ul><h2 id="partition_name/2-examples" class="section-heading"><a href="#partition_name/2-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.StoreNaming</span><span class="o">.</span><span class="n">partition_name</span><span class="p" data-group-id="9832627539-1">(</span><span class="nc">ExESDB.StreamsWriters</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;my_store&quot;</span><span class="p" data-group-id="9832627539-1">)</span><span class="w">
+between multiple ExESDB instances.</p><h2 id="partition_name/2-parameters" class="section-heading"><a href="#partition_name/2-parameters" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Parameters</span></h2><ul><li><code class="inline">base_name</code> - The base name atom (e.g., ExESDB.StreamsWriters)</li><li><code class="inline">store_id</code> - The store identifier (string or atom)</li></ul><h2 id="partition_name/2-examples" class="section-heading"><a href="#partition_name/2-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.StoreNaming</span><span class="o">.</span><span class="n">partition_name</span><span class="p" data-group-id="6699382990-1">(</span><span class="nc">ExESDB.StreamsWriters</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;my_store&quot;</span><span class="p" data-group-id="6699382990-1">)</span><span class="w">
 </span><span class="ss">:&quot;exesdb_streamswriters_my_store&quot;</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.StoreNaming</span><span class="o">.</span><span class="n">partition_name</span><span class="p" data-group-id="9832627539-2">(</span><span class="nc">ExESDB.StreamsWriters</span><span class="p">,</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="9832627539-2">)</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.StoreNaming</span><span class="o">.</span><span class="n">partition_name</span><span class="p" data-group-id="6699382990-2">(</span><span class="nc">ExESDB.StreamsWriters</span><span class="p">,</span><span class="w"> </span><span class="no">nil</span><span class="p" data-group-id="6699382990-2">)</span><span class="w">
 </span><span class="nc">ExESDB.StreamsWriters</span></code></pre>
   </section>
 </section>
@@ -267,9 +267,9 @@ between multiple ExESDB instances.</p><h2 id="partition_name/2-parameters" class
       <p>
 
           <span class="line">
-            <a href="https://hex.pm/packages/ex_esdb/0.7.0" class="footer-hex-package">Hex Package</a>
+            <a href="https://hex.pm/packages/ex_esdb/0.7.1" class="footer-hex-package">Hex Package</a>
 
-            <a href="https://preview.hex.pm/preview/ex_esdb/0.7.0">Hex Preview</a>
+            <a href="https://preview.hex.pm/preview/ex_esdb/0.7.1">Hex Preview</a>
 
           </span>
 

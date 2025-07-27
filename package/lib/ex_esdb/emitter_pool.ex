@@ -3,7 +3,7 @@ defmodule ExESDB.EmitterPool do
   use Supervisor
 
   require Logger
-  alias ExESDB.Themes, as: Themes
+  alias ExESDB.LoggingPublisher
 
   def name(store, sub_topic),
     do: :"#{store}:#{sub_topic}_emitter_pool"
@@ -30,23 +30,20 @@ defmodule ExESDB.EmitterPool do
         )
       end
 
-    # Enhanced prominent multi-line pool startup message
+    # Publish startup event instead of direct terminal output
     pool_name = name(store, sub_topic)
     emitter_count = length(emitter_names)
     
-    IO.puts("")
-    IO.puts("")
-    IO.puts("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓")
-    IO.puts("#{Themes.emitter_pool_success_msg(self(), "  🚀 EMITTER POOL STARTUP 🚀                      ")}")
-    IO.puts("┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫")
-    IO.puts("#{Themes.emitter_pool_success_msg(self(), "  Pool Name: #{pool_name}")}")
-    IO.puts("#{Themes.emitter_pool_success_msg(self(), "  Store ID:  #{store}")}")
-    IO.puts("#{Themes.emitter_pool_success_msg(self(), "  Topic:     #{sub_topic}")}")
-    IO.puts("#{Themes.emitter_pool_success_msg(self(), "  Workers:   #{emitter_count}")}")
-    IO.puts("#{Themes.emitter_pool_success_msg(self(), "  PID:       #{inspect(self())}")}")
-    IO.puts("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛")
-    IO.puts("")
-    IO.puts("")
+    LoggingPublisher.startup(
+      :emitter_pool,
+      store,
+      "EMITTER POOL STARTUP",
+      %{
+        pool_name: pool_name,
+        sub_topic: sub_topic,
+        emitter_count: emitter_count
+      }
+    )
 
     Supervisor.init(children, strategy: :one_for_one)
   end
@@ -54,19 +51,17 @@ defmodule ExESDB.EmitterPool do
   def stop(store, sub_topic) do
     pool_name = name(store, sub_topic)
     
-    # Enhanced prominent multi-line pool shutdown message
-    IO.puts("")
-    IO.puts("")
-    IO.puts("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓")
-    IO.puts("#{Themes.emitter_pool_failure_msg(self(), "  🚨 EMITTER POOL SHUTDOWN 🚨                     ")}")
-    IO.puts("┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫")
-    IO.puts("#{Themes.emitter_pool_failure_msg(self(), "  Pool Name: #{pool_name}")}")
-    IO.puts("#{Themes.emitter_pool_failure_msg(self(), "  Store ID:  #{store}")}")
-    IO.puts("#{Themes.emitter_pool_failure_msg(self(), "  Topic:     #{sub_topic}")}")
-    IO.puts("#{Themes.emitter_pool_failure_msg(self(), "  Reason:    Manual Stop")}")
-    IO.puts("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛")
-    IO.puts("")
-    IO.puts("")
+    # Publish shutdown event instead of direct terminal output
+    LoggingPublisher.shutdown(
+      :emitter_pool,
+      store,
+      "EMITTER POOL SHUTDOWN",
+      %{
+        pool_name: pool_name,
+        sub_topic: sub_topic,
+        reason: "Manual Stop"
+      }
+    )
     
     Supervisor.stop(pool_name)
   end

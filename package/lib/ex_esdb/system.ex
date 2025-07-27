@@ -5,14 +5,18 @@ defmodule ExESDB.System do
     It uses a layered supervision architecture for better fault tolerance:
     
     SINGLE NODE MODE:
-    1. CoreSystem: Critical infrastructure (PersistenceSystem + NotificationSystem + StoreSystem)
-    2. GatewaySystem: External interface with pooled workers
+    1. PubSubSystem: Message distribution infrastructure
+    2. LoggingSystem: Structured logging and event processing
+    3. CoreSystem: Critical infrastructure (PersistenceSystem + NotificationSystem + StoreSystem)
+    4. GatewaySystem: External interface with pooled workers
     
     CLUSTER MODE:
-    1. CoreSystem: Critical infrastructure (PersistenceSystem + NotificationSystem + StoreSystem)
-    2. LibCluster: Node discovery and connection (after core is ready)
-    3. ClusterSystem: Cluster coordination and membership
-    4. GatewaySystem: External interface (LAST - only after clustering is ready)
+    1. PubSubSystem: Message distribution infrastructure
+    2. LoggingSystem: Structured logging and event processing
+    3. CoreSystem: Critical infrastructure (PersistenceSystem + NotificationSystem + StoreSystem)
+    4. LibCluster: Node discovery and connection (after core is ready)
+    5. ClusterSystem: Cluster coordination and membership
+    6. GatewaySystem: External interface (LAST - only after clustering is ready)
     
     NotificationSystem (part of CoreSystem) includes:
     - LeaderSystem: Leadership responsibilities and subscription management
@@ -49,6 +53,7 @@ defmodule ExESDB.System do
 
     children = [
       {ExESDBGater.PubSubSystem, pubsub_opts},
+      {ExESDB.LoggingSystem, opts},
       {ExESDB.CoreSystem, opts}
     ]
 
