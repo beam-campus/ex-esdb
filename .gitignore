@@ -15,7 +15,7 @@ tmp/
 /deps
 /.fetch
 /tmp
-/doc
+/sdoc
 
 
 erl_crash.dump
