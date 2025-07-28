@@ -5,10 +5,10 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="ExDoc v0.38.2">
-    <meta name="project" content="ex_esdb v0.7.1">
+    <meta name="project" content="ex_esdb v0.7.3">
 
 
-    <title>ExESDB.LoggingPublisher — ex_esdb v0.7.1</title>
+    <title>ExESDB.LoggingPublisher — ex_esdb v0.7.3</title>
 
     <link rel="stylesheet" href="dist/html-elixir-KV3YOVJ3.css" />
 
@@ -39,7 +39,7 @@
 ex_esdb
         </a>
         <div class="sidebar-projectVersion" translate="no">
-          v0.7.1
+          v0.7.3
         </div>
       </div>
     </div>
@@ -78,7 +78,7 @@ ex_esdb
   <div class="heading-with-actions top-heading">
     <h1>
       <span translate="no">ExESDB.LoggingPublisher</span> 
-      <small class="app-vsn" translate="no">(ex_esdb v0.7.1)</small>
+      <small class="app-vsn" translate="no">(ex_esdb v0.7.3)</small>
 
     </h1>
 
@@ -246,10 +246,10 @@ using direct terminal output.</p>
 
   <section class="docstring">
 
-<p>Publishes a logging event to the appropriate topic.</p><h2 id="publish/5-parameters" class="section-heading"><a href="#publish/5-parameters" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Parameters</span></h2><ul><li><code class="inline">component</code>: The component type (e.g., :emitter_pool, :emitter_worker, :emitter_system)</li><li><code class="inline">event_type</code>: The type of event (e.g., :startup, :shutdown, :action, :health, :error)</li><li><code class="inline">store_id</code>: The store identifier</li><li><code class="inline">message</code>: The log message</li><li><code class="inline">metadata</code>: Additional metadata (default: %{})</li></ul><h2 id="publish/5-examples" class="section-heading"><a href="#publish/5-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="nc">LoggingPublisher</span><span class="o">.</span><span class="n">publish</span><span class="p" data-group-id="0479103207-1">(</span><span class="ss">:emitter_pool</span><span class="p">,</span><span class="w"> </span><span class="ss">:startup</span><span class="p">,</span><span class="w"> </span><span class="ss">:my_store</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Pool started&quot;</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0479103207-2">%{</span><span class="ss">pool_size</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p" data-group-id="0479103207-2">}</span><span class="p" data-group-id="0479103207-1">)</span><span class="w">
+<p>Publishes a logging event to the appropriate topic.</p><h2 id="publish/5-parameters" class="section-heading"><a href="#publish/5-parameters" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Parameters</span></h2><ul><li><code class="inline">component</code>: The component type (e.g., :emitter_pool, :emitter_worker, :emitter_system)</li><li><code class="inline">event_type</code>: The type of event (e.g., :startup, :shutdown, :action, :health, :error)</li><li><code class="inline">store_id</code>: The store identifier</li><li><code class="inline">message</code>: The log message</li><li><code class="inline">metadata</code>: Additional metadata (default: %{})</li></ul><h2 id="publish/5-examples" class="section-heading"><a href="#publish/5-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="nc">LoggingPublisher</span><span class="o">.</span><span class="n">publish</span><span class="p" data-group-id="3560475218-1">(</span><span class="ss">:emitter_pool</span><span class="p">,</span><span class="w"> </span><span class="ss">:startup</span><span class="p">,</span><span class="w"> </span><span class="ss">:my_store</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Pool started&quot;</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3560475218-2">%{</span><span class="ss">pool_size</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p" data-group-id="3560475218-2">}</span><span class="p" data-group-id="3560475218-1">)</span><span class="w">
 </span><span class="ss">:ok</span><span class="w">
 
-</span><span class="gp unselectable">iex&gt; </span><span class="nc">LoggingPublisher</span><span class="o">.</span><span class="n">publish</span><span class="p" data-group-id="0479103207-3">(</span><span class="ss">:emitter_worker</span><span class="p">,</span><span class="w"> </span><span class="ss">:action</span><span class="p">,</span><span class="w"> </span><span class="ss">:my_store</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Processing event&quot;</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0479103207-4">%{</span><span class="ss">event_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;123&quot;</span><span class="p" data-group-id="0479103207-4">}</span><span class="p" data-group-id="0479103207-3">)</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="nc">LoggingPublisher</span><span class="o">.</span><span class="n">publish</span><span class="p" data-group-id="3560475218-3">(</span><span class="ss">:emitter_worker</span><span class="p">,</span><span class="w"> </span><span class="ss">:action</span><span class="p">,</span><span class="w"> </span><span class="ss">:my_store</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Processing event&quot;</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="3560475218-4">%{</span><span class="ss">event_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;123&quot;</span><span class="p" data-group-id="3560475218-4">}</span><span class="p" data-group-id="3560475218-3">)</span><span class="w">
 </span><span class="ss">:ok</span></code></pre>
   </section>
 </section>
@@ -301,9 +301,9 @@ using direct terminal output.</p>
       <p>
 
           <span class="line">
-            <a href="https://hex.pm/packages/ex_esdb/0.7.1" class="footer-hex-package">Hex Package</a>
+            <a href="https://hex.pm/packages/ex_esdb/0.7.3" class="footer-hex-package">Hex Package</a>
 
-            <a href="https://preview.hex.pm/preview/ex_esdb/0.7.1">Hex Preview</a>
+            <a href="https://preview.hex.pm/preview/ex_esdb/0.7.3">Hex Preview</a>
 
           </span>
 

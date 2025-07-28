@@ -5,10 +5,10 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="ExDoc v0.38.2">
-    <meta name="project" content="ex_esdb v0.7.1">
+    <meta name="project" content="ex_esdb v0.7.3">
 
 
-    <title>ExESDB.Debugger — ex_esdb v0.7.1</title>
+    <title>ExESDB.Debugger — ex_esdb v0.7.3</title>
 
     <link rel="stylesheet" href="dist/html-elixir-KV3YOVJ3.css" />
 
@@ -39,7 +39,7 @@
 ex_esdb
         </a>
         <div class="sidebar-projectVersion" translate="no">
-          v0.7.1
+          v0.7.3
         </div>
       </div>
     </div>
@@ -78,7 +78,7 @@ ex_esdb
   <div class="heading-with-actions top-heading">
     <h1>
       <span translate="no">ExESDB.Debugger</span> 
-      <small class="app-vsn" translate="no">(ex_esdb v0.7.1)</small>
+      <small class="app-vsn" translate="no">(ex_esdb v0.7.3)</small>
 
     </h1>
 
@@ -87,9 +87,9 @@ ex_esdb
 
     <section id="moduledoc">
 <p>Comprehensive debugging and inspection API for ExESDB systems.</p><p>This module provides REPL-friendly functions to investigate all aspects
-of an ExESDB Event Sourcing Database by delegating to specialized subsystems:</p><ul><li>Process supervision tree inspection (Inspector)</li><li>Health and performance monitoring (Monitor)</li><li>Scenario testing and simulation (ScenarioManager)</li><li>Real-time observation (Observer)</li></ul><h2 id="module-usage-in-repl" class="section-heading"><a href="#module-usage-in-repl" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Usage in REPL</span></h2><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.Debugger</span><span class="o">.</span><span class="n">overview</span><span class="p" data-group-id="4289510712-1">(</span><span class="p" data-group-id="4289510712-1">)</span><span class="w">
-</span><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.Debugger</span><span class="o">.</span><span class="n">start_scenario</span><span class="p" data-group-id="4289510712-2">(</span><span class="ss">:high_load</span><span class="p">,</span><span class="w"> </span><span class="ss">intensity</span><span class="p">:</span><span class="w"> </span><span class="ss">:medium</span><span class="p" data-group-id="4289510712-2">)</span><span class="w">
-</span><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.Debugger</span><span class="o">.</span><span class="n">observe</span><span class="p" data-group-id="4289510712-3">(</span><span class="ss">:system_metrics</span><span class="p" data-group-id="4289510712-3">)</span></code></pre>
+of an ExESDB Event Sourcing Database by delegating to specialized subsystems:</p><ul><li>Process supervision tree inspection (Inspector)</li><li>Health and performance monitoring (Monitor)</li><li>Scenario testing and simulation (ScenarioManager)</li><li>Real-time observation (Observer)</li></ul><h2 id="module-usage-in-repl" class="section-heading"><a href="#module-usage-in-repl" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Usage in REPL</span></h2><pre><code class="makeup elixir" translate="no"><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.Debugger</span><span class="o">.</span><span class="n">overview</span><span class="p" data-group-id="8031438858-1">(</span><span class="p" data-group-id="8031438858-1">)</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.Debugger</span><span class="o">.</span><span class="n">start_scenario</span><span class="p" data-group-id="8031438858-2">(</span><span class="ss">:high_load</span><span class="p">,</span><span class="w"> </span><span class="ss">intensity</span><span class="p">:</span><span class="w"> </span><span class="ss">:medium</span><span class="p" data-group-id="8031438858-2">)</span><span class="w">
+</span><span class="gp unselectable">iex&gt; </span><span class="nc">ExESDB.Debugger</span><span class="o">.</span><span class="n">observe</span><span class="p" data-group-id="8031438858-3">(</span><span class="ss">:system_metrics</span><span class="p" data-group-id="8031438858-3">)</span></code></pre>
     </section>
 
 </div>
@@ -438,8 +438,8 @@ of an ExESDB Event Sourcing Database by delegating to specialized subsystems:</p
 
   <section class="docstring">
 
-<p>Start real-time observation of system components.</p><p>Available targets:</p><ul><li><code class="inline">:system_metrics</code> - Overall system metrics</li><li><code class="inline">:process_metrics</code> - Specific process metrics (requires :target_process opt)</li><li><code class="inline">:memory_usage</code> - Memory usage patterns</li></ul><h2 id="observe/2-examples" class="section-heading"><a href="#observe/2-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="nc">ExESDB.Debugger</span><span class="o">.</span><span class="n">observe</span><span class="p" data-group-id="7446121989-1">(</span><span class="ss">:system_metrics</span><span class="p">,</span><span class="w"> </span><span class="ss">interval</span><span class="p">:</span><span class="w"> </span><span class="mi">1000</span><span class="p" data-group-id="7446121989-1">)</span><span class="w">
-</span><span class="nc">ExESDB.Debugger</span><span class="o">.</span><span class="n">observe</span><span class="p" data-group-id="7446121989-2">(</span><span class="ss">:process_metrics</span><span class="p">,</span><span class="w"> </span><span class="ss">target_process</span><span class="p">:</span><span class="w"> </span><span class="ss">:my_process</span><span class="p">,</span><span class="w"> </span><span class="ss">interval</span><span class="p">:</span><span class="w"> </span><span class="mi">2000</span><span class="p" data-group-id="7446121989-2">)</span></code></pre>
+<p>Start real-time observation of system components.</p><p>Available targets:</p><ul><li><code class="inline">:system_metrics</code> - Overall system metrics</li><li><code class="inline">:process_metrics</code> - Specific process metrics (requires :target_process opt)</li><li><code class="inline">:memory_usage</code> - Memory usage patterns</li></ul><h2 id="observe/2-examples" class="section-heading"><a href="#observe/2-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="nc">ExESDB.Debugger</span><span class="o">.</span><span class="n">observe</span><span class="p" data-group-id="7549429035-1">(</span><span class="ss">:system_metrics</span><span class="p">,</span><span class="w"> </span><span class="ss">interval</span><span class="p">:</span><span class="w"> </span><span class="mi">1000</span><span class="p" data-group-id="7549429035-1">)</span><span class="w">
+</span><span class="nc">ExESDB.Debugger</span><span class="o">.</span><span class="n">observe</span><span class="p" data-group-id="7549429035-2">(</span><span class="ss">:process_metrics</span><span class="p">,</span><span class="w"> </span><span class="ss">target_process</span><span class="p">:</span><span class="w"> </span><span class="ss">:my_process</span><span class="p">,</span><span class="w"> </span><span class="ss">interval</span><span class="p">:</span><span class="w"> </span><span class="mi">2000</span><span class="p" data-group-id="7549429035-2">)</span></code></pre>
   </section>
 </section>
 <section class="detail" id="overview/1">
@@ -519,8 +519,8 @@ of an ExESDB Event Sourcing Database by delegating to specialized subsystems:</p
 
   <section class="docstring">
 
-<p>Start a test scenario.</p><p>Available scenarios:</p><ul><li><code class="inline">:high_load</code> - Simulate high CPU/memory load</li><li><code class="inline">:node_failure</code> - Simulate node failures</li><li><code class="inline">:custom</code> - Load custom scenario from config</li></ul><h2 id="start_scenario/2-examples" class="section-heading"><a href="#start_scenario/2-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="nc">ExESDB.Debugger</span><span class="o">.</span><span class="n">start_scenario</span><span class="p" data-group-id="3945327656-1">(</span><span class="ss">:high_load</span><span class="p">,</span><span class="w"> </span><span class="ss">intensity</span><span class="p">:</span><span class="w"> </span><span class="ss">:medium</span><span class="p">,</span><span class="w"> </span><span class="ss">duration</span><span class="p">:</span><span class="w"> </span><span class="mi">30_000</span><span class="p" data-group-id="3945327656-1">)</span><span class="w">
-</span><span class="nc">ExESDB.Debugger</span><span class="o">.</span><span class="n">start_scenario</span><span class="p" data-group-id="3945327656-2">(</span><span class="ss">:custom</span><span class="p">,</span><span class="w"> </span><span class="ss">config_path</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;scenarios/custom.json&quot;</span><span class="p" data-group-id="3945327656-2">)</span></code></pre>
+<p>Start a test scenario.</p><p>Available scenarios:</p><ul><li><code class="inline">:high_load</code> - Simulate high CPU/memory load</li><li><code class="inline">:node_failure</code> - Simulate node failures</li><li><code class="inline">:custom</code> - Load custom scenario from config</li></ul><h2 id="start_scenario/2-examples" class="section-heading"><a href="#start_scenario/2-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="nc">ExESDB.Debugger</span><span class="o">.</span><span class="n">start_scenario</span><span class="p" data-group-id="6066451014-1">(</span><span class="ss">:high_load</span><span class="p">,</span><span class="w"> </span><span class="ss">intensity</span><span class="p">:</span><span class="w"> </span><span class="ss">:medium</span><span class="p">,</span><span class="w"> </span><span class="ss">duration</span><span class="p">:</span><span class="w"> </span><span class="mi">30_000</span><span class="p" data-group-id="6066451014-1">)</span><span class="w">
+</span><span class="nc">ExESDB.Debugger</span><span class="o">.</span><span class="n">start_scenario</span><span class="p" data-group-id="6066451014-2">(</span><span class="ss">:custom</span><span class="p">,</span><span class="w"> </span><span class="ss">config_path</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;scenarios/custom.json&quot;</span><span class="p" data-group-id="6066451014-2">)</span></code></pre>
   </section>
 </section>
 <section class="detail" id="stop_observation/1">
@@ -627,9 +627,9 @@ of an ExESDB Event Sourcing Database by delegating to specialized subsystems:</p
       <p>
 
           <span class="line">
-            <a href="https://hex.pm/packages/ex_esdb/0.7.1" class="footer-hex-package">Hex Package</a>
+            <a href="https://hex.pm/packages/ex_esdb/0.7.3" class="footer-hex-package">Hex Package</a>
 
-            <a href="https://preview.hex.pm/preview/ex_esdb/0.7.1">Hex Preview</a>
+            <a href="https://preview.hex.pm/preview/ex_esdb/0.7.3">Hex Preview</a>
 
           </span>
 

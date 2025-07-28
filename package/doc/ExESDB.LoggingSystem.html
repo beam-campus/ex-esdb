@@ -5,10 +5,10 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="ExDoc v0.38.2">
-    <meta name="project" content="ex_esdb v0.7.1">
+    <meta name="project" content="ex_esdb v0.7.3">
 
 
-    <title>ExESDB.LoggingSystem — ex_esdb v0.7.1</title>
+    <title>ExESDB.LoggingSystem — ex_esdb v0.7.3</title>
 
     <link rel="stylesheet" href="dist/html-elixir-KV3YOVJ3.css" />
 
@@ -39,7 +39,7 @@
 ex_esdb
         </a>
         <div class="sidebar-projectVersion" translate="no">
-          v0.7.1
+          v0.7.3
         </div>
       </div>
     </div>
@@ -78,7 +78,7 @@ ex_esdb
   <div class="heading-with-actions top-heading">
     <h1>
       <span translate="no">ExESDB.LoggingSystem</span> 
-      <small class="app-vsn" translate="no">(ex_esdb v0.7.1)</small>
+      <small class="app-vsn" translate="no">(ex_esdb v0.7.3)</small>
 
     </h1>
 
@@ -87,15 +87,15 @@ ex_esdb
 
     <section id="moduledoc">
 <p>LoggingSystem supervisor that manages individual logging workers for different ExESDB components.</p><p>This system replaces direct terminal output with PubSub-based logging events that can be
-consumed by various logging workers and processed appropriately.</p><p>The system publishes logging events to the :ex_esdb_logging PubSub topic with the following structure:</p><pre><code class="makeup elixir" translate="no"><span class="p" data-group-id="8878500538-1">%{</span><span class="w">
+consumed by various logging workers and processed appropriately.</p><p>The system publishes logging events to the :ex_esdb_logging PubSub topic with the following structure:</p><pre><code class="makeup elixir" translate="no"><span class="p" data-group-id="2834442453-1">%{</span><span class="w">
   </span><span class="ss">component</span><span class="p">:</span><span class="w"> </span><span class="ss">:emitter_pool</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="ss">:emitter_worker</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="ss">:emitter_system</span><span class="p">,</span><span class="w">
   </span><span class="ss">event_type</span><span class="p">:</span><span class="w"> </span><span class="ss">:startup</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="ss">:shutdown</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="ss">:action</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="ss">:health</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="ss">:error</span><span class="p">,</span><span class="w">
-  </span><span class="ss">store_id</span><span class="p">:</span><span class="w"> </span><span class="n">atom</span><span class="p" data-group-id="8878500538-2">(</span><span class="p" data-group-id="8878500538-2">)</span><span class="p">,</span><span class="w">
-  </span><span class="ss">pid</span><span class="p">:</span><span class="w"> </span><span class="n">pid</span><span class="p" data-group-id="8878500538-3">(</span><span class="p" data-group-id="8878500538-3">)</span><span class="p">,</span><span class="w">
-  </span><span class="ss">timestamp</span><span class="p">:</span><span class="w"> </span><span class="nc">DateTime</span><span class="o">.</span><span class="n">t</span><span class="p" data-group-id="8878500538-4">(</span><span class="p" data-group-id="8878500538-4">)</span><span class="p">,</span><span class="w">
-  </span><span class="ss">message</span><span class="p">:</span><span class="w"> </span><span class="nc">String</span><span class="o">.</span><span class="n">t</span><span class="p" data-group-id="8878500538-5">(</span><span class="p" data-group-id="8878500538-5">)</span><span class="p">,</span><span class="w">
-  </span><span class="ss">metadata</span><span class="p">:</span><span class="w"> </span><span class="n">map</span><span class="p" data-group-id="8878500538-6">(</span><span class="p" data-group-id="8878500538-6">)</span><span class="w">
-</span><span class="p" data-group-id="8878500538-1">}</span></code></pre>
+  </span><span class="ss">store_id</span><span class="p">:</span><span class="w"> </span><span class="n">atom</span><span class="p" data-group-id="2834442453-2">(</span><span class="p" data-group-id="2834442453-2">)</span><span class="p">,</span><span class="w">
+  </span><span class="ss">pid</span><span class="p">:</span><span class="w"> </span><span class="n">pid</span><span class="p" data-group-id="2834442453-3">(</span><span class="p" data-group-id="2834442453-3">)</span><span class="p">,</span><span class="w">
+  </span><span class="ss">timestamp</span><span class="p">:</span><span class="w"> </span><span class="nc">DateTime</span><span class="o">.</span><span class="n">t</span><span class="p" data-group-id="2834442453-4">(</span><span class="p" data-group-id="2834442453-4">)</span><span class="p">,</span><span class="w">
+  </span><span class="ss">message</span><span class="p">:</span><span class="w"> </span><span class="nc">String</span><span class="o">.</span><span class="n">t</span><span class="p" data-group-id="2834442453-5">(</span><span class="p" data-group-id="2834442453-5">)</span><span class="p">,</span><span class="w">
+  </span><span class="ss">metadata</span><span class="p">:</span><span class="w"> </span><span class="n">map</span><span class="p" data-group-id="2834442453-6">(</span><span class="p" data-group-id="2834442453-6">)</span><span class="w">
+</span><span class="p" data-group-id="2834442453-1">}</span></code></pre>
     </section>
 
 </div>
@@ -187,9 +187,9 @@ consumed by various logging workers and processed appropriately.</p><p>The syste
       <p>
 
           <span class="line">
-            <a href="https://hex.pm/packages/ex_esdb/0.7.1" class="footer-hex-package">Hex Package</a>
+            <a href="https://hex.pm/packages/ex_esdb/0.7.3" class="footer-hex-package">Hex Package</a>
 
-            <a href="https://preview.hex.pm/preview/ex_esdb/0.7.1">Hex Preview</a>
+            <a href="https://preview.hex.pm/preview/ex_esdb/0.7.3">Hex Preview</a>
 
           </span>
 

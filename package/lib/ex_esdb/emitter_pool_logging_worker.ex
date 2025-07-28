@@ -42,7 +42,7 @@ defmodule ExESDB.EmitterPoolLoggingWorker do
   def init(opts) do
     store_id = StoreNaming.extract_store_id(opts)
     logging_level = Keyword.get(opts, :emitter_pool_logging_level, :info)
-    terminal_output = Keyword.get(opts, :emitter_pool_terminal_output, true)
+    terminal_output = Keyword.get(opts, :emitter_pool_terminal_output, false) # Default to false - pools can be chatty
     
     # Subscribe to emitter_pool logging events
     :ok = PubSub.subscribe(:ex_esdb_logging, "logging:emitter_pool")
