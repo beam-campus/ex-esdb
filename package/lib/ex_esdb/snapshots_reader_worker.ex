@@ -33,7 +33,11 @@ defmodule ExESDB.SnapshotsReaderWorker do
   @impl true
   def terminate(reason, {store, source_uuid, stream_uuid, _partition}) do
     cluster_id = SnapshotsReader.cluster_id(store, source_uuid, stream_uuid)
-    IO.puts("#{Themes.snapshots_reader_worker(self(), "⚠️  Shutting down gracefully. Reason: #{inspect(reason)}")}")
+
+    IO.puts(
+      "#{Themes.snapshots_reader_worker(self(), "⚠️  Shutting down gracefully. Reason: #{inspect(reason)}")}"
+    )
+
     # Unregister from Swarm
     Swarm.unregister_name(cluster_id)
     :ok

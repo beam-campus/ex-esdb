@@ -14,8 +14,9 @@ tmp/
 /cover
 /deps
 /.fetch
-/tmp
-/doc
+tmp/
+doc/
+
 
 
 erl_crash.dump
