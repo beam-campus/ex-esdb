@@ -1,6 +1,6 @@
 defmodule ExESDB.StreamsReaderWorker do
   @moduledoc """
-    Provides functions for reading and streaming events from the event store.
+    Provides functions for reading and streaming events from the event store_id.
   """
   use GenServer
   require Logger
@@ -11,22 +11,22 @@ defmodule ExESDB.StreamsReaderWorker do
 
   import ExESDB.Khepri.Conditions
 
-  defp try_register_with_swarm(name, store, stream_id, partition) do
+  defp try_register_with_swarm(name, store_id, stream_id, partition) do
     # Register with Swarm - handle potential registration failures
     case register_with_swarm(name) do
       :ok ->
-        {:ok, build_initial_state(name, store, stream_id, partition)}
+        {:ok, build_initial_state(name, store_id, stream_id, partition)}
 
       {:error, reason} ->
         {:stop, {:registration_failed, reason}}
     end
   end
 
-  defp fetch_single_event(store, stream_id, version) do
+  defp fetch_single_event(store_id, stream_id, version) do
     # Use 0-based version directly as storage key
     padded_version = Helper.pad_version(version, 6)
 
-    case :khepri.get(store, [:streams, stream_id, padded_version]) do
+    case :khepri.get(store_id, [:streams, stream_id, padded_version]) do
       {:ok, event} ->
         event
 
@@ -42,14 +42,14 @@ defmodule ExESDB.StreamsReaderWorker do
     end
   end
 
-  defp stream_events(store, stream_id, start_version, count, direction) do
+  defp stream_events(store_id, stream_id, start_version, count, direction) do
     with :ok <- validate_parameters(start_version, count),
-         {:ok, event_stream} <- fetch_events(store, stream_id, start_version, count, direction) do
+         {:ok, event_stream} <- fetch_events(store_id, stream_id, start_version, count, direction) do
       {:ok, event_stream}
     else
       # If stream doesn't exist, check if that's the real issue
       {:error, :stream_not_found} = error ->
-        case validate_stream_exists(store, stream_id) do
+        case validate_stream_exists(store_id, stream_id) do
           # Stream exists but fetch failed - propagate original error
           :ok ->
             error
@@ -68,8 +68,8 @@ defmodule ExESDB.StreamsReaderWorker do
       {:error, :internal_error}
   end
 
-  defp validate_stream_exists(store, stream_id) do
-    exists = Helper.stream_exists?(store, stream_id)
+  defp validate_stream_exists(store_id, stream_id) do
+    exists = Helper.stream_exists?(store_id, stream_id)
 
     if exists do
       :ok
@@ -88,8 +88,8 @@ defmodule ExESDB.StreamsReaderWorker do
     end
   end
 
-  defp fetch_events(store, stream_id, start_version, count, direction) do
-    stream_length = Helper.get_version!(store, stream_id)
+  defp fetch_events(store_id, stream_id, start_version, count, direction) do
+    stream_length = Helper.get_version!(store_id, stream_id)
 
     # Validate stream_length is a proper integer
     case stream_length do
@@ -103,7 +103,7 @@ defmodule ExESDB.StreamsReaderWorker do
 
         event_stream =
           valid_versions
-          |> Stream.map(&fetch_single_event(store, stream_id, &1))
+          |> Stream.map(&fetch_single_event(store_id, stream_id, &1))
           |> Stream.reject(&is_nil/1)
 
         {:ok, event_stream}
@@ -121,17 +121,17 @@ defmodule ExESDB.StreamsReaderWorker do
   ############ CALLBACKS ############
   @impl true
   def handle_call(
-        {:stream_events, store, stream_id, start_version, count, direction},
+        {:stream_events, store_id, stream_id, start_version, count, direction},
         _from,
         state
       ) do
-    result = stream_events(store, stream_id, start_version, count, direction)
+    result = stream_events(store_id, stream_id, start_version, count, direction)
     {:reply, result, state}
   end
 
   @impl true
-  def handle_call({:get_streams, store}, _from, state) do
-    result = get_streams_safe(store)
+  def handle_call({:get_streams, store_id}, _from, state) do
+    result = get_streams_safe(store_id)
     {:reply, result, state}
   end
 
@@ -142,9 +142,9 @@ defmodule ExESDB.StreamsReaderWorker do
     {:reply, {:error, :unknown_call}, state}
   end
 
-  defp get_streams_safe(store) do
+  defp get_streams_safe(store_id) do
     try do
-      case :khepri.get_many(store, [
+      case :khepri.get_many(store_id, [
              :streams,
              if_node_exists(exists: true)
            ]) do
@@ -164,7 +164,7 @@ defmodule ExESDB.StreamsReaderWorker do
 
         {:error, reason} ->
           Logger.error("Failed to get streams: #{inspect(reason)}")
-          {:error, :store_access_failed}
+          {:error, :store_id_access_failed}
       end
     rescue
       error ->
@@ -176,22 +176,23 @@ defmodule ExESDB.StreamsReaderWorker do
   ################## PlUMBING ##################
 
   @impl true
-  def init({store, stream_id, partition}) do
+  def init({store_id, stream_id, partition}) do
     Process.flag(:trap_exit, true)
-    name = StreamsReader.worker_id(store, stream_id)
-    
-    try_register_with_swarm(name, store, stream_id, partition)
+    name = StreamsReader.worker_id(store_id, stream_id)
+
+    try_register_with_swarm(name, store_id, stream_id, partition)
+
     try do
       # Validate initialization parameters
-      case validate_init_params(store, stream_id, partition) do
+      case validate_init_params(store_id, stream_id, partition) do
         :ok ->
           Process.flag(:trap_exit, true)
-          name = StreamsReader.worker_id(store, stream_id)
+          name = StreamsReader.worker_id(store_id, stream_id)
 
           # Safe logging - avoid potential crashes from theme formatting
           safe_log_startup(name, partition)
 
-          try_register_with_swarm(name, store, stream_id, partition)
+          try_register_with_swarm(name, store_id, stream_id, partition)
 
         {:error, reason} ->
           Logger.error("Invalid initialization parameters: #{inspect(reason)}")
@@ -204,9 +205,9 @@ defmodule ExESDB.StreamsReaderWorker do
     end
   end
 
-  defp validate_init_params(store, stream_id, partition) do
+  defp validate_init_params(store_id, stream_id, partition) do
     cond do
-      is_nil(store) -> {:error, :store_required}
+      is_nil(store_id) -> {:error, :store_required}
       is_nil(stream_id) or stream_id == "" -> {:error, :stream_id_required}
       is_nil(partition) -> {:error, :partition_required}
       not is_integer(partition) -> {:error, :partition_must_be_integer}
@@ -240,10 +241,10 @@ defmodule ExESDB.StreamsReaderWorker do
     end
   end
 
-  defp build_initial_state(name, store, stream_id, partition) do
+  defp build_initial_state(name, store_id, stream_id, partition) do
     %{
       worker_name: name,
-      store: store,
+      store_id: store_id,
       stream_id: stream_id,
       node: node(),
       partition: partition,
@@ -251,12 +252,12 @@ defmodule ExESDB.StreamsReaderWorker do
     }
   end
 
-  def child_spec({store, stream_id, partition} = args) do
+  def child_spec({store_id, stream_id, partition} = args) do
     # Validate parameters early to fail fast
-    case validate_child_spec_params(store, stream_id, partition) do
+    case validate_child_spec_params(store_id, stream_id, partition) do
       :ok ->
         %{
-          id: {StreamsReader.worker_id(store, stream_id), partition},
+          id: {StreamsReader.worker_id(store_id, stream_id), partition},
           start: {__MODULE__, :start_link, [args]},
           type: :worker,
           restart: :permanent,
@@ -268,9 +269,9 @@ defmodule ExESDB.StreamsReaderWorker do
     end
   end
 
-  defp validate_child_spec_params(store, stream_id, partition) do
+  defp validate_child_spec_params(store_id, stream_id, partition) do
     cond do
-      is_nil(store) -> {:error, :store_required}
+      is_nil(store_id) -> {:error, :store_required}
       is_nil(stream_id) or stream_id == "" -> {:error, :stream_id_required}
       is_nil(partition) -> {:error, :partition_required}
       not is_integer(partition) -> {:error, :partition_must_be_integer}
@@ -278,11 +279,11 @@ defmodule ExESDB.StreamsReaderWorker do
     end
   end
 
-  def start_link({store, stream_id, partition} = args) do
+  def start_link({store_id, stream_id, partition} = args) do
     # Validate parameters before attempting to start
-    case validate_child_spec_params(store, stream_id, partition) do
+    case validate_child_spec_params(store_id, stream_id, partition) do
       :ok ->
-        worker_id = StreamsReader.worker_id(store, stream_id)
+        worker_id = StreamsReader.worker_id(store_id, stream_id)
 
         GenServer.start_link(
           __MODULE__,
@@ -318,6 +319,7 @@ defmodule ExESDB.StreamsReaderWorker do
       {:shutdown, _} -> :ok
       _ -> Logger.warning("StreamsReaderWorker terminating unexpectedly: #{inspect(reason)}")
     end
+
     :ok
   end
 end

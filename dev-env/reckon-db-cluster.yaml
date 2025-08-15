@@ -1,0 +1,101 @@
+# YAML anchors for reusable templates
+
+# Environment templates for ReckonDB
+x-reckon-environment: &reckon-env
+  EX_ESDB_STORE_ID: "reckon_db"
+  EX_ESDB_DB_TYPE: "cluster"
+  EX_ESDB_TIMEOUT: "10000"
+  EX_ESDB_STORE_DESCRIPTION: "ReckonDB Admin Portal & Management"
+  EX_ESDB_STORE_TAGS: "admin,portal,cluster,management,reckon"
+  EX_ESDB_COOKIE: ${EX_ESDB_COOKIE}
+  EX_ESDB_CLUSTER_SECRET: ${EX_ESDB_CLUSTER_SECRET}
+  EX_ESDB_GOSSIP_MULTICAST_ADDR: ${EX_ESDB_GOSSIP_MULTICAST_ADDR}
+  RELEASE_COOKIE: ${EX_ESDB_COOKIE}
+  ERLANG_COOKIE: ${EX_ESDB_COOKIE}
+  LOG_LEVEL: "info"
+  RUST_LOG: "info"
+  # Phoenix/Web configuration
+  SECRET_KEY_BASE: "KvkG3vNVWJRhMQIRnKhuvlQlHJ5wvd9MHkUwCtfhHPPy3wYTF/vqlA/9Sl3ZvaCE"
+  PORT: "4000"
+  GRPC_PORT: "50051"
+  PHX_HOST: "localhost"
+  PHOENIX_CHECK_ORIGIN: "//localhost:4000"
+  # Database configuration
+  DATABASE_PATH: "/app/data/reckon_db.db"
+  # Clustering configuration
+  ERL_EPMD_PORT: "4369"
+  ERLANG_DIST_PORT: "9100"
+
+# Logging configuration template
+x-logging: &logging
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "100m"
+      max-file: "3"
+      labels: "service,environment"
+
+services:
+  # ReckonDB Admin Portal
+  reckon-db:
+    image: local/reckon-db
+    build:
+      context: /home/rl/work/github.com/reckon-db-org/reckon_admin/system
+      dockerfile: cluster.Dockerfile
+      args:
+        - BUILD_ENV=production
+    hostname: reckon-db
+    container_name: reckon-db
+    profiles:
+      - cluster
+      - admin
+    networks:
+      - ex-esdb-net
+    ports:
+      - "4000:4000"     # Phoenix HTTP
+      - "50051:50051"   # gRPC API
+      - "25530:4369"    # EPMD port
+      - "25531:9100"    # Erlang distribution port
+    environment:
+      <<: *reckon-env
+      RELEASE_NODE: "reckon_db@reckon-db"
+      LOG_LEVEL: "info"
+      RUST_LOG: "warn"
+    volumes:
+      - reckon-db-data:/app/data
+    stop_grace_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "1.0"
+        reservations:
+          memory: 512M
+          cpus: "0.5"
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    healthcheck:
+      test: ["CMD", "/system/check-reckon-db.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    <<: *logging
+    labels:
+      - "service=reckon-db"
+      - "environment=production"
+      - "cluster=admin"
+      - "tier=management"
+      - "role=admin-portal"
+
+networks:
+  ex-esdb-net:
+    external: true
+    name: ex-esdb-net
+
+volumes:
+  reckon-db-data:
+    driver: local

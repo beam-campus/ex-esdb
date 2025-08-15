@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.38.2">
+    <meta name="project" content="ex_esdb v0.7.8">
+
+
+    <title>ExESDB.Events — ex_esdb v0.7.8</title>
+
+    <link rel="stylesheet" href="dist/html-elixir-KV3YOVJ3.css" />
+
+      <link rel="canonical" href="https://hexdocs.pm/ex_esdb/ExESDB.Events.html" />
+
+    <script defer src="dist/sidebar_items-B1F589E0.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-DPJLHKSM.js"></script>
+
+  </head>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
+
+<div class="body-wrapper">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+      <div>
+        <a href="readme.html" class="sidebar-projectName" translate="no">
+ex_esdb
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.7.8
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras="guides"></ul>
+  </div>
+</nav>
+
+<output role="status" id="toast"></output>
+
+<main class="content page-module" id="main" data-type="modules">
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of ex_esdb</span>
+            <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+          </label>
+          <button type="submit" class="search-button" aria-label="Submit Search" tabindex="-1">
+            <i class="ri-search-2-line ri-lg" aria-hidden="true"></i>
+          </button>
+          <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+            <i class="ri-close-line ri-lg" title="Cancel search"></i>
+          </button>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <div class="heading-with-actions top-heading">
+    <h1>
+      <span translate="no">ExESDB.Events</span> 
+      <small class="app-vsn" translate="no">(ex_esdb v0.7.8)</small>
+
+    </h1>
+
+  </div>
+
+
+    <section id="moduledoc">
+<p>Event definitions and schemas for ExESDB subsystems.</p><p>This module provides centralized event type definitions and helper functions
+for building event payloads. Each module is responsible for publishing its
+own events using Phoenix.PubSub directly.</p><h2 id="module-event-categories" class="section-heading"><a href="#module-event-categories" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Event Categories</span></h2><ul><li><code class="inline">:system</code> - System lifecycle and initialization events</li><li><code class="inline">:cluster</code> - Cluster membership and coordination events</li><li><code class="inline">:leadership</code> - Leadership changes and responsibilities</li><li><code class="inline">:persistence</code> - Data persistence and storage events</li><li><code class="inline">:gateway</code> - External interface and API events</li><li><code class="inline">:coordination</code> - General coordination events</li><li><code class="inline">:subscriptions</code> - Subscription management events</li></ul><h2 id="module-usage" class="section-heading"><a href="#module-usage" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Usage</span></h2><pre><code class="makeup elixir" translate="no"><span class="c1"># Each module publishes its own events:</span><span class="w">
+
+</span><span class="c1"># In PersistenceWorker:</span><span class="w">
+</span><span class="n">event</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Events</span><span class="o">.</span><span class="n">build_event</span><span class="p" data-group-id="1035255424-1">(</span><span class="ss">:events_persisted</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1035255424-2">%{</span><span class="ss">stream_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;orders&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">event_count</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p" data-group-id="1035255424-2">}</span><span class="p" data-group-id="1035255424-1">)</span><span class="w">
+</span><span class="nc">Phoenix.PubSub</span><span class="o">.</span><span class="n">broadcast</span><span class="p" data-group-id="1035255424-3">(</span><span class="nc">ExESDB.PubSub</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;exesdb:control:store_id:persistence&quot;</span><span class="p">,</span><span class="w"> 
+  </span><span class="p" data-group-id="1035255424-4">{</span><span class="ss">:persistence_event</span><span class="p">,</span><span class="w"> </span><span class="n">event</span><span class="p" data-group-id="1035255424-4">}</span><span class="p" data-group-id="1035255424-3">)</span><span class="w">
+
+</span><span class="c1"># In StoreCluster:</span><span class="w">
+</span><span class="n">event</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Events</span><span class="o">.</span><span class="n">build_event</span><span class="p" data-group-id="1035255424-5">(</span><span class="ss">:cluster_joined</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1035255424-6">%{</span><span class="ss">via_node</span><span class="p">:</span><span class="w"> </span><span class="n">target_node</span><span class="p" data-group-id="1035255424-6">}</span><span class="p" data-group-id="1035255424-5">)</span><span class="w">
+</span><span class="nc">Phoenix.PubSub</span><span class="o">.</span><span class="n">broadcast</span><span class="p" data-group-id="1035255424-7">(</span><span class="nc">ExESDB.PubSub</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;exesdb:control:store_id:cluster&quot;</span><span class="p">,</span><span class="w"> 
+  </span><span class="p" data-group-id="1035255424-8">{</span><span class="ss">:cluster_event</span><span class="p">,</span><span class="w"> </span><span class="n">event</span><span class="p" data-group-id="1035255424-8">}</span><span class="p" data-group-id="1035255424-7">)</span></code></pre>
+    </section>
+
+</div>
+
+  <section id="summary" class="details-list">
+    <h1 class="section-heading">
+      <a class="hover-link" href="#summary">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Summary</span>
+    </h1>
+<div class="summary-functions summary">
+  <h2>
+    <a href="#functions">Functions</a>
+  </h2>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#all_events/0" data-no-tooltip="" translate="no">all_events()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Returns all event types organized by category</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#build_event/3" data-no-tooltip="" translate="no">build_event(event_type, data \\ %{}, opts \\ [])</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Builds a standard event map with common fields.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#build_payload/4" data-no-tooltip="" translate="no">build_payload(event_wrapper, event_type, data \\ %{}, opts \\ [])</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Helper to build event payload with standardized event wrapper.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#build_topic/2" data-no-tooltip="" translate="no">build_topic(store_id, category)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Builds a topic string for a given store and category.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#cluster_events/0" data-no-tooltip="" translate="no">cluster_events()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Returns all defined cluster events</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#coordination_events/0" data-no-tooltip="" translate="no">coordination_events()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Returns all defined coordination events</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#gateway_events/0" data-no-tooltip="" translate="no">gateway_events()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Returns all defined gateway events</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#leadership_events/0" data-no-tooltip="" translate="no">leadership_events()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Returns all defined leadership events</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#persistence_events/0" data-no-tooltip="" translate="no">persistence_events()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Returns all defined persistence events</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#subscription_events/0" data-no-tooltip="" translate="no">subscription_events()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Returns all defined subscription events</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#system_events/0" data-no-tooltip="" translate="no">system_events()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Returns all defined system events</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#valid_event?/2" data-no-tooltip="" translate="no">valid_event?(category, event_type)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Checks if an event type is valid for a given category</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#valid_event_structure?/1" data-no-tooltip="" translate="no">valid_event_structure?(event)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Validates that an event has all required fields</p></div>
+
+    </div>
+
+</div>
+
+  </section>
+
+
+  <section id="functions" class="details-list">
+    <h1 class="section-heading">
+      <a class="hover-link" href="#functions">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Functions</span>
+    </h1>
+    <div class="functions-list">
+<section class="detail" id="all_events/0">
+
+  <div class="detail-header">
+    <a href="#all_events/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">all_events()</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Returns all event types organized by category</p>
+  </section>
+</section>
+<section class="detail" id="build_event/3">
+
+    <span id="build_event/1"></span>
+
+    <span id="build_event/2"></span>
+
+  <div class="detail-header">
+    <a href="#build_event/3" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">build_event(event_type, data \\ %{}, opts \\ [])</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Builds a standard event map with common fields.</p><h2 id="build_event/3-parameters" class="section-heading"><a href="#build_event/3-parameters" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Parameters</span></h2><ul><li><code class="inline">event_type</code> - The event type (atom)</li><li><code class="inline">data</code> - Event-specific data (map)</li><li><code class="inline">opts</code> - Optional fields like <code class="inline">:store_id</code> (keyword list)</li></ul><h2 id="build_event/3-examples" class="section-heading"><a href="#build_event/3-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="nc">Events</span><span class="o">.</span><span class="n">build_event</span><span class="p" data-group-id="2211959185-1">(</span><span class="ss">:cluster_joined</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="2211959185-2">%{</span><span class="ss">via_node</span><span class="p">:</span><span class="w"> </span><span class="n">node1</span><span class="p" data-group-id="2211959185-2">}</span><span class="p" data-group-id="2211959185-1">)</span><span class="w">
+</span><span class="nc">Events</span><span class="o">.</span><span class="n">build_event</span><span class="p" data-group-id="2211959185-3">(</span><span class="ss">:events_persisted</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="2211959185-4">%{</span><span class="ss">stream_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;orders&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">count</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p" data-group-id="2211959185-4">}</span><span class="p">,</span><span class="w"> </span><span class="ss">store_id</span><span class="p">:</span><span class="w"> </span><span class="ss">:my_store</span><span class="p" data-group-id="2211959185-3">)</span></code></pre>
+  </section>
+</section>
+<section class="detail" id="build_payload/4">
+
+    <span id="build_payload/2"></span>
+
+    <span id="build_payload/3"></span>
+
+  <div class="detail-header">
+    <a href="#build_payload/4" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">build_payload(event_wrapper, event_type, data \\ %{}, opts \\ [])</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Helper to build event payload with standardized event wrapper.</p><h2 id="build_payload/4-examples" class="section-heading"><a href="#build_payload/4-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="nc">Events</span><span class="o">.</span><span class="n">build_payload</span><span class="p" data-group-id="8502244989-1">(</span><span class="ss">:cluster_event</span><span class="p">,</span><span class="w"> </span><span class="ss">:cluster_joined</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8502244989-2">%{</span><span class="ss">via_node</span><span class="p">:</span><span class="w"> </span><span class="n">node1</span><span class="p" data-group-id="8502244989-2">}</span><span class="p" data-group-id="8502244989-1">)</span><span class="w">
+</span><span class="c1"># =&gt; {:cluster_event, %{event_type: :cluster_joined, ...}}</span></code></pre>
+  </section>
+</section>
+<section class="detail" id="build_topic/2">
+
+  <div class="detail-header">
+    <a href="#build_topic/2" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">build_topic(store_id, category)</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Builds a topic string for a given store and category.</p><h2 id="build_topic/2-examples" class="section-heading"><a href="#build_topic/2-examples" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Examples</span></h2><pre><code class="makeup elixir" translate="no"><span class="nc">Events</span><span class="o">.</span><span class="n">build_topic</span><span class="p" data-group-id="3297915827-1">(</span><span class="ss">:my_store</span><span class="p">,</span><span class="w"> </span><span class="ss">:cluster</span><span class="p" data-group-id="3297915827-1">)</span><span class="w">
+</span><span class="c1"># =&gt; &quot;exesdb:control:my_store:cluster&quot;</span></code></pre>
+  </section>
+</section>
+<section class="detail" id="cluster_events/0">
+
+  <div class="detail-header">
+    <a href="#cluster_events/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">cluster_events()</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Returns all defined cluster events</p>
+  </section>
+</section>
+<section class="detail" id="coordination_events/0">
+
+  <div class="detail-header">
+    <a href="#coordination_events/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">coordination_events()</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Returns all defined coordination events</p>
+  </section>
+</section>
+<section class="detail" id="gateway_events/0">
+
+  <div class="detail-header">
+    <a href="#gateway_events/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">gateway_events()</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Returns all defined gateway events</p>
+  </section>
+</section>
+<section class="detail" id="leadership_events/0">
+
+  <div class="detail-header">
+    <a href="#leadership_events/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">leadership_events()</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Returns all defined leadership events</p>
+  </section>
+</section>
+<section class="detail" id="persistence_events/0">
+
+  <div class="detail-header">
+    <a href="#persistence_events/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">persistence_events()</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Returns all defined persistence events</p>
+  </section>
+</section>
+<section class="detail" id="subscription_events/0">
+
+  <div class="detail-header">
+    <a href="#subscription_events/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">subscription_events()</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Returns all defined subscription events</p>
+  </section>
+</section>
+<section class="detail" id="system_events/0">
+
+  <div class="detail-header">
+    <a href="#system_events/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">system_events()</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Returns all defined system events</p>
+  </section>
+</section>
+<section class="detail" id="valid_event?/2">
+
+  <div class="detail-header">
+    <a href="#valid_event?/2" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">valid_event?(category, event_type)</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Checks if an event type is valid for a given category</p>
+  </section>
+</section>
+<section class="detail" id="valid_event_structure?/1">
+
+  <div class="detail-header">
+    <a href="#valid_event_structure?/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">valid_event_structure?(event)</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Validates that an event has all required fields</p>
+  </section>
+</section>
+
+    </div>
+  </section>
+
+    <footer class="footer">
+      <p>
+
+          <span class="line">
+            <a href="https://hex.pm/packages/ex_esdb/0.7.8" class="footer-hex-package">Hex Package</a>
+
+            <a href="https://preview.hex.pm/preview/ex_esdb/0.7.8">Hex Preview</a>
+
+          </span>
+
+        <span class="line">
+          <button class="a-main footer-button display-quick-switch" title="Search HexDocs packages">
+            Search HexDocs
+          </button>
+
+            <a href="ex_esdb.epub" title="ePub version">
+              Download ePub version
+            </a>
+
+        </span>
+      </p>
+
+      <p class="built-using">
+        Built using
+        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.38.2) for the
+
+          <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+      </p>
+
+    </footer>
+  </div>
+</main>
+</div>
+
+  </body>
+</html>

@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.38.2">
+    <meta name="project" content="ex_esdb v0.7.8">
+
+
+    <title>ExESDB.Options.Simplified — ex_esdb v0.7.8</title>
+
+    <link rel="stylesheet" href="dist/html-elixir-KV3YOVJ3.css" />
+
+      <link rel="canonical" href="https://hexdocs.pm/ex_esdb/ExESDB.Options.Simplified.html" />
+
+    <script defer src="dist/sidebar_items-B1F589E0.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-DPJLHKSM.js"></script>
+
+  </head>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
+
+<div class="body-wrapper">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+      <div>
+        <a href="readme.html" class="sidebar-projectName" translate="no">
+ex_esdb
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.7.8
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras="guides"></ul>
+  </div>
+</nav>
+
+<output role="status" id="toast"></output>
+
+<main class="content page-module" id="main" data-type="modules">
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of ex_esdb</span>
+            <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+          </label>
+          <button type="submit" class="search-button" aria-label="Submit Search" tabindex="-1">
+            <i class="ri-search-2-line ri-lg" aria-hidden="true"></i>
+          </button>
+          <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+            <i class="ri-close-line ri-lg" title="Cancel search"></i>
+          </button>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <div class="heading-with-actions top-heading">
+    <h1>
+      <span translate="no">ExESDB.Options.Simplified</span> 
+      <small class="app-vsn" translate="no">(ex_esdb v0.7.8)</small>
+
+    </h1>
+
+  </div>
+
+
+    <section id="moduledoc">
+<p>Simplified ExESDB configuration module using automatic OTP app discovery.</p><p>This module dramatically reduces complexity by:</p><ol><li>Automatically discovering the calling application</li><li>Using a macro to generate config functions with less duplication</li><li>Providing sensible defaults and environment variable overrides</li></ol><p>Usage:
+  # Automatic discovery (recommended)
+  ExESDB.Options.data_dir()      # Discovers calling app automatically</p><p>  # Explicit app specification
+  ExESDB.Options.data_dir(:my_app)</p><p>  # Context-based (for umbrella apps)
+  ExESDB.Options.with_context(:my_app, fn -&gt;</p><pre><code class="makeup elixir" translate="no"><span class="nc">ExESDB.Options</span><span class="o">.</span><span class="n">data_dir</span><span class="p" data-group-id="7004217196-1">(</span><span class="p" data-group-id="7004217196-1">)</span><span class="w">    </span><span class="c1"># Uses :my_app context</span></code></pre><p>  end)</p>
+    </section>
+
+</div>
+
+  <section id="summary" class="details-list">
+    <h1 class="section-heading">
+      <a class="hover-link" href="#summary">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Summary</span>
+    </h1>
+<div class="summary-functions summary">
+  <h2>
+    <a href="#functions">Functions</a>
+  </h2>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#app_env/1" data-no-tooltip="" translate="no">app_env(otp_app \\ nil)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Get complete configuration for an OTP app</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#app_env/3" data-no-tooltip="" translate="no">app_env(otp_app, key, default)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Get a specific config value from app environment with default.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#data_dir/1" data-no-tooltip="" translate="no">data_dir(otp_app \\ nil)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#db_type/1" data-no-tooltip="" translate="no">db_type(otp_app \\ nil)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#discover_app_name/0" data-no-tooltip="" translate="no">discover_app_name()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Discovers the current OTP application name using multiple strategies.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#get_config_value/2" data-no-tooltip="" translate="no">get_config_value(key, otp_app \\ nil)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Generic configuration value getter with automatic app discovery.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#get_context/0" data-no-tooltip="" translate="no">get_context()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Get current application context</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#persistence_enabled/1" data-no-tooltip="" translate="no">persistence_enabled(otp_app \\ nil)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#persistence_interval/1" data-no-tooltip="" translate="no">persistence_interval(otp_app \\ nil)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#pub_sub/1" data-no-tooltip="" translate="no">pub_sub(otp_app \\ nil)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#reader_idle_ms/1" data-no-tooltip="" translate="no">reader_idle_ms(otp_app \\ nil)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#set_context/1" data-no-tooltip="" translate="no">set_context(otp_app)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Set application context for configuration lookup</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#store_description/1" data-no-tooltip="" translate="no">store_description(otp_app \\ nil)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#store_id/1" data-no-tooltip="" translate="no">store_id(otp_app \\ nil)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#store_tags/1" data-no-tooltip="" translate="no">store_tags(otp_app \\ nil)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#timeout/1" data-no-tooltip="" translate="no">timeout(otp_app \\ nil)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#topologies/0" data-no-tooltip="" translate="no">topologies()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#with_context/2" data-no-tooltip="" translate="no">with_context(otp_app, fun)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Execute function within specific application context</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#writer_idle_ms/1" data-no-tooltip="" translate="no">writer_idle_ms(otp_app \\ nil)</a>
+
+      </div>
+
+    </div>
+
+</div>
+
+  </section>
+
+
+  <section id="functions" class="details-list">
+    <h1 class="section-heading">
+      <a class="hover-link" href="#functions">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Functions</span>
+    </h1>
+    <div class="functions-list">
+<section class="detail" id="app_env/1">
+
+    <span id="app_env/0"></span>
+
+  <div class="detail-header">
+    <a href="#app_env/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">app_env(otp_app \\ nil)</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Get complete configuration for an OTP app</p>
+  </section>
+</section>
+<section class="detail" id="app_env/3">
+
+  <div class="detail-header">
+    <a href="#app_env/3" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">app_env(otp_app, key, default)</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Get a specific config value from app environment with default.</p>
+  </section>
+</section>
+<section class="detail" id="data_dir/1">
+
+    <span id="data_dir/0"></span>
+
+  <div class="detail-header">
+    <a href="#data_dir/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">data_dir(otp_app \\ nil)</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="db_type/1">
+
+    <span id="db_type/0"></span>
+
+  <div class="detail-header">
+    <a href="#db_type/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">db_type(otp_app \\ nil)</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="discover_app_name/0">
+
+  <div class="detail-header">
+    <a href="#discover_app_name/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">discover_app_name()</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Discovers the current OTP application name using multiple strategies.</p>
+  </section>
+</section>
+<section class="detail" id="get_config_value/2">
+
+    <span id="get_config_value/1"></span>
+
+  <div class="detail-header">
+    <a href="#get_config_value/2" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">get_config_value(key, otp_app \\ nil)</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Generic configuration value getter with automatic app discovery.</p><p>Priority order:</p><ol><li>Environment variable</li><li>Application configuration</li><li>Default value</li></ol>
+  </section>
+</section>
+<section class="detail" id="get_context/0">
+
+  <div class="detail-header">
+    <a href="#get_context/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">get_context()</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Get current application context</p>
+  </section>
+</section>
+<section class="detail" id="persistence_enabled/1">
+
+    <span id="persistence_enabled/0"></span>
+
+  <div class="detail-header">
+    <a href="#persistence_enabled/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">persistence_enabled(otp_app \\ nil)</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="persistence_interval/1">
+
+    <span id="persistence_interval/0"></span>
+
+  <div class="detail-header">
+    <a href="#persistence_interval/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">persistence_interval(otp_app \\ nil)</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="pub_sub/1">
+
+    <span id="pub_sub/0"></span>
+
+  <div class="detail-header">
+    <a href="#pub_sub/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">pub_sub(otp_app \\ nil)</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="reader_idle_ms/1">
+
+    <span id="reader_idle_ms/0"></span>
+
+  <div class="detail-header">
+    <a href="#reader_idle_ms/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">reader_idle_ms(otp_app \\ nil)</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="set_context/1">
+
+  <div class="detail-header">
+    <a href="#set_context/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">set_context(otp_app)</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Set application context for configuration lookup</p>
+  </section>
+</section>
+<section class="detail" id="store_description/1">
+
+    <span id="store_description/0"></span>
+
+  <div class="detail-header">
+    <a href="#store_description/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">store_description(otp_app \\ nil)</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="store_id/1">
+
+    <span id="store_id/0"></span>
+
+  <div class="detail-header">
+    <a href="#store_id/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">store_id(otp_app \\ nil)</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="store_tags/1">
+
+    <span id="store_tags/0"></span>
+
+  <div class="detail-header">
+    <a href="#store_tags/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">store_tags(otp_app \\ nil)</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="timeout/1">
+
+    <span id="timeout/0"></span>
+
+  <div class="detail-header">
+    <a href="#timeout/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">timeout(otp_app \\ nil)</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="topologies/0">
+
+  <div class="detail-header">
+    <a href="#topologies/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">topologies()</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="with_context/2">
+
+  <div class="detail-header">
+    <a href="#with_context/2" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">with_context(otp_app, fun)</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Execute function within specific application context</p>
+  </section>
+</section>
+<section class="detail" id="writer_idle_ms/1">
+
+    <span id="writer_idle_ms/0"></span>
+
+  <div class="detail-header">
+    <a href="#writer_idle_ms/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">writer_idle_ms(otp_app \\ nil)</h1>
+
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+
+    </div>
+  </section>
+
+    <footer class="footer">
+      <p>
+
+          <span class="line">
+            <a href="https://hex.pm/packages/ex_esdb/0.7.8" class="footer-hex-package">Hex Package</a>
+
+            <a href="https://preview.hex.pm/preview/ex_esdb/0.7.8">Hex Preview</a>
+
+          </span>
+
+        <span class="line">
+          <button class="a-main footer-button display-quick-switch" title="Search HexDocs packages">
+            Search HexDocs
+          </button>
+
+            <a href="ex_esdb.epub" title="ePub version">
+              Download ePub version
+            </a>
+
+        </span>
+      </p>
+
+      <p class="built-using">
+        Built using
+        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.38.2) for the
+
+          <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+      </p>
+
+    </footer>
+  </div>
+</main>
+</div>
+
+  </body>
+</html>

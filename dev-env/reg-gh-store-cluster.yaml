@@ -56,9 +56,10 @@ x-logging: &logging
 
 # Main service template
 x-esdb-service: &esdb-service
-  image: local/ex-esdb
+  image: local/reg-gh
   build:
-    context: ../system
+    context: ..
+    dockerfile: reg_gh/Dockerfile
     args:
       - BUILD_ENV=development
   profiles:
@@ -84,7 +85,7 @@ x-esdb-service: &esdb-service
       max_attempts: 3
       window: 120s
   healthcheck:
-    test: ["CMD", "/system/check-ex-esdb.sh"]
+    test: ["CMD", "/system/check-reg-gh.sh"]
     interval: 30s
     timeout: 10s
     retries: 3
@@ -110,11 +111,17 @@ services:
     <<: *esdb-service
     hostname: reg-gh-0
     container_name: reg-gh-0
+    ports:
+      - "25520:4369"   # EPMD port
+      - "25521:9100"   # Erlang distribution port
     environment:
       <<: *dev-env
-      RELEASE_NODE: "ex_esdb@reg-gh-0"
+      RELEASE_NODE: "reg_gh@reg-gh-0"
       LOG_LEVEL: "info"
       RUST_LOG: "warn"
+      # Fix the Erlang distribution port
+      ERL_EPMD_PORT: "4369"
+      ERLANG_DIST_PORT: "9100"
     volumes:
       - reg-gh-0-data:/data
     labels:
@@ -129,11 +136,16 @@ services:
     <<: *esdb-service
     hostname: reg-gh-1
     container_name: reg-gh-1
+    ports:
+      - "25522:4369"   # EPMD port
+      - "25523:9100"   # Erlang distribution port
     environment:
       <<: *dev-env
-      RELEASE_NODE: "ex_esdb@reg-gh-1"
+      RELEASE_NODE: "reg_gh@reg-gh-1"
       LOG_LEVEL: "info"
       RUST_LOG: "warn"
+      ERL_EPMD_PORT: "4369"
+      ERLANG_DIST_PORT: "9100"
     volumes:
       - reg-gh-1-data:/data
     labels:
@@ -148,11 +160,16 @@ services:
     <<: *esdb-service
     hostname: reg-gh-2
     container_name: reg-gh-2
+    ports:
+      - "25524:4369"   # EPMD port
+      - "25525:9100"   # Erlang distribution port
     environment:
       <<: *dev-env
-      RELEASE_NODE: "ex_esdb@reg-gh-2"
+      RELEASE_NODE: "reg_gh@reg-gh-2"
       LOG_LEVEL: "info"
       RUST_LOG: "warn"
+      ERL_EPMD_PORT: "4369"
+      ERLANG_DIST_PORT: "9100"
     volumes:
       - reg-gh-2-data:/data
     labels:

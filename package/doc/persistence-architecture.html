@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.38.2">
+    <meta name="project" content="ex_esdb v0.7.8">
+
+
+    <title>Persistence Architecture — ex_esdb v0.7.8</title>
+
+    <link rel="stylesheet" href="dist/html-elixir-KV3YOVJ3.css" />
+
+      <link rel="canonical" href="https://hexdocs.pm/ex_esdb/persistence-architecture.html" />
+
+    <script defer src="dist/sidebar_items-B1F589E0.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-DPJLHKSM.js"></script>
+
+  </head>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
+
+<div class="body-wrapper">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+      <div>
+        <a href="readme.html" class="sidebar-projectName" translate="no">
+ex_esdb
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.7.8
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras="guides"></ul>
+  </div>
+</nav>
+
+<output role="status" id="toast"></output>
+
+<main class="content page-extra" id="main" data-type="extras">
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of ex_esdb</span>
+            <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+          </label>
+          <button type="submit" class="search-button" aria-label="Submit Search" tabindex="-1">
+            <i class="ri-search-2-line ri-lg" aria-hidden="true"></i>
+          </button>
+          <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+            <i class="ri-close-line ri-lg" title="Cancel search"></i>
+          </button>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <div class="heading-with-actions top-heading">
+    <h1>ExESDB Asynchronous Persistence Architecture</h1>
+
+
+  </div>
+
+
+<h2 id="overview" class="section-heading"><a href="#overview" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Overview</span></h2><p>The ExESDB persistence system has been redesigned to handle disk persistence operations asynchronously, eliminating timeout issues that were occurring during event append operations.</p><h2 id="problem-statement" class="section-heading"><a href="#problem-statement" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Problem Statement</span></h2><p>In version 0.3.3, synchronous fence operations were introduced to ensure data persistence to disk. However, these operations caused significant performance issues:</p><ol><li><strong>Blocking Operations</strong>: Synchronous <code class="inline">khepri.fence()</code> calls blocked event append operations</li><li><strong>Timeout Failures</strong>: Operations would timeout after 5 seconds, causing command failures</li><li><strong>Poor User Experience</strong>: System appeared unresponsive during data-heavy operations</li></ol><h2 id="solution-asynchronous-persistence-system" class="section-heading"><a href="#solution-asynchronous-persistence-system" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Solution: Asynchronous Persistence System</span></h2><h3 id="architecture-components" class="section-heading"><a href="#architecture-components" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Architecture Components</span></h3><h4>1. PersistenceWorker (<code class="inline">ex_esdb/persistence_worker.ex</code>)</h4><p>A dedicated GenServer that handles all disk persistence operations asynchronously:</p><ul><li><strong>Batching</strong>: Collects multiple persistence requests and processes them together</li><li><strong>Periodic Execution</strong>: Runs every 5 seconds (configurable) to persist pending data</li><li><strong>Non-blocking</strong>: Event append operations return immediately without waiting for disk writes</li><li><strong>Graceful Shutdown</strong>: Ensures all pending data is persisted before termination</li></ul><h4>2. Modified StreamsWriterWorker (<code class="inline">ex_esdb/streams_writer_worker.ex</code>)</h4><p>The event append process now:</p><ul><li>Stores events in memory immediately</li><li>Queues a persistence request to the PersistenceWorker</li><li>Returns success without waiting for disk persistence</li></ul><h4>3. Enhanced PersistenceSystem (<code class="inline">ex_esdb/persistence_system.ex</code>)</h4><p>The supervisor now includes the PersistenceWorker as a managed component.</p><h3 id="benefits" class="section-heading"><a href="#benefits" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Benefits</span></h3><ol><li><strong>Immediate Response</strong>: Event append operations return instantly</li><li><strong>Better Throughput</strong>: Batched disk operations are more efficient</li><li><strong>Configurable Intervals</strong>: Persistence frequency can be tuned per environment</li><li><strong>Fault Tolerance</strong>: Failed persistence operations are retried automatically</li><li><strong>Graceful Degradation</strong>: System continues operating even if persistence is delayed</li></ol><h3 id="configuration" class="section-heading"><a href="#configuration" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Configuration</span></h3><p>The persistence system can be configured in several ways:</p><h4>Application Configuration</h4><pre><code class="makeup elixir" translate="no"><span class="c1"># Global configuration</span><span class="w">
+</span><span class="n">config</span><span class="w"> </span><span class="ss">:ex_esdb</span><span class="p">,</span><span class="w"> 
+  </span><span class="ss">persistence_interval</span><span class="p">:</span><span class="w"> </span><span class="mi">10_000</span><span class="p">,</span><span class="w">  </span><span class="c1"># 10 seconds</span><span class="w">
+  </span><span class="ss">persistence_enabled</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="w">       </span><span class="c1"># Enable/disable persistence</span><span class="w">
+
+</span><span class="c1"># Per-application configuration (umbrella apps)</span><span class="w">
+</span><span class="n">config</span><span class="w"> </span><span class="ss">:my_app</span><span class="p">,</span><span class="w"> </span><span class="ss">:ex_esdb</span><span class="p">,</span><span class="w">
+  </span><span class="ss">persistence_interval</span><span class="p">:</span><span class="w"> </span><span class="mi">5_000</span><span class="p">,</span><span class="w">    </span><span class="c1"># 5 seconds</span><span class="w">
+  </span><span class="ss">persistence_enabled</span><span class="p">:</span><span class="w"> </span><span class="no">true</span></code></pre><h4>Environment Variables</h4><pre><code class="makeup bash" translate="no"><span class=""># Persistence interval in milliseconds
+</span><span class="">export EX_ESDB_PERSISTENCE_INTERVAL=10000
+</span><span class="">
+</span><span class=""># Enable or disable persistence
+</span><span class="">export EX_ESDB_PERSISTENCE_ENABLED=true
+</span></code></pre><h4>Runtime Configuration</h4><pre><code class="makeup elixir" translate="no"><span class="c1"># Per-store configuration at startup</span><span class="w">
+</span><span class="n">opts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p" data-group-id="7435270398-1">[</span><span class="w">
+  </span><span class="ss">store_id</span><span class="p">:</span><span class="w"> </span><span class="ss">:my_store</span><span class="p">,</span><span class="w"> 
+  </span><span class="ss">persistence_interval</span><span class="p">:</span><span class="w"> </span><span class="mi">5_000</span><span class="p">,</span><span class="w">
+  </span><span class="ss">otp_app</span><span class="p">:</span><span class="w"> </span><span class="ss">:my_app</span><span class="w">
+</span><span class="p" data-group-id="7435270398-1">]</span></code></pre><h4>Configuration Options</h4><ul><li><strong><code class="inline">persistence_interval</code></strong>: Time in milliseconds between persistence cycles (default: 5000)</li><li><strong><code class="inline">persistence_enabled</code></strong>: Whether persistence is enabled (default: true)</li><li><strong><code class="inline">otp_app</code></strong>: OTP application name for umbrella app configurations</li></ul><h3 id="api-usage" class="section-heading"><a href="#api-usage" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">API Usage</span></h3><h4>Request Asynchronous Persistence</h4><pre><code class="makeup elixir" translate="no"><span class="c1"># Non-blocking call to request persistence</span><span class="w">
+</span><span class="nc">ExESDB.PersistenceWorker</span><span class="o">.</span><span class="n">request_persistence</span><span class="p" data-group-id="5814114517-1">(</span><span class="ss">:my_store</span><span class="p" data-group-id="5814114517-1">)</span></code></pre><h4>Force Immediate Persistence</h4><pre><code class="makeup elixir" translate="no"><span class="c1"># Blocking call for immediate persistence (useful for testing/shutdown)</span><span class="w">
+</span><span class="nc">ExESDB.PersistenceWorker</span><span class="o">.</span><span class="n">force_persistence</span><span class="p" data-group-id="3068925446-1">(</span><span class="ss">:my_store</span><span class="p" data-group-id="3068925446-1">)</span></code></pre><h3 id="implementation-details" class="section-heading"><a href="#implementation-details" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Implementation Details</span></h3><h4>Event Flow</h4><ol><li>Client calls <code class="inline">append_events</code></li><li>Event is written to Khepri in-memory store</li><li>Persistence request is queued with PersistenceWorker</li><li>Success is returned immediately to client</li><li>PersistenceWorker processes persistence in background</li></ol><h4>Persistence Batching</h4><ul><li>Multiple persistence requests for the same store are deduplicated</li><li>Periodic timer processes all pending stores together</li><li>Failed persistence operations are logged but don't affect event storage</li></ul><h4>Error Handling</h4><ul><li>Persistence failures are logged but don't interrupt event processing</li><li>System continues to operate with in-memory data</li><li>Persistence is retried on next interval</li></ul><h3 id="testing" class="section-heading"><a href="#testing" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Testing</span></h3><p>The system includes comprehensive testing support:</p><pre><code class="makeup elixir" translate="no"><span class="c1"># For integration tests, force persistence before assertions</span><span class="w">
+</span><span class="nc">ExESDB.PersistenceWorker</span><span class="o">.</span><span class="n">force_persistence</span><span class="p" data-group-id="2166088257-1">(</span><span class="ss">:test_store</span><span class="p" data-group-id="2166088257-1">)</span><span class="w">
+
+</span><span class="c1"># Verify events are persisted</span><span class="w">
+</span><span class="n">assert</span><span class="w"> </span><span class="p" data-group-id="2166088257-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="n">events</span><span class="p" data-group-id="2166088257-2">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">ExESDB</span><span class="o">.</span><span class="n">get_events</span><span class="p" data-group-id="2166088257-3">(</span><span class="ss">:test_store</span><span class="p">,</span><span class="w"> </span><span class="n">stream_id</span><span class="p" data-group-id="2166088257-3">)</span></code></pre><h3 id="migration-notes" class="section-heading"><a href="#migration-notes" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Migration Notes</span></h3><h4>From Synchronous to Asynchronous Persistence</h4><ul><li><strong>Immediate Effect</strong>: Event append operations will be significantly faster</li><li><strong>Eventual Consistency</strong>: Data is eventually persisted (within persistence interval)</li><li><strong>Testing Impact</strong>: Tests may need to call <code class="inline">force_persistence</code> before assertions</li><li><strong>Configuration</strong>: Default 5-second interval can be adjusted per requirements</li></ul><h4>Backward Compatibility</h4><p>The changes are fully backward compatible:</p><ul><li>Existing APIs continue to work unchanged</li><li>No changes required to client code</li><li>Configuration is optional (sensible defaults provided)</li></ul><h3 id="performance-characteristics" class="section-heading"><a href="#performance-characteristics" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Performance Characteristics</span></h3><h4>Before (Synchronous)</h4><ul><li>Event append time: ~5+ seconds (with fence operation)</li><li>Frequent timeouts under load</li><li>Poor user experience</li></ul><h4>After (Asynchronous)</h4><ul><li>Event append time: ~10-50ms (memory write only)</li><li>No timeouts</li><li>Smooth user experience</li><li>Configurable persistence latency</li></ul><h3 id="monitoring" class="section-heading"><a href="#monitoring" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Monitoring</span></h3><p>The system provides comprehensive logging:</p><pre><code class="makeup elixir" translate="no"><span class="p" data-group-id="0394465419-1">[</span><span class="n">info</span><span class="p" data-group-id="0394465419-1">]</span><span class="w"> </span><span class="nc">PersistenceWorker</span><span class="p" data-group-id="0394465419-2">[</span><span class="n">my_store</span><span class="p" data-group-id="0394465419-2">]</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="nc">UP</span><span class="w">
+</span><span class="p" data-group-id="0394465419-3">[</span><span class="n">debug</span><span class="p" data-group-id="0394465419-3">]</span><span class="w"> </span><span class="nc">PersistenceWorker</span><span class="p" data-group-id="0394465419-4">[</span><span class="n">my_store</span><span class="p" data-group-id="0394465419-4">]</span><span class="w"> </span><span class="n">persisting</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="n">stores</span><span class="w">
+</span><span class="p" data-group-id="0394465419-5">[</span><span class="n">debug</span><span class="p" data-group-id="0394465419-5">]</span><span class="w"> </span><span class="nc">Successfully</span><span class="w"> </span><span class="n">persisted</span><span class="w"> </span><span class="n">store</span><span class="w"> </span><span class="n">my_store</span></code></pre><h3 id="security-considerations" class="section-heading"><a href="#security-considerations" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Security Considerations</span></h3><ul><li>Data is stored in memory immediately, so it's not lost on process restart</li><li>Khepri handles in-memory to disk persistence reliably</li><li>Graceful shutdown ensures no data loss during system shutdown</li></ul><h2 id="conclusion" class="section-heading"><a href="#conclusion" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Conclusion</span></h2><p>The asynchronous persistence architecture eliminates timeout issues while maintaining data durability. The system is now responsive, scalable, and provides a better user experience while ensuring data integrity through reliable background persistence.</p>
+
+</div>
+
+<div class="bottom-actions" id="bottom-actions">
+  <div class="bottom-actions-item">
+
+      <a href="configuring-exesdb-apps.html" class="bottom-actions-button" rel="prev">
+        <span class="subheader">
+          ← Previous Page
+        </span>
+        <span class="title">
+Configuring ExESDB Applications
+        </span>
+      </a>
+
+  </div>
+  <div class="bottom-actions-item">
+
+      <a href="implementation-guidelines.html" class="bottom-actions-button" rel="next">
+        <span class="subheader">
+          Next Page →
+        </span>
+        <span class="title">
+Implementation Guidelines
+        </span>
+      </a>
+
+  </div>
+</div>
+    <footer class="footer">
+      <p>
+
+          <span class="line">
+            <a href="https://hex.pm/packages/ex_esdb/0.7.8" class="footer-hex-package">Hex Package</a>
+
+            <a href="https://preview.hex.pm/preview/ex_esdb/0.7.8">Hex Preview</a>
+
+              (<a href="https://preview.hex.pm/preview/ex_esdb/0.7.8/show/guides/persistence_architecture.md">current file</a>)
+
+          </span>
+
+        <span class="line">
+          <button class="a-main footer-button display-quick-switch" title="Search HexDocs packages">
+            Search HexDocs
+          </button>
+
+            <a href="ex_esdb.epub" title="ePub version">
+              Download ePub version
+            </a>
+
+        </span>
+      </p>
+
+      <p class="built-using">
+        Built using
+        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.38.2) for the
+
+          <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+      </p>
+
+    </footer>
+  </div>
+</main>
+</div>
+
+  </body>
+</html>
