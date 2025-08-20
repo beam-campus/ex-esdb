@@ -95,7 +95,15 @@ defmodule ExESDB.StoreRegistry do
 
   def sync_stores do
     other_registries()
-    |> Enum.map(&safe_list_stores/1)
+    |> Enum.map(fn registry ->
+      try do
+        GenServer.call(registry, {:list_stores}, 5000)
+      rescue
+        _ -> {:ok, []}
+      catch
+        :exit, _ -> {:ok, []}
+      end
+    end)
     |> Enum.reduce([], fn
       {:ok, stores}, acc -> stores ++ acc
       _, acc -> acc
@@ -105,7 +113,20 @@ defmodule ExESDB.StoreRegistry do
 
   def announce(store, node) do
     other_registries()
-    |> Enum.map(fn pid -> safe_announce_store(pid, store, node) end)
+    |> Enum.map(fn pid ->
+      try do
+        # Send announce to all existing registries and collect their stores
+        GenServer.call(
+          pid,
+          {:announce_store_for_node, store, node},
+          5000
+        )
+      rescue
+        _ -> {:ok, []}
+      catch
+        :exit, _ -> {:ok, []}
+      end
+    end)
     |> Enum.reduce([], fn
       {:ok, stores}, acc -> stores ++ acc
       _, acc -> acc
@@ -336,24 +357,4 @@ defmodule ExESDB.StoreRegistry do
   end
 
   def build_store_config(opts), do: opts
-
-  ## Helper Functions for Safe GenServer Calls
-
-  defp safe_list_stores(registry) do
-    case GenServer.call(registry, {:list_stores}, 5000) do
-      result -> result
-    end
-  catch
-    :exit, _reason -> {:ok, []}
-    _other -> {:ok, []}
-  end
-
-  defp safe_announce_store(pid, store, node) do
-    case GenServer.call(pid, {:announce_store_for_node, store, node}, 5000) do
-      result -> result
-    end
-  catch
-    :exit, _reason -> {:ok, []}
-    _other -> {:ok, []}
-  end
 end

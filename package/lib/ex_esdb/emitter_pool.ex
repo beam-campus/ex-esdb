@@ -4,6 +4,7 @@ defmodule ExESDB.EmitterPool do
 
   require Logger
   alias ExESDB.LoggingPublisher
+  alias ExESDB.PubSubIntegration
 
   def name(store, sub_topic),
     do: :"#{store}:#{sub_topic}_emitter_pool"
@@ -44,6 +45,30 @@ defmodule ExESDB.EmitterPool do
         emitter_count: emitter_count
       }
     )
+    
+    # Broadcast emitter pool lifecycle event
+    PubSubIntegration.broadcast_lifecycle_event(
+      :emitter_pool_started,
+      pool_name,
+      %{
+        store: store,
+        sub_topic: sub_topic,
+        emitter_count: emitter_count,
+        subscriber: subscriber
+      }
+    )
+    
+    # Broadcast store-specific component health
+    PubSubIntegration.broadcast_store_health(
+      store,
+      :emitter_pool,
+      :healthy,
+      %{
+        sub_topic: sub_topic,
+        emitter_count: emitter_count,
+        event: :started
+      }
+    )
 
     Supervisor.init(children, strategy: :one_for_one)
   end
@@ -59,6 +84,29 @@ defmodule ExESDB.EmitterPool do
       %{
         pool_name: pool_name,
         sub_topic: sub_topic,
+        reason: "Manual Stop"
+      }
+    )
+    
+    # Broadcast emitter pool shutdown lifecycle event
+    PubSubIntegration.broadcast_lifecycle_event(
+      :emitter_pool_stopped,
+      pool_name,
+      %{
+        store: store,
+        sub_topic: sub_topic,
+        reason: "Manual Stop"
+      }
+    )
+    
+    # Broadcast store-specific component health update
+    PubSubIntegration.broadcast_store_health(
+      store,
+      :emitter_pool,
+      :unhealthy,
+      %{
+        sub_topic: sub_topic,
+        event: :stopped,
         reason: "Manual Stop"
       }
     )

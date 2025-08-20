@@ -8,6 +8,7 @@ defmodule ExESDB.EmitterWorker do
 
   alias Phoenix.PubSub, as: PubSub
   alias ExESDB.LoggingPublisher
+  alias ExESDB.PubSubIntegration
 
   require Logger
 
@@ -52,6 +53,30 @@ defmodule ExESDB.EmitterWorker do
         scheduler_id: scheduler_id
       }
     )
+    
+    # Broadcast emitter worker lifecycle event
+    PubSubIntegration.broadcast_lifecycle_event(
+      :emitter_worker_started,
+      self(),
+      %{
+        store: store,
+        sub_topic: sub_topic,
+        topic: topic,
+        scheduler_id: scheduler_id
+      }
+    )
+    
+    # Broadcast store-specific component health
+    PubSubIntegration.broadcast_store_health(
+      store,
+      :emitter_worker,
+      :healthy,
+      %{
+        sub_topic: sub_topic,
+        topic: topic,
+        event: :started
+      }
+    )
 
     {:ok, %{
       subscriber: subscriber, 
@@ -76,6 +101,29 @@ defmodule ExESDB.EmitterWorker do
         reason: reason,
         selector: selector,
         subscriber: subscriber
+      }
+    )
+    
+    # Broadcast emitter worker termination lifecycle event
+    PubSubIntegration.broadcast_lifecycle_event(
+      :emitter_worker_terminated,
+      self(),
+      %{
+        store: store,
+        selector: selector,
+        reason: reason
+      }
+    )
+    
+    # Broadcast store-specific component health update
+    PubSubIntegration.broadcast_store_health(
+      store,
+      :emitter_worker,
+      :unhealthy,
+      %{
+        selector: selector,
+        event: :terminated,
+        reason: reason
       }
     )
 

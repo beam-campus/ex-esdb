@@ -1,5 +1,14 @@
 import Config
 
+# ExESDB PubSub Integration Configuration
+config :ex_esdb,
+  # Enable pubsub integration for dashboard and monitoring
+  pubsub_integration: true,
+  # Interval for health status broadcasts (30 seconds)
+  health_broadcast_interval: 30_000,
+  # Interval for metrics broadcasts (60 seconds)
+  metrics_broadcast_interval: 60_000
+
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:mfa]

@@ -16,6 +16,7 @@ defmodule ExESDB.PersistenceWorker do
   alias ExESDB.Options
   alias ExESDB.StoreNaming
   alias ExESDB.Themes
+  alias ExESDB.PubSubIntegration
 
   require Logger
 
@@ -94,6 +95,17 @@ defmodule ExESDB.PersistenceWorker do
     }
 
     IO.puts("#{Themes.persistence_worker(self(), "for store [#{store_id}] is UP")}")
+    
+    # Broadcast persistence worker startup
+    PubSubIntegration.broadcast_lifecycle_event(
+      :started,
+      "persistence_worker_#{store_id}",
+      %{
+        store_id: store_id,
+        persistence_interval: persistence_interval,
+        component: :persistence_worker
+      }
+    )
 
     {:ok, state}
   end
@@ -108,14 +120,55 @@ defmodule ExESDB.PersistenceWorker do
 
   @impl true
   def handle_call(:force_persistence, _from, state) do
+    start_time = System.monotonic_time(:millisecond)
+    pending_count = MapSet.size(state.pending_stores)
+    
     # Immediately persist all pending stores
     result = persist_pending_stores(state.pending_stores)
+    
+    end_time = System.monotonic_time(:millisecond)
+    duration_ms = end_time - start_time
+    
+    # Broadcast forced persistence metrics
+    case result do
+      :ok ->
+        PubSubIntegration.broadcast_metrics(:persistence, %{
+          stores_count: pending_count,
+          duration_ms: duration_ms,
+          success_count: pending_count,
+          error_count: 0,
+          forced: true
+        })
+        
+      {:error, {:partial_success, success, errors}} ->
+        PubSubIntegration.broadcast_metrics(:persistence, %{
+          stores_count: pending_count,
+          duration_ms: duration_ms,
+          success_count: success,
+          error_count: errors,
+          forced: true
+        })
+        
+        # Broadcast alert for forced persistence failures
+        PubSubIntegration.broadcast_alert(
+          :persistence_failure,
+          :critical,
+          "Forced persistence failed for #{errors} out of #{pending_count} stores",
+          %{
+            store_id: state.store_id,
+            success_count: success,
+            error_count: errors,
+            duration_ms: duration_ms,
+            forced: true
+          }
+        )
+    end
 
     # Clear pending stores and update last persistence time
     updated_state = %{
       state
       | pending_stores: MapSet.new(),
-        last_persistence_time: System.monotonic_time(:millisecond)
+        last_persistence_time: end_time
     }
 
     {:reply, result, updated_state}
@@ -123,9 +176,49 @@ defmodule ExESDB.PersistenceWorker do
 
   @impl true
   def handle_info(:persist_data, state) do
+    start_time = System.monotonic_time(:millisecond)
+    pending_count = MapSet.size(state.pending_stores)
+    
     # Persist any pending stores
-    if MapSet.size(state.pending_stores) > 0 do
+    result = if pending_count > 0 do
       persist_pending_stores(state.pending_stores)
+    else
+      :ok
+    end
+    
+    end_time = System.monotonic_time(:millisecond)
+    duration_ms = end_time - start_time
+    
+    # Broadcast persistence metrics
+    case result do
+      :ok ->
+        PubSubIntegration.broadcast_metrics(:persistence, %{
+          stores_count: pending_count,
+          duration_ms: duration_ms,
+          success_count: pending_count,
+          error_count: 0
+        })
+        
+      {:error, {:partial_success, success, errors}} ->
+        PubSubIntegration.broadcast_metrics(:persistence, %{
+          stores_count: pending_count,
+          duration_ms: duration_ms,
+          success_count: success,
+          error_count: errors
+        })
+        
+        # Broadcast persistence alert for partial failures
+        PubSubIntegration.broadcast_alert(
+          :persistence_failure,
+          :warning,
+          "Persistence cycle had #{errors} failures out of #{pending_count} stores",
+          %{
+            store_id: state.store_id,
+            success_count: success,
+            error_count: errors,
+            duration_ms: duration_ms
+          }
+        )
     end
 
     # Schedule next persistence
@@ -135,7 +228,7 @@ defmodule ExESDB.PersistenceWorker do
       state
       | timer_ref: timer_ref,
         pending_stores: MapSet.new(),
-        last_persistence_time: System.monotonic_time(:millisecond)
+        last_persistence_time: end_time
     }
 
     {:noreply, updated_state}

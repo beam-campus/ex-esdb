@@ -8,6 +8,7 @@ defmodule ExESDB.Store do
 
   alias ExESDB.Themes, as: Themes
   alias ExESDB.StoreNaming
+  alias ExESDB.PubSubIntegration
 
   defp start_khepri(opts) do
     store = opts[:store_id]
@@ -88,12 +89,61 @@ defmodule ExESDB.Store do
     IO.puts("#{Themes.store(self(), "is UP.")}")
     Process.flag(:trap_exit, true)
     
+    store_id = StoreNaming.extract_store_id(opts)
+    
     case start_khepri(opts) do
       {:ok, store} ->
+        # Broadcast successful store startup
+        PubSubIntegration.broadcast_lifecycle_event(
+          :store_started,
+          store_id,
+          %{
+            store_id: store_id,
+            data_dir: opts[:data_dir],
+            timeout: opts[:timeout]
+          }
+        )
+        
+        # Broadcast store health as healthy
+        PubSubIntegration.broadcast_store_health(
+          store_id,
+          :khepri_store,
+          :healthy,
+          %{
+            event: :started,
+            node: Node.self()
+          }
+        )
+        
         {:ok, [config: opts, store: store]}
 
       reason ->
         Logger.error("Failed to start Khepri store. Reason: #{inspect(reason)}")
+        
+        # Broadcast store failure
+        PubSubIntegration.broadcast_alert(
+          :store_startup_failed,
+          :critical,
+          "Failed to start Khepri store #{store_id}",
+          %{
+            store_id: store_id,
+            reason: reason,
+            node: Node.self()
+          }
+        )
+        
+        # Broadcast store health as unhealthy
+        PubSubIntegration.broadcast_store_health(
+          store_id,
+          :khepri_store,
+          :unhealthy,
+          %{
+            event: :startup_failed,
+            reason: reason,
+            node: Node.self()
+          }
+        )
+        
         {:error, [config: opts, store: nil]}
     end
   end
@@ -102,13 +152,64 @@ defmodule ExESDB.Store do
   def terminate(reason, [config: opts, store: store]) do
     IO.puts("#{Themes.store(self(), "⚠️  Shutting down gracefully. Reason: #{inspect(reason)}")}")
     
+    store_id = StoreNaming.extract_store_id(opts)
+    
+    # Broadcast store shutdown event
+    PubSubIntegration.broadcast_lifecycle_event(
+      :store_stopping,
+      store_id,
+      %{
+        store_id: store_id,
+        reason: reason,
+        node: Node.self()
+      }
+    )
+    
     # Stop Khepri store gracefully if it was started
     if store do
-      store_id = opts[:store_id]
       case :khepri.stop(store_id) do
-        :ok -> :ok
-        {:error, reason} ->
-          Logger.warning("Failed to stop Khepri store #{inspect(store_id)}: #{inspect(reason)}")
+        :ok -> 
+          # Broadcast successful shutdown
+          PubSubIntegration.broadcast_lifecycle_event(
+            :store_stopped,
+            store_id,
+            %{
+              store_id: store_id,
+              reason: reason,
+              shutdown_success: true,
+              node: Node.self()
+            }
+          )
+          
+          # Broadcast store health as unhealthy (stopped)
+          PubSubIntegration.broadcast_store_health(
+            store_id,
+            :khepri_store,
+            :unhealthy,
+            %{
+              event: :stopped,
+              reason: reason,
+              node: Node.self()
+            }
+          )
+          
+          :ok
+          
+        {:error, stop_reason} ->
+          Logger.warning("Failed to stop Khepri store #{inspect(store_id)}: #{inspect(stop_reason)}")
+          
+          # Broadcast failed shutdown
+          PubSubIntegration.broadcast_alert(
+            :store_shutdown_failed,
+            :warning,
+            "Failed to cleanly stop Khepri store #{store_id}",
+            %{
+              store_id: store_id,
+              reason: stop_reason,
+              node: Node.self()
+            }
+          )
+          
         other ->
           Logger.warning("Unexpected response stopping Khepri store #{inspect(store_id)}: #{inspect(other)}")
       end
@@ -119,6 +220,17 @@ defmodule ExESDB.Store do
 
   def terminate(reason, _state) do
     IO.puts("#{Themes.store(self(), "⚠️  Shutting down gracefully. Reason: #{inspect(reason)}")}")
+    
+    # Broadcast generic termination for stores without proper state
+    PubSubIntegration.broadcast_lifecycle_event(
+      :store_terminated,
+      :unknown_store,
+      %{
+        reason: reason,
+        node: Node.self()
+      }
+    )
+    
     :ok
   end
 end

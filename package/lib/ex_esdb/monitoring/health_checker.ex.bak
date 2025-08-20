@@ -88,9 +88,11 @@ defmodule ExESDB.Monitoring.HealthChecker do
   
   defp perform_checks(checks) do
     Enum.map(checks, fn {name, check_fn} ->
-      case safe_check_execution(check_fn) do
-        {:ok, result} -> {name, result}
-        {:error, reason} -> {name, {:error, reason}}
+      try do
+        result = check_fn.()
+        {name, result}
+      rescue
+        error -> {name, {:error, inspect(error)}}
       end
     end)
   end
@@ -140,10 +142,12 @@ defmodule ExESDB.Monitoring.HealthChecker do
   end
   
   defp check_configuration(_store_id) do
-    # Basic configuration check - using defensive programming instead of try..rescue
-    case validate_basic_configuration() do
-      :ok -> :ok
-      {:error, reason} -> {:error, "Configuration validation failed: #{reason}"}
+    # Basic configuration check
+    try do
+      # This would check various configuration aspects
+      :ok
+    rescue
+      _ -> {:error, "Configuration validation failed"}
     end
   end
   
@@ -205,82 +209,47 @@ defmodule ExESDB.Monitoring.HealthChecker do
     case Process.whereis(system_name) do
       nil -> {:error, "System supervisor not found"}
       pid ->
-        case safe_supervisor_inspection(pid) do
-          {:ok, children} ->
-            alive_children = Enum.count(children, fn {_, child_pid, _, _} ->
-              child_pid != :undefined and Process.alive?(child_pid)
-            end)
-            
-            if alive_children == length(children) do
-              :ok
-            else
-              {:warning, "#{alive_children}/#{length(children)} children alive"}
-            end
-          {:error, _reason} ->
-            {:error, "Unable to inspect supervision tree"}
+        try do
+          children = Supervisor.which_children(pid)
+          alive_children = Enum.count(children, fn {_, child_pid, _, _} ->
+            child_pid != :undefined and Process.alive?(child_pid)
+          end)
+          
+          if alive_children == length(children) do
+            :ok
+          else
+            {:warning, "#{alive_children}/#{length(children)} children alive"}
+          end
+        rescue
+          _ -> {:error, "Unable to inspect supervision tree"}
         end
     end
   end
   
   defp check_subscription_health(store_id) do
-    case safe_subscription_health_check(store_id) do
-      {:ok, summary} ->
-        total = summary.total_subscriptions
-        failed = summary.failed
-        degraded = summary.degraded
-        
-        cond do
-          total == 0 ->
-            :ok  # No subscriptions is not an error
-          failed > 0 ->
-            {:error, "#{failed}/#{total} subscriptions failed"}
-          degraded > 0 ->
-            {:warning, "#{degraded}/#{total} subscriptions degraded"}
-          true ->
-            :ok
-        end
-      {:error, reason} ->
-        {:warning, "Unable to check subscription health: #{inspect(reason)}"}
+    try do
+      case ExESDB.SubscriptionHealthTracker.get_store_health_summary(store_id) do
+        {:ok, summary} ->
+          total = summary.total_subscriptions
+          failed = summary.failed
+          degraded = summary.degraded
+          
+          cond do
+            total == 0 ->
+              :ok  # No subscriptions is not an error
+            failed > 0 ->
+              {:error, "#{failed}/#{total} subscriptions failed"}
+            degraded > 0 ->
+              {:warning, "#{degraded}/#{total} subscriptions degraded"}
+            true ->
+              :ok
+          end
+        {:error, reason} ->
+          {:warning, "Unable to check subscription health: #{inspect(reason)}"}
+      end
+    rescue
+      error ->
+        {:warning, "Subscription health check failed: #{inspect(error)}"}
     end
-  end
-
-  ## Helper Functions for Safe External Calls
-
-  defp safe_check_execution(check_fn) do
-    case check_fn.() do
-      result -> {:ok, result}
-    end
-  catch
-    :error, reason -> {:error, "Error: #{inspect(reason)}"}
-    :exit, reason -> {:error, "Exit: #{inspect(reason)}"}
-    reason -> {:error, "Throw: #{inspect(reason)}"}
-  end
-
-  defp validate_basic_configuration do
-    # This is a placeholder for actual configuration validation
-    # In a real implementation, you'd check various configuration aspects
-    :ok
-  end
-
-  defp safe_supervisor_inspection(pid) do
-    case Supervisor.which_children(pid) do
-      children when is_list(children) -> {:ok, children}
-      other -> {:error, {:unexpected_result, other}}
-    end
-  catch
-    :error, reason -> {:error, {:caught_error, reason}}
-    :exit, reason -> {:error, {:caught_exit, reason}}
-    reason -> {:error, {:caught_throw, reason}}
-  end
-
-  defp safe_subscription_health_check(store_id) do
-    case ExESDB.SubscriptionHealthTracker.get_store_health_summary(store_id) do
-      {:ok, summary} -> {:ok, summary}
-      {:error, reason} -> {:error, reason}
-    end
-  catch
-    :error, reason -> {:error, {:caught_error, reason}}
-    :exit, reason -> {:error, {:caught_exit, reason}}
-    reason -> {:error, {:caught_throw, reason}}
   end
 end
