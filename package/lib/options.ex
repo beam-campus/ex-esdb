@@ -87,13 +87,22 @@ defmodule ExESDB.Options do
     Process.put(:ex_esdb_otp_app, otp_app)
 
     try do
-      fun.()
-    after
-      if previous_context do
-        Process.put(:ex_esdb_otp_app, previous_context)
-      else
-        Process.delete(:ex_esdb_otp_app)
-      end
+      result = fun.()
+      restore_context(previous_context)
+      result
+    catch
+      class, reason ->
+        # Ensure cleanup happens even if function throws/exits
+        restore_context(previous_context)
+        :erlang.raise(class, reason, __STACKTRACE__)
+    end
+  end
+
+  defp restore_context(previous_context) do
+    if previous_context do
+      Process.put(:ex_esdb_otp_app, previous_context)
+    else
+      Process.delete(:ex_esdb_otp_app)
     end
   end
 
@@ -313,11 +322,18 @@ defmodule ExESDB.Options do
     end
   end
 
+  def pub_sub(otp_app) when is_atom(otp_app) do
+    app_env(otp_app, :pub_sub, Phoenix.PubSub)
+  end
+
+  def pub_sub do
+    context = get_context_or_discover()
+    pub_sub(context)
+  end
+
   defp to_unique_atom(candidate) do
-    try do
-      String.to_existing_atom(candidate)
-    rescue
-      _ -> String.to_atom(candidate)
-    end
+    :erlang.binary_to_existing_atom(candidate, :utf8)
+  catch
+    :error, :badarg -> String.to_atom(candidate)
   end
 end

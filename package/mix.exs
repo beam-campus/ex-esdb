@@ -4,7 +4,7 @@ defmodule ExESDB.MixProject do
 
   @app_name :ex_esdb
   @elixir_version "~> 1.17"
-  @version "0.7.8"
+  @version "0.11.0"
   @source_url "https://github.com/beam-campus/ex-esdb"
   #  @homepage_url "https://github.com/beam-campus/ex-esdb"
   @docs_url "https://hexdocs.pm/ex_esdb"
@@ -99,7 +99,7 @@ defmodule ExESDB.MixProject do
       {:phoenix_pubsub, "~> 2.1"},
       {:khepri, "~> 0.17"},
       {:jason, "~> 1.4", optional: true},
-      {:ex_esdb_gater, "~> 0.3.5"},
+      {:ex_esdb_gater, "~> 0.8.0"},
 
       # Debugging and development tools
       {:recon, "~> 2.5"},
@@ -128,41 +128,80 @@ defmodule ExESDB.MixProject do
       canonical: @docs_url,
       source_ref: "v#{@version}",
       extra_section: "guides",
+      groups_for_extras: [
+        "Getting Started": [
+          "guides/getting_started.md",
+          "guides/configuring_exesdb_apps.md"
+        ],
+        Architecture: [
+          "guides/ex-esdb-architecture.md",
+          "guides/persistence_architecture.md",
+          "guides/how_exesdb_handles_multiple_stores.md"
+        ],
+        "PubSub & Monitoring": [
+          "guides/pubsub_integration.md",
+          "guides/monitoring_observability.md",
+          "guides/pubsub_quick_reference.md",
+          "guides/pubsub_architecture.md"
+        ],
+        Development: [
+          "guides/implementation-guidelines.md",
+          "guides/debugging.md",
+          "guides/testing.md"
+        ],
+        Operations: [
+          "guides/failure_handling.md",
+          "guides/loggers_in_exesdb.md"
+        ],
+        Reference: [
+          "ADR.md",
+          "CHANGELOG.md"
+        ]
+      ],
       extras: [
-        "ADR.md",
-        "CHANGELOG.md",
+        # Getting Started
         "guides/getting_started.md": [
           filename: "getting-started",
           title: "Getting Started"
-        ],
-        "guides/ex-esdb-architecture.md": [
-          filename: "architecture",
-          title: "Architecture"
-        ],
-        "guides/testing.md": [
-          filename: "testing",
-          title: "Testing"
-        ],
-        "guides/failure_handling.md": [
-          filename: "failure-handling",
-          title: "Failure Handling"
-        ],
-        "guides/loggers_in_exesdb.md": [
-          filename: "logger-filtering",
-          title: "Logger Filtering"
-        ],
-        "guides/how_exesdb_handles_multiple_stores.md": [
-          filename: "multiple-stores",
-          title: "Multiple Stores"
         ],
         "guides/configuring_exesdb_apps.md": [
           filename: "configuring-exesdb-apps",
           title: "Configuring ExESDB Applications"
         ],
+
+        # Architecture
+        "guides/ex-esdb-architecture.md": [
+          filename: "architecture",
+          title: "ExESDB Architecture"
+        ],
         "guides/persistence_architecture.md": [
           filename: "persistence-architecture",
           title: "Persistence Architecture"
         ],
+        "guides/how_exesdb_handles_multiple_stores.md": [
+          filename: "multiple-stores",
+          title: "Multiple Stores"
+        ],
+
+        # PubSub & Monitoring
+        "guides/pubsub_integration.md": [
+          filename: "pubsub-integration",
+          title: "PubSub Integration with ExESDBGater"
+        ],
+        "guides/monitoring_observability.md": [
+          filename: "monitoring-observability",
+          title: "Monitoring and Observability"
+        ],
+        "guides/pubsub_quick_reference.md": [
+          filename: "pubsub-quick-reference",
+          title: "PubSub Quick Reference"
+        ],
+        "guides/pubsub_architecture.md": [
+          filename: "pubsub-architecture",
+          title: "PubSub Architecture (Legacy)"
+        ],
+
+        # Development
         "guides/implementation-guidelines.md": [
           filename: "implementation-guidelines",
           title: "Implementation Guidelines"
@@ -171,10 +210,32 @@ defmodule ExESDB.MixProject do
           filename: "debugging",
           title: "Debugging and Troubleshooting"
         ],
-        "guides/pubsub_architecture.md": [
-          filename: "pubsub-architecture",
-          title: "PubSub Architecture and Event-Driven Design"
+        "guides/testing.md": [
+          filename: "testing",
+          title: "Testing"
         ],
+
+        # Operations
+        "guides/failure_handling.md": [
+          filename: "failure-handling",
+          title: "Failure Handling"
+        ],
+        "guides/loggers_in_exesdb.md": [
+          filename: "logger-filtering",
+          title: "Logger Filtering"
+        ],
+
+        # Reference
+        "ADR.md": [
+          filename: "adr",
+          title: "Architecture Decision Records"
+        ],
+        "CHANGELOG.md": [
+          filename: "changelog",
+          title: "Changelog"
+        ],
+
+        # Main documentation
         "../README.md": [
           filename: "readme",
           title: "Read Me"

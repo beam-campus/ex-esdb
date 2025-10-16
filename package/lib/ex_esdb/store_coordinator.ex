@@ -231,16 +231,18 @@ defmodule ExESDB.StoreCoordinator do
   end
 
   defp safe_cluster_check(node, store) do
-    try do
-      :rpc.call(node, :khepri_cluster, :members, [store], 5000)
-    rescue
-      e ->
-        log_cluster_check_exception(node, e)
-        {:error, {:exception, e}}
-    catch
-      type, reason ->
-        log_cluster_check_caught(node, type, reason)
-        {:error, {:caught, type, reason}}
+    case rpc_cluster_members(node, store) do
+      {:ok, result} -> result
+      {:error, reason} -> 
+        log_cluster_check_failed(node, reason)
+        {:error, reason}
+    end
+  end
+
+  defp rpc_cluster_members(node, store) do
+    case :rpc.call(node, :khepri_cluster, :members, [store], 5000) do
+      {:badrpc, reason} -> {:error, {:rpc_failed, reason}}
+      result -> {:ok, result}
     end
   end
 
@@ -277,23 +279,6 @@ defmodule ExESDB.StoreCoordinator do
     )
   end
 
-  defp log_cluster_check_exception(node, exception) do
-    IO.puts(
-      Themes.store_coordinator(
-        self(),
-        "[#{node()}] 🔍 Node #{node} cluster check exception: #{inspect(exception)}"
-      )
-    )
-  end
-
-  defp log_cluster_check_caught(node, type, reason) do
-    IO.puts(
-      Themes.store_coordinator(
-        self(),
-        "[#{node()}] 🔍 Node #{node} cluster check caught: #{inspect(type)} #{inspect(reason)}"
-      )
-    )
-  end
 
   defp should_be_store_coordinator(connected_nodes) do
     # Use deterministic election: lowest node name becomes coordinator

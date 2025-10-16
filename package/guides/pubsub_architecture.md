@@ -1,32 +1,49 @@
-# ExESDB PubSub Architecture: Foundation for Event-Driven Architecture
+# ExESDB PubSub Architecture and Event-Driven Design
 
 ## Overview
 
-ExESDB has been significantly enhanced with a comprehensive PubSub (Publish-Subscribe) messaging system that serves as the foundation for transitioning to a fully Event-Driven Architecture (EDA). This architecture provides dedicated communication channels for different system concerns, enabling better separation of responsibilities, enhanced observability, and improved system reliability.
+ExESDB integrates with ExESDBGater's comprehensive PubSub (Publish-Subscribe) messaging system to provide real-time monitoring, observability, and event-driven architecture across the entire cluster. This integration enables dashboards, monitoring tools, and external systems to receive live updates about cluster state changes, health status, performance metrics, and diagnostic information.
 
 ## Architecture Components
 
-### Dedicated PubSub Instances
+### ExESDBGater Message System
 
-ExESDB now utilizes multiple specialized Phoenix.PubSub instances, each optimized for specific types of communication:
+ExESDB leverages ExESDBGater's 9 dedicated PubSub instances for different types of system events:
 
-#### 1. `:ex_esdb_events` - Event Distribution
-- **Purpose**: Primary channel for business event distribution
-- **Usage**: Event streaming, subscription delivery, event broadcasting
-- **Subscribers**: EmitterWorkers, event subscribers, external systems
-- **Topics**: Stream-specific topics (e.g., `"store:stream_name"`)
+| PubSub Instance | Purpose | Message Types |
+|----------------|---------|---------------|
+| `:ex_esdb_system` | System lifecycle and configuration | SystemLifecycle, SystemConfig |
+| `:ex_esdb_health` | Health monitoring and status | NodeHealth, ClusterHealth, ComponentHealth |
+| `:ex_esdb_metrics` | Performance metrics | PerformanceMetric, ThroughputMetric, LatencyMetric |
+| `:ex_esdb_lifecycle` | Process and node lifecycle | ProcessLifecycle, ClusterMembership |
+| `:ex_esdb_alerts` | Critical alerts and notifications | SystemAlert, AlertAck, AlertEscalation |
+| `:ex_esdb_audit` | Audit trail and compliance | DataChange, AdminAction, AccessLog |
+| `:ex_esdb_diagnostics` | Debug and troubleshooting | DebugTrace, PerformanceAnalysis |
+| `:ex_esdb_security` | Security events | AuthEvent, AccessViolation, SecurityAlert |
+| `:ex_esdb_logging` | Log aggregation | LogEntry, LogSummary, LogRotation |
 
-#### 2. `:ex_esdb_system` - System Operations
-- **Purpose**: Internal system operations and coordination
-- **Usage**: System state changes, coordination messages, metrics
-- **Subscribers**: System components, metrics collectors
-- **Topics**: System-wide operational topics
+### Integration Helper Module
 
-#### 3. `:ex_esdb_health` - Health Monitoring
-- **Purpose**: Dedicated health and monitoring communications
-- **Usage**: Health status updates, service availability, circuit breaker events
-- **Subscribers**: Health trackers, monitoring systems, EmitterWorkers
-- **Topics**: Health-specific topics (e.g., `"store_health:store_id"`, `"health_summary:store_id"`)
+The `ExESDB.PubSubIntegration` module provides a centralized, idiomatic Elixir interface for broadcasting events:
+
+```elixir
+# System lifecycle events
+ExESDB.PubSubIntegration.broadcast_system_lifecycle(:started, :ex_esdb, "0.8.0")
+
+# Health updates
+ExESDB.PubSubIntegration.broadcast_health_update(:store_worker, :healthy, %{store_id: "main"})
+
+# Performance metrics
+ExESDB.PubSubIntegration.broadcast_metrics(:persistence, %{
+  operations_count: 1000,
+  duration_ms: 250,
+  success_count: 995,
+  error_count: 5
+})
+
+# Critical alerts
+ExESDB.PubSubIntegration.broadcast_alert(:node_failure, :critical, "Node down", %{node: :node1})
+```
 
 ## Enhanced EmitterWorker System
 

@@ -7,13 +7,11 @@ defmodule ExESDB.Debugger do
   
   - Process supervision tree inspection (Inspector)
   - Health and performance monitoring (Monitor)
-  - Scenario testing and simulation (ScenarioManager)
   - Real-time observation (Observer)
   
   ## Usage in REPL
   
       iex> ExESDB.Debugger.overview()
-      iex> ExESDB.Debugger.start_scenario(:high_load, intensity: :medium)
       iex> ExESDB.Debugger.observe(:system_metrics)
   """
   
@@ -75,11 +73,6 @@ defmodule ExESDB.Debugger do
         {"health(store_id \\\\ nil)", "Comprehensive health check"},
         {"performance(store_id \\\\ nil)", "Performance metrics"},
       ]},
-      {"🎯 Scenario Testing", [
-        {"start_scenario(name, opts \\\\ [])", "Start test scenario"},
-        {"stop_scenario(scenario_id)", "Stop running scenario"},
-        {"list_scenarios()", "List active scenarios"},
-      ]},
       {"👁️ Real-time Observation", [
         {"observe(target, opts \\\\ [])", "Start real-time observation"},
         {"stop_observation(obs_id)", "Stop observation"},
@@ -100,7 +93,6 @@ defmodule ExESDB.Debugger do
     end)
     
     IO.puts("\n📖 Examples:")
-    IO.puts("  ExESDB.Debugger.start_scenario(:high_load, intensity: :medium, duration: 30_000)")
     IO.puts("  ExESDB.Debugger.observe(:system_metrics, interval: 2000)")
     IO.puts("  ExESDB.Debugger.trace(ExESDB.StreamsWriter, :append_events)")
   end
@@ -219,68 +211,6 @@ defmodule ExESDB.Debugger do
     end
   end
   
-  # ===================
-  # Scenario Management
-  # ===================
-  
-  @doc """
-  Start a test scenario.
-  
-  Available scenarios:
-  - `:high_load` - Simulate high CPU/memory load
-  - `:node_failure` - Simulate node failures
-  - `:custom` - Load custom scenario from config
-  
-  ## Examples
-  
-      ExESDB.Debugger.start_scenario(:high_load, intensity: :medium, duration: 30_000)
-      ExESDB.Debugger.start_scenario(:custom, config_path: "scenarios/custom.json")
-  """
-  def start_scenario(scenario_name, opts \\ []) do
-    case ExESDB.Debugger.ScenarioManager.start_scenario(scenario_name, opts) do
-      {:ok, scenario_id} ->
-        IO.puts("✅ Started scenario #{inspect(scenario_name)} with ID: #{scenario_id}")
-        {:ok, scenario_id}
-      {:error, reason} ->
-        IO.puts("❌ Failed to start scenario: #{reason}")
-        {:error, reason}
-    end
-  end
-  
-  @doc """
-  Stop a running scenario.
-  """
-  def stop_scenario(scenario_id) do
-    case ExESDB.Debugger.ScenarioManager.stop_scenario(scenario_id) do
-      :ok ->
-        IO.puts("✅ Stopped scenario: #{scenario_id}")
-        :ok
-      {:error, reason} ->
-        IO.puts("❌ Failed to stop scenario: #{inspect(reason)}")
-        {:error, reason}
-    end
-  end
-  
-  @doc """
-  List all running scenarios.
-  """
-  def list_scenarios do
-    IO.puts("\n🎯 Active Scenarios")
-    IO.puts("=" <> String.duplicate("=", 40))
-    
-    case ExESDB.Debugger.ScenarioManager.list_scenarios() do
-      [] ->
-        IO.puts("📭 No active scenarios")
-      scenarios ->
-        Enum.each(scenarios, fn scenario ->
-          uptime = System.system_time(:millisecond) - scenario.started_at
-          IO.puts("🎯 #{scenario.id}")
-          IO.puts("   Name: #{scenario.name}")
-          IO.puts("   Status: #{scenario.status}")
-          IO.puts("   Uptime: #{format_uptime(uptime)}")
-        end)
-    end
-  end
   
   # ===================
   # Real-time Observation

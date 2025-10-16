@@ -35,24 +35,18 @@ defmodule ExESDB.ConsistencyChecker do
   def verify_cluster_consistency(store_id) do
     Logger.info("Starting consistency check for store: #{inspect(store_id)}")
     
-    try do
-      with {:ok, local_members} <- get_cluster_members(store_id),
-           {:ok, leader_info} <- get_leader_info(store_id),
-           {:ok, cross_node_check} <- verify_cross_node_consistency(store_id, local_members),
-           {:ok, raft_status} <- check_raft_status(store_id) do
-        
-        report = compile_consistency_report(store_id, local_members, leader_info, cross_node_check, raft_status)
-        Logger.info("Consistency check completed for store: #{inspect(store_id)}")
-        {:ok, report}
-      else
-        {:error, reason} = error ->
-          Logger.error("Consistency check failed for store #{inspect(store_id)}: #{inspect(reason)}")
-          error
-      end
-    rescue
-      error ->
-        Logger.error("Exception during consistency check: #{inspect(error)}")
-        {:error, {:exception, error}}
+    with {:ok, local_members} <- get_cluster_members(store_id),
+         {:ok, leader_info} <- get_leader_info(store_id),
+         {:ok, cross_node_check} <- verify_cross_node_consistency(store_id, local_members),
+         {:ok, raft_status} <- check_raft_status(store_id) do
+      
+      report = compile_consistency_report(store_id, local_members, leader_info, cross_node_check, raft_status)
+      Logger.info("Consistency check completed for store: #{inspect(store_id)}")
+      {:ok, report}
+    else
+      {:error, reason} = error ->
+        Logger.error("Consistency check failed for store #{inspect(store_id)}: #{inspect(reason)}")
+        error
     end
   end
 
@@ -61,22 +55,18 @@ defmodule ExESDB.ConsistencyChecker do
   """
   @spec quick_health_check(store_id()) :: check_result()
   def quick_health_check(store_id) do
-    try do
-      case :khepri_cluster.members(store_id) do
-        {:ok, members} when members != [] ->
-          {:ok, %{
-            status: :healthy,
-            store_id: store_id,
-            member_count: length(members),
-            members: members
-          }}
-        {:ok, []} ->
-          {:error, :no_members}
-        {:error, reason} ->
-          {:error, reason}
-      end
-    rescue
-      error -> {:error, {:exception, error}}
+    case safe_khepri_members(store_id) do
+      {:ok, members} when members != [] ->
+        {:ok, %{
+          status: :healthy,
+          store_id: store_id,
+          member_count: length(members),
+          members: members
+        }}
+      {:ok, []} ->
+        {:error, :no_members}
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
@@ -177,23 +167,21 @@ defmodule ExESDB.ConsistencyChecker do
   end
 
   defp check_raft_status(store_id) do
-    # Check if we can query Ra status
-    case :ra.members({store_id, node()}) do
-      {_status, members, leader} when is_list(members) ->
+    case safe_ra_members({store_id, node()}) do
+      {:ok, {_status, members, leader}} when is_list(members) ->
         {:ok, %{
           status: :healthy,
           members: members,
           leader: leader,
           quorum_size: calculate_quorum_size(length(members))
         }}
-      {_status, reason} ->
+      {:ok, {_status, reason}} ->
         Logger.warning("Raft status check failed: #{inspect(reason)}")
         {:ok, %{status: :error, reason: reason}}
+      {:error, reason} ->
+        Logger.warning("Exception checking Raft status: #{inspect(reason)}")
+        {:ok, %{status: :exception, error: reason}}
     end
-  rescue
-    error ->
-      Logger.warning("Exception checking Raft status: #{inspect(error)}")
-      {:ok, %{status: :exception, error: error}}
   end
 
   defp extract_nodes_from_members(members) do
@@ -389,5 +377,28 @@ defmodule ExESDB.ConsistencyChecker do
     
     Process.sleep(interval_ms)
     monitor_consistency_loop(store_id, interval_ms)
+  end
+
+  ## Helper Functions for Safe External Calls
+
+  defp safe_khepri_members(store_id) do
+    case :khepri_cluster.members(store_id) do
+      {:ok, members} -> {:ok, members}
+      {:error, reason} -> {:error, reason}
+    end
+  catch
+    :error, reason -> {:error, {:caught_error, reason}}
+    :exit, reason -> {:error, {:caught_exit, reason}}
+    reason -> {:error, {:caught_throw, reason}}
+  end
+
+  defp safe_ra_members(ra_server) do
+    case :ra.members(ra_server) do
+      result -> {:ok, result}
+    end
+  catch
+    :error, reason -> {:error, {:caught_error, reason}}
+    :exit, reason -> {:error, {:caught_exit, reason}}
+    reason -> {:error, {:caught_throw, reason}}
   end
 end

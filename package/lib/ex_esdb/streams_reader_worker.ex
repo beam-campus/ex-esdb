@@ -62,10 +62,6 @@ defmodule ExESDB.StreamsReaderWorker do
       error ->
         error
     end
-  rescue
-    error ->
-      Logger.error("Error reading stream #{stream_id}: #{inspect(error)}")
-      {:error, :internal_error}
   end
 
   defp validate_stream_exists(store_id, stream_id) do
@@ -143,33 +139,27 @@ defmodule ExESDB.StreamsReaderWorker do
   end
 
   defp get_streams_safe(store_id) do
-    try do
-      case :khepri.get_many(store_id, [
-             :streams,
-             if_node_exists(exists: true)
-           ]) do
-        {:ok, stream_data} ->
-          streams =
-            Enum.reduce(stream_data, [], fn
-              {[:streams, stream_id], _stream}, acc
-              when is_binary(stream_id) or is_atom(stream_id) ->
-                [stream_id | acc]
+    case :khepri.get_many(store_id, [
+           :streams,
+           if_node_exists(exists: true)
+         ]) do
+      {:ok, stream_data} ->
+        streams =
+          Enum.reduce(stream_data, [], fn
+            {[:streams, stream_id], _stream}, acc
+            when is_binary(stream_id) or is_atom(stream_id) ->
+              [stream_id | acc]
 
-              {invalid_key, _}, acc ->
-                Logger.warning("Invalid stream key format: #{inspect(invalid_key)}")
-                acc
-            end)
+            {invalid_key, _}, acc ->
+              Logger.warning("Invalid stream key format: #{inspect(invalid_key)}")
+              acc
+          end)
 
-          {:ok, Enum.reverse(streams)}
+        {:ok, Enum.reverse(streams)}
 
-        {:error, reason} ->
-          Logger.error("Failed to get streams: #{inspect(reason)}")
-          {:error, :store_id_access_failed}
-      end
-    rescue
-      error ->
-        Logger.error("Error getting streams: #{inspect(error)}")
-        {:error, :internal_error}
+      {:error, reason} ->
+        Logger.error("Failed to get streams: #{inspect(reason)}")
+        {:error, :store_id_access_failed}
     end
   end
 
@@ -180,28 +170,17 @@ defmodule ExESDB.StreamsReaderWorker do
     Process.flag(:trap_exit, true)
     name = StreamsReader.worker_id(store_id, stream_id)
 
-    try_register_with_swarm(name, store_id, stream_id, partition)
+    # Validate initialization parameters
+    case validate_init_params(store_id, stream_id, partition) do
+      :ok ->
+        # Safe logging - avoid potential crashes from theme formatting
+        safe_log_startup(name, partition)
 
-    try do
-      # Validate initialization parameters
-      case validate_init_params(store_id, stream_id, partition) do
-        :ok ->
-          Process.flag(:trap_exit, true)
-          name = StreamsReader.worker_id(store_id, stream_id)
+        try_register_with_swarm(name, store_id, stream_id, partition)
 
-          # Safe logging - avoid potential crashes from theme formatting
-          safe_log_startup(name, partition)
-
-          try_register_with_swarm(name, store_id, stream_id, partition)
-
-        {:error, reason} ->
-          Logger.error("Invalid initialization parameters: #{inspect(reason)}")
-          {:stop, {:invalid_params, reason}}
-      end
-    rescue
-      error ->
-        Logger.error("Error during worker initialization: #{inspect(error)}")
-        {:stop, {:init_error, error}}
+      {:error, reason} ->
+        Logger.error("Invalid initialization parameters: #{inspect(reason)}")
+        {:stop, {:invalid_params, reason}}
     end
   end
 
@@ -216,11 +195,12 @@ defmodule ExESDB.StreamsReaderWorker do
   end
 
   defp safe_log_startup(name, partition) do
-    try do
-      msg = "[#{inspect(name)}] is UP on partition #{inspect(partition)}, joining the cluster."
-      IO.puts("#{Themes.streams_reader_worker(self(), msg)}")
-    rescue
-      _error ->
+    # Use pattern matching to handle theme formatting safely
+    case Themes.streams_reader_worker(self(), "[#{inspect(name)}] is UP on partition #{inspect(partition)}, joining the cluster.") do
+      themed_msg when is_binary(themed_msg) ->
+        IO.puts(themed_msg)
+      
+      _other ->
         # Fallback to basic logging if theme formatting fails
         Logger.info(
           "StreamsReaderWorker #{inspect(name)} starting on partition #{inspect(partition)}"
@@ -229,15 +209,11 @@ defmodule ExESDB.StreamsReaderWorker do
   end
 
   defp register_with_swarm(name) do
-    try do
-      case Swarm.register_name(name, self()) do
-        :yes -> :ok
-        :no -> {:error, :name_already_registered}
-        {:error, reason} -> {:error, reason}
-        other -> {:error, {:unexpected_response, other}}
-      end
-    rescue
-      error -> {:error, {:swarm_error, error}}
+    case Swarm.register_name(name, self()) do
+      :yes -> :ok
+      :no -> {:error, :name_already_registered}
+      {:error, reason} -> {:error, reason}
+      other -> {:error, {:unexpected_response, other}}
     end
   end
 

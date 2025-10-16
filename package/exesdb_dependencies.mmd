@@ -1,0 +1,45 @@
+graph TD
+    %% Core packages
+    ex_esdb[ex_esdb v0.8.0<br/>Core Event Store]
+    ex_esdb_gater[ex_esdb_gater v0.6.0<br/>API Gateway & Load Balancer]
+    
+    %% Extension packages
+    ex_esdb_commanded[ex_esdb_commanded v0.6.0<br/>Commanded Adapter]
+    ex_esdb_grpc[ex_esdb_grpc v0.3.0<br/>gRPC API Server]
+    ex_esdb_dashboard[ex_esdb_dashboard v0.3.0<br/>Dashboard Components]
+    
+    %% External dependencies
+    khepri[Khepri v0.17<br/>Distributed Storage]
+    phoenix_pubsub[Phoenix.PubSub v2.1<br/>Messaging]
+    protobuf[Protobuf v0.15<br/>Serialization]
+    bc_utils[BC Utils v0.15<br/>Utilities]
+    commanded[Commanded<br/>CQRS/ES Framework]
+    phoenix_liveview[Phoenix LiveView<br/>Real-time UI]
+    grpc[gRPC<br/>Protocol]
+    
+    %% Dependencies
+    ex_esdb --> ex_esdb_gater
+    ex_esdb --> khepri
+    ex_esdb --> phoenix_pubsub
+    
+    ex_esdb_gater --> bc_utils
+    ex_esdb_gater --> phoenix_pubsub
+    ex_esdb_gater --> protobuf
+    
+    ex_esdb_commanded --> ex_esdb_gater
+    ex_esdb_commanded --> commanded
+    
+    ex_esdb_grpc --> ex_esdb_gater
+    ex_esdb_grpc --> grpc
+    
+    ex_esdb_dashboard --> ex_esdb_gater
+    ex_esdb_dashboard --> phoenix_liveview
+    
+    %% Styling
+    classDef corePackage fill:#e1f5fe,stroke:#01579b,stroke-width:3px
+    classDef extensionPackage fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef externalDep fill:#fff3e0,stroke:#e65100,stroke-width:1px
+    
+    class ex_esdb,ex_esdb_gater corePackage
+    class ex_esdb_commanded,ex_esdb_grpc,ex_esdb_dashboard extensionPackage
+    class khepri,phoenix_pubsub,protobuf,bc_utils,commanded,phoenix_liveview,grpc externalDep

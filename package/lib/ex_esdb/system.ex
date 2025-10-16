@@ -35,6 +35,7 @@ defmodule ExESDB.System do
 
   alias ExESDB.Options, as: Options
   alias ExESDB.Themes, as: Themes
+  alias ExESDB.PubSubIntegration
   alias ExESDBGater.LibClusterHelper, as: LibClusterHelper
 
   require Logger
@@ -98,6 +99,18 @@ defmodule ExESDB.System do
 
     msg = "is UP in #{db_type} mode!"
     IO.puts(Themes.system(self(), msg))
+    
+    # Broadcast system startup event
+    store_id = Keyword.get(opts, :store_id, "default")
+    version = Application.spec(:ex_esdb, :vsn) |> to_string()
+    PubSubIntegration.broadcast_system_lifecycle(:started, :ex_esdb, version)
+    PubSubIntegration.broadcast_system_config(:system, %{
+      mode: db_type,
+      store_id: store_id,
+      node: Node.self(),
+      components: length(children)
+    })
+    
     ret
   end
 
@@ -120,7 +133,16 @@ defmodule ExESDB.System do
   end
 
   def stop(_reason \\ :normal) do
-    Application.stop(:ex_esdb)
+    # Broadcast system shutdown event
+    version = Application.spec(:ex_esdb, :vsn) |> to_string()
+    PubSubIntegration.broadcast_system_lifecycle(:stopping, :ex_esdb, version)
+    
+    result = Application.stop(:ex_esdb)
+    
+    # Broadcast final shutdown event
+    PubSubIntegration.broadcast_system_lifecycle(:stopped, :ex_esdb, version)
+    
+    result
   end
 
   @doc """
@@ -205,13 +227,19 @@ defmodule ExESDB.System do
   end
 
   defp try_mix_project do
-    try do
-      Mix.Project.config()[:app]
-    rescue
-      _ -> nil
-    catch
-      :exit, _ -> nil
+    case Code.ensure_loaded(Mix.Project) do
+      {:module, _} -> safe_mix_project_app()
+      {:error, _} -> nil
     end
+  end
+
+  defp safe_mix_project_app do
+    case Mix.Project.config()[:app] do
+      app when is_atom(app) -> app
+      _ -> nil
+    end
+  catch
+    _, _ -> nil
   end
 
   defp try_loaded_applications do
@@ -233,34 +261,39 @@ defmodule ExESDB.System do
   defp maybe_atom(nil), do: nil
 
   defp maybe_atom(str) when is_binary(str) do
-    try do
-      String.to_existing_atom(str)
-    rescue
-      _ -> String.to_atom(str)
-    end
+    :erlang.binary_to_existing_atom(str, :utf8)
+  catch
+    :error, :badarg -> String.to_atom(str)
   end
 
   # Try to get the OTP app from the application controller
   defp try_application_controller do
-    try do
-      # Get all running applications and find the one that started most recently
-      # that isn't a system application
-      :application.which_applications()
-      # Most recent first
-      |> Enum.reverse()
-      |> Enum.find(fn {app, _desc, _vsn} ->
-        app_str = Atom.to_string(app)
-
-        not String.starts_with?(app_str, "kernel") and
-          not String.starts_with?(app_str, "stdlib") and
-          app not in [:logger, :runtime_tools, :crypto, :compiler, :elixir, :mix, :ex_esdb]
-      end)
-      |> case do
-        {app, _, _} -> app
-        nil -> nil
-      end
-    rescue
+    case safe_which_applications() do
+      applications when is_list(applications) -> find_user_application(applications)
       _ -> nil
+    end
+  end
+
+  defp safe_which_applications do
+    :application.which_applications()
+  catch
+    _, _ -> []
+  end
+
+  defp find_user_application(applications) do
+    applications
+    # Most recent first
+    |> Enum.reverse()
+    |> Enum.find(fn {app, _desc, _vsn} ->
+      app_str = Atom.to_string(app)
+
+      not String.starts_with?(app_str, "kernel") and
+        not String.starts_with?(app_str, "stdlib") and
+        app not in [:logger, :runtime_tools, :crypto, :compiler, :elixir, :mix, :ex_esdb]
+    end)
+    |> case do
+      {app, _, _} -> app
+      nil -> nil
     end
   end
 

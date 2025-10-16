@@ -99,7 +99,7 @@ defmodule ExESDB.SubscriptionHealthTracker do
     
     # Subscribe to all subscription health events for this store using dedicated health PubSub
     store_topic = "store_health:#{store_id}"
-    subscription_topic_pattern = "subscription_health:#{store_id}:*" 
+    _subscription_topic_pattern = "subscription_health:#{store_id}:*"
     
     :ok = Phoenix.PubSub.subscribe(:ex_esdb_health, store_topic)
     # Note: PubSub doesn't support wildcard subscriptions, so we'll need to handle this differently

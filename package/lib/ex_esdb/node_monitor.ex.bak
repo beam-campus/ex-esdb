@@ -272,9 +272,16 @@ defmodule ExESDB.NodeMonitor do
   end
 
   defp perform_health_probe(node, timeout) do
-    case safe_node_responds_check(node, timeout) do
-      :ok -> safe_applications_running_check(node, timeout)
-      :error -> :unhealthy
+    try do
+      # Multi-layer health check
+      case check_node_responds(node, timeout) do
+        :ok -> check_applications_running(node, timeout)
+        :error -> :unhealthy
+      end
+    rescue
+      _ -> :unhealthy
+    catch
+      _, _ -> :unhealthy
     end
   end
 
@@ -318,9 +325,13 @@ defmodule ExESDB.NodeMonitor do
   end
 
   defp cleanup_swarm_registrations(failed_node) do
-    case safe_get_swarm_registrations() do
-      {:ok, names} -> cleanup_failed_node_registrations(names, failed_node)
-      {:error, reason} -> log_swarm_cleanup_error(reason)
+    try do
+      case get_swarm_registrations() do
+        {:ok, names} -> cleanup_failed_node_registrations(names, failed_node)
+        :error -> log_swarm_cleanup_warning()
+      end
+    rescue
+      error -> log_swarm_cleanup_error(error)
     end
   end
 
@@ -360,41 +371,6 @@ defmodule ExESDB.NodeMonitor do
     Logger.error(
       "#{Themes.node_monitor(node(), "Error during Swarm cleanup: #{inspect(error)}")}"
     )
-  end
-
-  ## Helper Functions for Safe External Calls
-
-  defp safe_node_responds_check(node, timeout) do
-    case check_node_responds(node, timeout) do
-      :ok -> :ok
-      :error -> :error
-    end
-  catch
-    :error, _reason -> :error
-    :exit, _reason -> :error
-    _reason -> :error
-  end
-
-  defp safe_applications_running_check(node, timeout) do
-    case check_applications_running(node, timeout) do
-      :healthy -> :healthy
-      :unhealthy -> :unhealthy
-    end
-  catch
-    :error, _reason -> :unhealthy
-    :exit, _reason -> :unhealthy
-    _reason -> :unhealthy
-  end
-
-  defp safe_get_swarm_registrations do
-    case get_swarm_registrations() do
-      {:ok, names} -> {:ok, names}
-      :error -> {:error, :swarm_unavailable}
-    end
-  catch
-    :error, reason -> {:error, {:caught_error, reason}}
-    :exit, reason -> {:error, {:caught_exit, reason}}
-    reason -> {:error, {:caught_throw, reason}}
   end
 
   defp notify_cluster_failure(failed_node, _store_id) do
