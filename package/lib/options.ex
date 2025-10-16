@@ -322,6 +322,15 @@ defmodule ExESDB.Options do
     end
   end
 
+  def pub_sub(otp_app) when is_atom(otp_app) do
+    app_env(otp_app, :pub_sub, Phoenix.PubSub)
+  end
+
+  def pub_sub do
+    context = get_context_or_discover()
+    pub_sub(context)
+  end
+
   defp to_unique_atom(candidate) do
     :erlang.binary_to_existing_atom(candidate, :utf8)
   catch

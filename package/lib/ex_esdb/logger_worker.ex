@@ -33,32 +33,12 @@ defmodule ExESDB.LoggerWorker do
     
     Logger.info("LoggerWorker for #{subsystem_name} (store: #{store_id}) starting")
     
-    # Subscribe to all event categories for comprehensive logging
-    :ok = ExESDB.ControlPlane.subscribe(store_id, :system)
-    :ok = ExESDB.ControlPlane.subscribe(store_id, :cluster)
-    :ok = ExESDB.ControlPlane.subscribe(store_id, :leadership)
-    :ok = ExESDB.ControlPlane.subscribe(store_id, :coordination)
+    # Note: Event subscription functionality has been removed
+    # LoggerWorker will rely on direct logging from other modules
     
     {:ok, %{subsystem: subsystem_name, store_id: store_id}}
   end
 
-  @impl true
-  def handle_info({:control_plane_event, event}, state) do
-    %{subsystem: subsystem_name, store_id: store_id} = state
-    
-    # Log with structured information for better monitoring
-    Logger.info(
-      "[#{subsystem_name}:#{store_id}] #{event.event_type}: #{inspect(event.data)}",
-      event_id: event.event_id,
-      event_type: event.event_type,
-      subsystem: subsystem_name,
-      store_id: store_id,
-      node: event.node,
-      timestamp: event.timestamp
-    )
-    
-    {:noreply, state}
-  end
 
   @impl true
   def handle_info(_msg, state) do

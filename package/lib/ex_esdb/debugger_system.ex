@@ -3,7 +3,7 @@ defmodule ExESDB.DebuggerSystem do
   Supervisor for the ExESDB Debugger system.
   
   Manages all debugger subsystems including inspection, monitoring,
-  scenario management, and observation.
+  and observation.
   """
   
   use Supervisor
@@ -17,7 +17,6 @@ defmodule ExESDB.DebuggerSystem do
     children = [
       {ExESDB.InspectionSystem, []},
       {ExESDB.ObservationSystem, []},
-      {ExESDB.ScenarioSystem, []},
       {ExESDB.MonitoringSystem, []}
     ]
     

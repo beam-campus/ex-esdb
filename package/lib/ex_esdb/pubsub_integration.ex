@@ -119,7 +119,7 @@ defmodule ExESDB.PubSubIntegration do
     broadcast_store_health_message(store_id, topic, payload)
   end
   
-  defp broadcast_store_health_message(store_id, topic, {:ok, payload}) do
+  defp broadcast_store_health_message(_store_id, topic, {:ok, payload}) do
     case HealthMessages.broadcast_store_health(topic, payload) do
       :ok -> :ok
       {:ok, _} -> :ok
@@ -147,7 +147,7 @@ defmodule ExESDB.PubSubIntegration do
     broadcast_cluster_health_message(topic, payload)
   end
   
-  defp broadcast_cluster_health_message(topic, {:ok, payload}) do
+  defp broadcast_cluster_health_message(_topic, {:ok, payload}) do
     case HealthMessages.broadcast_cluster_health_update(payload) do
       {:ok, _} -> :ok
       {:error, reason} -> log_and_return_error("cluster health", reason)
@@ -388,7 +388,7 @@ defmodule ExESDB.PubSubIntegration do
   defp build_health_payload(component, status, details, opts) do
     # Create payload using ExESDBGater HealthMessages directly
     node = OperationalMessageHelpers.get_node(opts)
-    timestamp = OperationalMessageHelpers.current_timestamp()
+    _timestamp = OperationalMessageHelpers.current_timestamp()
     
     # Use HealthMessages to create the proper structure
     # Convert details map to keyword list since component_health/4 expects a keyword list

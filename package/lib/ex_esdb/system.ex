@@ -132,7 +132,7 @@ defmodule ExESDB.System do
     handle_os_signal()
   end
 
-  def stop(reason \\ :normal) do
+  def stop(_reason \\ :normal) do
     # Broadcast system shutdown event
     version = Application.spec(:ex_esdb, :vsn) |> to_string()
     PubSubIntegration.broadcast_system_lifecycle(:stopping, :ex_esdb, version)
